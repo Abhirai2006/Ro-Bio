@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { SITE } from "@/lib/config/site";
 import { EVENTS, MEMBER_COUNT, formatDate } from "@/lib/events";
-import { HeroPulse, PulseDivider, SplitWord } from "@/components/Pulse";
+import SplitWord from "@/components/SplitWord";
+import ScrollSequence from "@/components/ScrollSequence";
 import Countdown from "@/components/Countdown";
 
 export default function Home() {
@@ -11,21 +12,19 @@ export default function Home() {
       <section className="hero">
         <div>
           <p className="warn"><span>Unauthorised innovation in progress!</span></p>
-          <HeroPulse />
           <h1 aria-label="RO-BIO"><SplitWord text="RO-BIO" /></h1>
           <p>
-            The Biomedical and Robotics Engineering club at {SITE.parent}. We build things that
+            The Biomedical and Robotic Engineering club at {SITE.parent}. We build things that
             read the body and things that move.
           </p>
           <p className="facts">Started {formatDate(SITE.startedOn)}. About {MEMBER_COUNT} members for now.</p>
           <p><a className="btn" href={SITE.instagram}>Follow us on Instagram</a></p>
         </div>
-        <div className="sticker pop">
-          <img src="/brand/logo.webp" width={640} height={640} alt="RO-BIO logo: a robot in a purple helmet with a chest console, in front of a wireframe globe." />
-        </div>
       </section>
 
-      <PulseDivider />
+      <ScrollSequence />
+
+      <div className="divider" aria-hidden="true" />
 
       <section aria-labelledby="next-up">
         <h2 id="next-up">Next up</h2>
