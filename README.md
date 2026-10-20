@@ -1,6 +1,6 @@
 # RO-BIO website
 
-Site for the RO-BIO club (Biomedical and Robotics Engineering, Mysore University School of Engineering).
+Site for the RO-BIO club (Biomedical and Robotic Engineering, Mysore University School of Engineering).
 Built with Next.js and deployed to Cloudflare Workers through the OpenNext adapter.
 
 ## How it deploys
