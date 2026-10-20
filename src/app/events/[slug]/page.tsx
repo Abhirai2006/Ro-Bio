@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SITE } from "@/lib/config/site";
+import { PulseDivider } from "@/components/Pulse";
+import Countdown from "@/components/Countdown";
 import { EVENTS, getEvent, formatDate } from "@/lib/events";
 
 export const dynamicParams = false;
@@ -46,16 +48,19 @@ export default async function EventPage({ params }: Props) {
       <h1>{e.title}</h1>
       <p><strong>{formatDate(e.startsOn, true)}</strong>. Moved from {formatDate(e.previousStartsOn!)}.</p>
       <p>{e.venue}</p>
+      <p><Countdown date={e.startsOn} /></p>
 
       <section aria-labelledby="reg">
         <div className="win soon">
           <div className="tab"><span>REGISTRATION</span><span aria-hidden="true">x</span></div>
           <div className="body">
-            <h2 id="reg">Registration details coming soon</h2>
+            <h2 id="reg"><span className="dot" aria-hidden="true" />Registration details coming soon</h2>
             <p>The rules and the sign-up form are not out yet. We will post them here and on <a href={SITE.instagram}>Instagram</a>.</p>
           </div>
         </div>
       </section>
+
+      <PulseDivider />
 
       <section aria-labelledby="acts">
         <h2 id="acts">What is on</h2>
