@@ -10,3 +10,11 @@ docs/logo/raster.png
 next-env.d.ts
 cloudflare-env.d.ts
 *.tsbuildinfo
+
+# Internal planning docs, kept out of the public repo
+AGENTS.md
+ARCHITECTURE.md
+DECISIONS.md
+DESIGN.md
+PRD.md
+REFERENCES.md
