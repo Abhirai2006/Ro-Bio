@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "robio-hub",
+  "main": ".open-next/worker.js",
+  // An older date is safe. A date newer than your installed Wrangler knows about is rejected.
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "binding": "ASSETS", "directory": ".open-next/assets" }
+}
