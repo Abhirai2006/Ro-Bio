@@ -10,7 +10,8 @@
     "deploy": "npm run build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "check:dashes": "sh scripts/check-no-em-dash.sh",
-    "test:ik": "node --experimental-strip-types scripts/test-ik.mjs"
+    "test:ik": "node --experimental-strip-types scripts/test-ik.mjs",
+    "test:sim": "node --experimental-strip-types scripts/test-sim.mjs"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "1.20.12",
