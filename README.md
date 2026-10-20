@@ -26,7 +26,7 @@ npm run preview
 
 ## What is built
 
-Home, Events, Bot Forge page (registration shows "coming soon"), 404, sitemap, robots, light and dark theme.
+Home, Events, About, Contact, Bot Forge page (registration shows "coming soon"), 404, sitemap, robots, light and dark theme.
 Events are static data in `src/lib/events.ts` for now. The database in `supabase/` is written but not connected yet.
 
 ## Checks
