@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { SITE } from "@/lib/config/site";
 import { MEMBER_COUNT, formatDate } from "@/lib/events";
-import { PulseDivider } from "@/components/Pulse";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "RO-BIO is the Biomedical and Robotics Engineering club at Mysore University School of Engineering.",
+  description: "RO-BIO is the Biomedical and Robotic Engineering club at Mysore University School of Engineering.",
   alternates: { canonical: "/about" },
 };
 
@@ -20,7 +19,7 @@ export default function About() {
     <div className="wrap">
       <h1>About</h1>
       <p>
-        RO-BIO is the Biomedical and Robotics Engineering club at {SITE.parent}, Mysuru. The club
+        RO-BIO is the Biomedical and Robotic Engineering club at {SITE.parent}, Mysuru. The club
         started on {formatDate(SITE.startedOn)} and has about {MEMBER_COUNT} members for now.
       </p>
       <p>
@@ -28,7 +27,7 @@ export default function About() {
         Robot Race, Robo Sumo, Bot Expo and Shark Tank.
       </p>
 
-      <PulseDivider />
+      <div className="divider" aria-hidden="true" />
 
       <section aria-labelledby="loop">
         <h2 id="loop">One loop, twice</h2>
