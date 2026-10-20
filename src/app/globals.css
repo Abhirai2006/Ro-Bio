@@ -59,7 +59,7 @@ body, .win, .sticker { transition: background-color var(--t-base), color var(--t
 
 /* Halftone divider: the same dots as the poster. */
 .divider { height: 28px; margin: 3rem 0 2rem; background-image: radial-gradient(var(--accent) 1.6px, transparent 1.8px); background-size: 11px 11px; -webkit-mask-image: linear-gradient(90deg, #000, transparent); mask-image: linear-gradient(90deg, #000, transparent); }
-@media (min-width: 56rem) { .hero { grid-template-columns: 1fr; } }
+@media (min-width: 56rem) { .hero { grid-template-columns: 1fr 1.15fr; } }
 
 /* One authored moment on load: line draws, letters rise, logo pops. */
 @keyframes rise { from { opacity: 0; transform: translateY(0.45em); } }
@@ -95,3 +95,33 @@ body, .win, .sticker { transition: background-color var(--t-base), color var(--t
 .seq-cap { grid-area: 1 / 1; margin: 0; max-width: 28ch; text-align: center; font-weight: 900; font-style: italic; font-size: clamp(1.25rem, 4vw, 2rem); line-height: 1.1; opacity: 0; transform: translateY(0.6rem); transition: opacity var(--t-base), transform var(--t-slow) var(--ease-out); }
 .seq-cap[data-on="true"] { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .seq { height: auto; } .seq-stick { position: static; height: auto; padding: 2rem 0; } .seq-caps { display: none; } }
+
+/* Display type: Unbounded. Wide, rounded, a little machine and a little organism. */
+h1, h2, h3, .brand, .seq-cap { font-family: var(--font-display), var(--font-archivo), system-ui, sans-serif; font-style: normal; font-weight: 700; letter-spacing: -0.02em; line-height: 1.12; }
+h1 { font-size: clamp(2.4rem, 8.5vw, 4.6rem); font-weight: 800; }
+h2 { font-size: clamp(1.35rem, 3.4vw, 2rem); }
+h3 { font-size: 1.05rem; }
+.brand { font-size: 1.1rem; font-weight: 800; }
+.seq-cap { font-size: clamp(1.1rem, 3.4vw, 1.6rem); }
+.lead { font-size: 1.2rem; max-width: 34ch; }
+.cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.25rem 0; }
+.btn.alt { background: transparent; color: var(--text); }
+
+/* Robot arm */
+.arm canvas { display: block; width: 100%; aspect-ratio: 4 / 3; touch-action: pan-y; cursor: crosshair; border-radius: 6px; }
+.arm .body { padding-bottom: 1.1rem; }
+.readout { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0.75rem 0; font-variant-numeric: tabular-nums; }
+.readout div { display: flex; gap: 0.4rem; }
+.readout dt { color: var(--text-muted); }
+.readout dd { margin: 0; font-weight: 700; }
+
+/* Team */
+.grid.wide { grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); }
+.people { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+.person { display: flex; align-items: center; gap: 0.8rem; line-height: 1.3; }
+.badge { flex: none; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 50%; background: var(--lilac); color: var(--ink); font: 700 0.8rem var(--font-display), sans-serif; }
+.badge[data-c="1"] { background: var(--blue); }
+.badge[data-c="2"] { background: var(--paper); }
+.tag { margin-left: 0.5rem; padding: 0.05rem 0.45rem; border-radius: 4px; background: var(--text); color: var(--bg); font-size: 0.7rem; font-weight: 700; vertical-align: 0.1em; }
+@supports (animation-timeline: view()) { .person { animation: rise linear both; animation-timeline: view(); animation-range: entry 0% entry 70%; } }
+@media (prefers-reduced-motion: reduce) { .person { animation: none !important; } }
