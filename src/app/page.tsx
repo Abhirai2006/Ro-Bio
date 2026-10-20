@@ -4,6 +4,7 @@ import { EVENTS, MEMBER_COUNT, formatDate } from "@/lib/events";
 import SplitWord from "@/components/SplitWord";
 import ScrollSequence from "@/components/ScrollSequence";
 import Countdown from "@/components/Countdown";
+import RobotArm from "@/components/RobotArm";
 
 export default function Home() {
   const next = EVENTS[0];
@@ -13,13 +14,14 @@ export default function Home() {
         <div>
           <p className="warn"><span>Unauthorised innovation in progress!</span></p>
           <h1 aria-label="RO-BIO"><SplitWord text="RO-BIO" /></h1>
-          <p>
-            The Biomedical and Robotic Engineering club at {SITE.parent}. We build things that
-            read the body and things that move.
-          </p>
+          <p className="lead">Biomedical and Robotic Engineering at {SITE.parent}. We build robots, sensors and the tech around the human body.</p>
           <p className="facts">Started {formatDate(SITE.startedOn)}. About {MEMBER_COUNT} members for now.</p>
-          <p><a className="btn" href={SITE.instagram}>Follow us on Instagram</a></p>
+          <div className="cta">
+            <Link className="btn" href="/team">Meet the team</Link>
+            <Link className="btn alt" href="/events/bot-forge">Bot Forge, 28 Oct</Link>
+          </div>
         </div>
+        <RobotArm />
       </section>
 
       <ScrollSequence />
