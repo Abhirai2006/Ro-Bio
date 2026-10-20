@@ -5,6 +5,8 @@ import SplitWord from "@/components/SplitWord";
 import ScrollSequence from "@/components/ScrollSequence";
 import Countdown from "@/components/Countdown";
 import RobotArm from "@/components/RobotArm";
+import Ecg from "@/components/Ecg";
+import LineFollower from "@/components/LineFollower";
 
 export default function Home() {
   const next = EVENTS[0];
@@ -22,6 +24,15 @@ export default function Home() {
           </div>
         </div>
         <RobotArm />
+      </section>
+
+      <section aria-labelledby="bench">
+        <h2 id="bench">On the bench</h2>
+        <p className="lead">One side is the body. The other is the machine. Both are yours to poke.</p>
+        <div className="grid wide">
+          <Ecg />
+          <LineFollower />
+        </div>
       </section>
 
       <ScrollSequence />
