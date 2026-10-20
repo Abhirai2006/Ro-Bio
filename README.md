@@ -1,30 +1,27 @@
 # RO-BIO website
 
 Site for the RO-BIO club (Biomedical and Robotics Engineering, Mysore University School of Engineering).
-Read `AGENTS.md` first if you are an AI, then `PRD.md`.
+Built with Next.js and deployed to Cloudflare Workers through the OpenNext adapter.
 
-## Run it
+## How it deploys
 
-Dependency versions are not pinned in `package.json` on purpose. Your package manager picks the current ones.
+Push to GitHub. Cloudflare installs the dependencies in `package.json`, builds and deploys. Nothing needs installing on your own computer.
+
+Cloudflare settings (Workers and Pages, the `ro-bio` project, Settings, Build):
+
+- Build command: `npx opennextjs-cloudflare build`
+- Deploy command: `npx opennextjs-cloudflare deploy`
+- Build variables and secrets: add `NEXT_PUBLIC_SITE_URL` with the live address, for example `https://ro-bio.YOUR-SUBDOMAIN.workers.dev` or the custom domain. Without it, the sitemap and share links point at localhost.
+
+The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project name in Cloudflare.
+
+## Run it locally (optional)
 
 ```
-pnpm add next react react-dom
-pnpm add -D typescript @types/react @types/react-dom @types/node @opennextjs/cloudflare wrangler
-pnpm dev
+npm install
+npm run dev
+npm run preview
 ```
-
-Commit `pnpm-lock.yaml` after the first install. Open http://localhost:3000.
-
-## Deploy to Cloudflare Workers
-
-```
-pnpm exec wrangler login
-pnpm run preview     # builds with the OpenNext adapter and runs it locally
-pnpm run deploy      # builds and deploys
-```
-
-Use `pnpm run deploy`. Plain `pnpm deploy` is a different built-in pnpm command.
-Set `NEXT_PUBLIC_SITE_URL` to the live address (see `.env.example`). It is the only place the address lives.
 
 ## What is built
 
@@ -33,4 +30,4 @@ Events are static data in `src/lib/events.ts` for now. The database in `supabase
 
 ## Checks
 
-`pnpm check:dashes` fails if the em dash character appears anywhere.
+`npm run check:dashes` fails if the em dash character appears anywhere.
