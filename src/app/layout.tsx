@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE.baseUrl),
   title: { default: "RO-BIO", template: "%s | RO-BIO" },
   description:
-    "RO-BIO is the Biomedical and Robotics Engineering student club at Mysore University School of Engineering, Mysuru.",
+    "RO-BIO is the Biomedical and Robotic Engineering student club at Mysore University School of Engineering, Mysuru.",
   alternates: { canonical: "/" },
   openGraph: { siteName: "RO-BIO", locale: "en_IN", type: "website", images: [{ url: "/brand/logo.webp", width: 640, height: 640, alt: "RO-BIO logo" }] },
 };
@@ -29,7 +29,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <a className="skip" href="#main">Skip to content</a>
-        <div className="progress" aria-hidden="true" />
         <header className="bar">
           <Link href="/" className="brand">
             <img src="/brand/logo.webp" alt="" width={44} height={44} />
@@ -46,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <main id="main">{children}</main>
         <footer className="wrap foot">
           <p>
-            RO-BIO, Biomedical and Robotics Engineering, {SITE.parent}.{" "}
+            RO-BIO, Biomedical and Robotic Engineering, {SITE.parent}.{" "}
             <a href={SITE.instagram}>Instagram @ro_bio_hub</a>
           </p>
         </footer>
