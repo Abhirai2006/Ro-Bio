@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "robio-hub",
+  "name": "ro-bio",
   "main": ".open-next/worker.js",
   // An older date is safe. A date newer than your installed Wrangler knows about is rejected.
   "compatibility_date": "2025-04-01",
