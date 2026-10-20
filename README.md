@@ -9,11 +9,12 @@ Push to GitHub. Cloudflare installs the dependencies in `package.json`, builds a
 
 Cloudflare settings (Workers and Pages, the `ro-bio` project, Settings, Build):
 
-- Build command: `npx opennextjs-cloudflare build`
-- Deploy command: `npx opennextjs-cloudflare deploy`
-- Build variables and secrets: add `NEXT_PUBLIC_SITE_URL` with the live address, for example `https://ro-bio.YOUR-SUBDOMAIN.workers.dev` or the custom domain. Without it, the sitemap and share links point at localhost.
+- Build command: `npm run build` (this runs the Next.js build and then the Cloudflare conversion)
+- Deploy command: `npx wrangler deploy`
+- Build variables and secrets: add `NEXT_PUBLIC_SITE_URL` with the live address, for example the `workers.dev` link or the custom domain. Without it, the sitemap and share links point at localhost.
 
 The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project name in Cloudflare.
+Dependency versions are pinned exactly in `package.json`. They are the ones that built successfully on 2026-10-20.
 
 ## Run it locally (optional)
 
