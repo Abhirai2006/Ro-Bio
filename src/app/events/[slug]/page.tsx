@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SITE } from "@/lib/config/site";
-import { PulseDivider } from "@/components/Pulse";
 import Countdown from "@/components/Countdown";
 import { EVENTS, getEvent, formatDate } from "@/lib/events";
 
@@ -60,7 +59,7 @@ export default async function EventPage({ params }: Props) {
         </div>
       </section>
 
-      <PulseDivider />
+      <div className="divider" aria-hidden="true" />
 
       <section aria-labelledby="acts">
         <h2 id="acts">What is on</h2>
