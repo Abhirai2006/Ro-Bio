@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.env
+.env.local
+*.log
+.DS_Store
+docs/logo/raster.png
+.open-next/
+.wrangler/
+next-env.d.ts
+cloudflare-env.d.ts
+*.tsbuildinfo
