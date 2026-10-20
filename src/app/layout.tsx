@@ -38,6 +38,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <nav aria-label="Main">
             <Link href="/">Home</Link>
             <Link href="/events">Events</Link>
+            <Link href="/about">About</Link>
+            <Link href="/contact">Contact</Link>
           </nav>
           <ThemeToggle />
         </header>
