@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Archivo } from "next/font/google";
+import { Archivo, Unbounded } from "next/font/google";
 import { SITE } from "@/lib/config/site";
 import ThemeToggle from "@/components/ThemeToggle";
 import "../styles/tokens.css";
 import "./globals.css";
 
 const archivo = Archivo({ subsets: ["latin"], style: ["normal", "italic"], display: "swap", variable: "--font-archivo" });
+
+const unbounded = Unbounded({ subsets: ["latin"], display: "swap", variable: "--font-display" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.baseUrl),
@@ -23,7 +25,7 @@ const themeScript = `try{if(localStorage.getItem("theme")==="dark")document.docu
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en-IN" className={archivo.variable} suppressHydrationWarning>
+    <html lang="en-IN" className={`${archivo.variable} ${unbounded.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
@@ -37,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <nav aria-label="Main">
             <Link href="/">Home</Link>
             <Link href="/events">Events</Link>
+            <Link href="/team">Team</Link>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>
           </nav>
