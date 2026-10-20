@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Archivo, Unbounded } from "next/font/google";
 import { SITE } from "@/lib/config/site";
 import ThemeToggle from "@/components/ThemeToggle";
+import Ecg from "@/components/Ecg";
 import "../styles/tokens.css";
 import "./globals.css";
 
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <img src="/brand/logo.webp" alt="" width={44} height={44} />
             <span>RO-BIO</span>
           </Link>
+          <Ecg compact />
           <nav aria-label="Main">
             <Link href="/">Home</Link>
             <Link href="/events">Events</Link>
