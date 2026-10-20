@@ -13,6 +13,8 @@ Cloudflare settings (Workers and Pages, the `ro-bio` project, Settings, Build):
 - Deploy command: `npx wrangler deploy`
 - Build variables and secrets: add `NEXT_PUBLIC_SITE_URL` with the live address, for example the `workers.dev` link or the custom domain. Without it, the sitemap and share links point at localhost.
 
+Also add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` there. They are public by design, and row-level security protects the data. Never put a secret key in `NEXT_PUBLIC_` variables.
+
 The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project name in Cloudflare.
 Dependency versions are pinned exactly in `package.json`. They are the ones that built successfully on 2026-10-20.
 
