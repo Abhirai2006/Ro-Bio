@@ -1,36 +1,39 @@
-# RO-BIO website
+# RO-BIO
 
-Site for the RO-BIO club (Biomedical and Robotic Engineering, Mysore University School of Engineering).
-Built with Next.js and deployed to Cloudflare Workers through the OpenNext adapter.
+The website of RO-BIO, the Biomedical and Robotic Engineering club at Mysore University School of Engineering, Mysuru.
 
-## How it deploys
+Live site: https://ro-bio.abhirai2006.workers.dev
 
-Push to GitHub. Cloudflare installs the dependencies in `package.json`, builds and deploys. Nothing needs installing on your own computer.
+## What is on the site
 
-Cloudflare settings (Workers and Pages, the `ro-bio` project, Settings, Build):
+Home with an interactive robot arm (inverse kinematics) and a live ECG, About, Events (Bot Forge), Workshops, Projects, Team, Gallery, Blog and Contact. There is also a Robo Sumo game and a small robot buddy.
 
-- Build command: `npm run build` (this runs the Next.js build and then the Cloudflare conversion)
-- Deploy command: `npx wrangler deploy`
-- Build variables and secrets: add `NEXT_PUBLIC_SITE_URL` with the live address, for example the `workers.dev` link or the custom domain. Without it, the sitemap and share links point at localhost.
+## Where the facts live
 
-Also add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` there. They are public by design, and row-level security protects the data. Never put a secret key in `NEXT_PUBLIC_` variables.
+Club facts, contacts, events and the core team are in `src/lib/site.ts`. Edit them there.
+Registration stays "coming soon" until the club confirms the rules.
 
-The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project name in Cloudflare.
-Dependency versions are pinned exactly in `package.json`. They are the ones that built successfully on 2026-10-20.
+## Stack
 
-## Run it locally (optional)
+TanStack Start (React), Tailwind CSS, deployed to Cloudflare Workers.
 
-```
+## Run it
+
+```sh
 npm install
 npm run dev
-npm run preview
 ```
 
-## What is built
+## Deploy
 
-Home, Events, About, Contact, Bot Forge page (registration shows "coming soon"), 404, sitemap, robots, light and dark theme.
-Events are static data in `src/lib/events.ts` for now. The database in `supabase/` is written but not connected yet.
+Pushing to `main` builds and deploys through Cloudflare. In the Cloudflare project, the settings are:
 
-## Checks
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy`
 
-`npm run check:dashes` fails if the em dash character appears anywhere.
+The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project name in Cloudflare.
+To deploy by hand: `npm run deploy`.
+
+## Tests
+
+`npm test`
