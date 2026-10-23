@@ -1,4 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { JsonLd } from "@/components/site/JsonLd";
+import { address } from "@/lib/seo";
 import {
   Outlet,
   Link,
@@ -14,6 +16,21 @@ import appCss from "../styles.css?url";
 import { SiteFooter, SiteHeader } from "@/components/site/parts";
 import { RobotFace } from "@/components/site/toys";
 import { site } from "@/lib/site";
+
+const orgLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization", "@id": `${site.url}/#org`, name: "RO-BIO", alternateName: "Ro-Bio Hub", url: site.url,
+      logo: `${site.url}/favicon.png`, image: `${site.url}/og-image.png`,
+      description: `RO-BIO is the student club for ${site.branch} at ${site.college}, Mysuru, India.`,
+      foundingDate: site.startedOn, sameAs: [site.instagram], address,
+      parentOrganization: { "@type": "CollegeOrUniversity", name: site.college, address },
+    },
+    { "@type": "WebSite", "@id": `${site.url}/#website`, url: site.url, name: "RO-BIO", inLanguage: "en-IN", publisher: { "@id": `${site.url}/#org` } },
+  ],
+};
+
 
 function NotFoundComponent() {
   return (
@@ -73,6 +90,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: `${site.url}/og-image.png` },
     ],
     links: [
+      { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "Summary for AI assistants" },
+      { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -96,6 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <JsonLd data={orgLd} />
         {children}
         <Scripts />
       </body>
