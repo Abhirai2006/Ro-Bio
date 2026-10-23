@@ -12,7 +12,9 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "vite build && wrangler deploy"
+    "deploy": "vite build && wrangler deploy",
+    "seo": "node scripts/build-seo.mjs",
+    "prebuild": "node scripts/build-seo.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
