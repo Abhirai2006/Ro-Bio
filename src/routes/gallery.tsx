@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
 import { site } from "@/lib/site";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
+    links: [canonical("/gallery")],
     meta: [
       { title: "Gallery | RO-BIO" },
       { name: "description", content: "Photos and hand-drawn art from RO-BIO, coming soon." },
