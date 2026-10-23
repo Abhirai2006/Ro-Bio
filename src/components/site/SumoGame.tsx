@@ -1,134 +1,198 @@
-import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Play, Square, Vibrate } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Bodies, Body, Composite, Engine, RING, cpuIntent, type CpuTactic } from "@/lib/robot-physics";
-import type Matter from "matter-js";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { HULL, RING, SENSORS, SUDDEN_DEATH, controlFromInput, makeMatch, step, type Bot, type Match, type Tactic } from "@/lib/sumo";
 
-type Pose = { x: number; y: number; angle: number; speed: number };
-const initial = (x: number, angle: number): Pose => ({ x, y: 160, angle, speed: 0 });
+const KEYS: Record<string, string> = { arrowup: "u", w: "u", arrowdown: "d", s: "d", arrowleft: "l", a: "l", arrowright: "r", d: "r" };
+const BRAIN: Record<Tactic, string> = {
+  ENGAGE: "Charging at you", FLANK: "Circling to get behind you", SIDESTEP: "Dodging your charge",
+  SURGE: "Ramming", BACKOFF: "Backing off to reset its wheels", RECOVER: "Edge sensor tripped, backing away",
+};
+const pts = (p: { x: number; y: number }[]) => p.map((q) => `${q.x},${q.y}`).join(" ");
+const FRONT = [{ x: 13, y: -13 }, { x: 24, y: -5 }, { x: 24, y: 5 }, { x: 13, y: 13 }];
 
-function Machine({ pose, player }: { pose: Pose; player: boolean }) {
-  return <g transform={`translate(${pose.x} ${pose.y}) rotate(${pose.angle})`}>
-    <ellipse cx="1" cy="3" rx="23" ry="22" className="fill-paper/10" />
-    {[-17, 13].map((y) => <g key={y}>
-      <rect x="-17" y={y} width="32" height="7" rx="2" className="fill-ink stroke-paper/60" strokeWidth="0.8" />
-      {Array.from({ length: 7 }, (_, i) => <path key={i} d={`M${-14 + i * 4} ${y + 1}v5`} className="stroke-paper/50" strokeWidth="1" />)}
-    </g>)}
-    <rect x="-15" y="-13" width="29" height="26" rx="3" className={player ? "fill-violet stroke-paper" : "fill-lens stroke-paper"} strokeWidth="1" />
-    <rect x="-9" y="-8" width="12" height="16" rx="1" className="fill-ink stroke-paper/40" strokeWidth="0.6" />
-    <path d="M-7 -5h8 M-7 -2h8 M-7 1h8 M-7 4h8" className="stroke-paper/50" strokeWidth="0.8" />
-    <path d="M4 -8h5v5H4z M4 3h5v5H4z" className="fill-lilac stroke-ink" strokeWidth="0.5" />
-    <path d="M12 -16L23 -20V20L12 16Z" className="fill-paper stroke-ink" strokeWidth="1" />
-    <path d="M17 -15v30" className="stroke-ink/40" strokeWidth="1" />
-    {[-10, 10].map((y) => <circle key={y} cx="11" cy={y} r="1.8" className="fill-ink" />)}
-    <circle cx="5" cy="0" r="1.7" className="fill-paper" />
-  </g>;
+type Hud = { phase: "idle" | "count" | "fight" | "over"; msg: string; you: number; cpu: number; tactic: Tactic; fadeP: number; fadeC: number; sudden: boolean };
+type Els<T> = React.MutableRefObject<(T | null)[]>;
+
+function Robot({ fill, accent, g, sensors, treads }: { fill: string; accent: string; g: React.Ref<SVGGElement>; sensors: Els<SVGCircleElement>; treads: Els<SVGLineElement> }) {
+  return (
+    <g ref={g}>
+      <polygon points={pts(HULL.map((p) => ({ x: p.x + 2, y: p.y + 3 })))} fill="rgba(0,0,0,0.35)" />
+      {[-1, 1].map((s, i) => (
+        <g key={s}>
+          <rect x={-14} y={s < 0 ? -19 : 13} width={20} height={6} rx={1.5} fill="#15131c" />
+          <line ref={(el) => { treads.current[i] = el; }} x1={-12} x2={4} y1={s < 0 ? -16 : 16} y2={s < 0 ? -16 : 16} stroke="#6b6880" strokeWidth={4} strokeDasharray="2 3" />
+        </g>
+      ))}
+      <polygon points={pts(HULL)} fill={fill} stroke="#15131c" strokeWidth={1.6} strokeLinejoin="round" />
+      <polygon points={pts(FRONT)} fill="#d9d6e6" stroke="#15131c" strokeWidth={1.2} />
+      <line x1={15} y1={-8} x2={15} y2={8} stroke="#8d89a3" strokeWidth={1} />
+      <rect x={-12} y={-8} width={16} height={16} rx={2} fill={accent} stroke="#15131c" strokeWidth={1} />
+      <circle cx={-4} cy={0} r={2.2} fill="#15131c" />
+      {[-1, 1].map((s) => <circle key={s} cx={6} cy={s * 9} r={1.1} fill="#15131c" />)}
+      {SENSORS.map((p, i) => (
+        <circle key={i} ref={(el) => { sensors.current[i] = el; }} cx={p.x} cy={p.y} r={2.1} fill="#1b1a24" stroke="#d9d6e6" strokeWidth={0.8} />
+      ))}
+    </g>
+  );
 }
 
 export function SumoGame() {
-  const keys = useRef<Record<string, boolean>>({});
-  const world = useRef<{ engine: ReturnType<typeof Engine.create>; player: Matter.Body; cpu: Matter.Body } | null>(null);
-  const [poses, setPoses] = useState({ player: initial(100, 0), cpu: initial(220, 180) });
-  const [running, setRunning] = useState(false);
-  const [score, setScore] = useState({ you: 0, cpu: 0 });
-  const [message, setMessage] = useState("READY TO FIGHT");
-  const [tactic, setTactic] = useState<CpuTactic>("DRIVE");
-  const [impact, setImpact] = useState(0);
-  const [haptics, setHaptics] = useState(false);
-  const hapticRef = useRef(false);
-  const arena = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const shakeEl = useRef<HTMLDivElement>(null);
+  const pG = useRef<SVGGElement>(null), cG = useRef<SVGGElement>(null);
+  const outer = useRef<SVGCircleElement>(null), inner = useRef<SVGCircleElement>(null);
+  const pSens = useRef<(SVGCircleElement | null)[]>([]), cSens = useRef<(SVGCircleElement | null)[]>([]);
+  const pTread = useRef<(SVGLineElement | null)[]>([]), cTread = useRef<(SVGLineElement | null)[]>([]);
+  const spark = useRef<(SVGCircleElement | null)[]>([]);
+  const engine = useRef({ m: makeMatch(1), phase: "idle" as Hud["phase"], cd: 0, keys: new Set<string>(), score: { you: 0, cpu: 0 }, haptics: true });
+  const [hud, setHud] = useState<Hud>({ phase: "idle", msg: "Press START. Arrow keys or WASD drive. Press the opposite way to reverse.", you: 0, cpu: 0, tactic: "ENGAGE", fadeP: 0, fadeC: 0, sudden: false });
+  const [haptics, setHaptics] = useState(true);
+  const [canVibrate, setCanVibrate] = useState(false);
+
+  useEffect(() => { setCanVibrate(typeof navigator !== "undefined" && "vibrate" in navigator); }, []);
+  useEffect(() => { engine.current.haptics = haptics; }, [haptics]);
+
+  const begin = useCallback(() => {
+    const e = engine.current;
+    e.m = makeMatch((Date.now() & 0xffffff) | 1);
+    e.phase = "count"; e.cd = 2.4;
+    setHud((h) => ({ ...h, phase: "count", msg: "Get ready...", sudden: false }));
+    box.current?.focus();
+  }, []);
 
   useEffect(() => {
-    const release = () => { keys.current = {}; };
-    const down = (e: KeyboardEvent) => {
-      if (!running || !arena.current?.contains(document.activeElement)) return;
-      const key = e.key.toLowerCase();
-      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(key)) { e.preventDefault(); keys.current[key] = true; }
-    };
-    const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
-    const visibility = () => { if (document.hidden) release(); };
-    window.addEventListener("keydown", down); window.addEventListener("keyup", up); window.addEventListener("blur", release);
-    document.addEventListener("visibilitychange", visibility);
-    return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); window.removeEventListener("blur", release); document.removeEventListener("visibilitychange", visibility); };
-  }, [running]);
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const e = engine.current;
+    const buzz = (p: number | number[]) => { if (e.haptics && "vibrate" in navigator) navigator.vibrate(p); };
+    const down = (ev: KeyboardEvent) => { const k = KEYS[ev.key.toLowerCase()]; if (k && (e.phase === "count" || e.phase === "fight")) { ev.preventDefault(); e.keys.add(k); } };
+    const up = (ev: KeyboardEvent) => { const k = KEYS[ev.key.toLowerCase()]; if (k) e.keys.delete(k); };
+    window.addEventListener("keydown", down); window.addEventListener("keyup", up);
 
-  useEffect(() => {
-    if (!running) return;
-    const engine = Engine.create({ gravity: { x: 0, y: 0 } });
-    const options = { frictionAir: 0.085, restitution: 0.08, friction: 0.9, density: 0.004 };
-    const player = Bodies.circle(100, 160, RING.botRadius, options);
-    const cpu = Bodies.circle(220, 160, RING.botRadius, options);
-    Composite.add(engine.world, [player, cpu]); world.current = { engine, player, cpu };
-    let raf = 0, previous = 0, accumulator = 0, time = 0, lastHaptic = 0;
-    let playerAngle = 0, cpuAngle = 180;
-    const update = (now: number) => {
-      accumulator += previous ? Math.min(now - previous, 50) : 16.67; previous = now;
-      let contact = false;
-      while (accumulator >= 1000 / 60) {
-        time += 1000 / 60;
-        const k = keys.current;
-        const x = Number(Boolean(k['arrowright'] || k['d'])) - Number(Boolean(k['arrowleft'] || k['a']));
-        const y = Number(Boolean(k['arrowdown'] || k['s'])) - Number(Boolean(k['arrowup'] || k['w']));
-        const length = Math.max(1, Math.hypot(x, y));
-        Body.applyForce(player, player.position, { x: x / length * 0.0025, y: y / length * 0.0025 });
-        contact = Math.hypot(player.position.x - cpu.position.x, player.position.y - cpu.position.y) < 38;
-        const intent = cpuIntent(cpu, player, time, contact);
-        setTactic(intent.tactic);
-        // Strong traction, equal mass: tactical recovery rather than invulnerability.
-        Body.applyForce(cpu, cpu.position, { x: intent.x * 0.00265, y: intent.y * 0.00265 });
-        if (x || y) playerAngle = Math.atan2(y, x) * 180 / Math.PI;
-        cpuAngle = Math.atan2(intent.y, intent.x) * 180 / Math.PI;
-        for (const bot of [player, cpu]) {
-          if (bot.speed > 3.8) Body.setVelocity(bot, { x: bot.velocity.x / bot.speed * 3.8, y: bot.velocity.y / bot.speed * 3.8 });
-        }
-        Engine.update(engine, 1000 / 60); accumulator -= 1000 / 60;
-        const out = (bot: Matter.Body) => Math.hypot(bot.position.x - 160, bot.position.y - 160) > RING.radius;
-        if (out(player) || out(cpu)) {
-          const win = out(cpu) && !out(player);
-          setScore((s) => ({ you: s.you + Number(win), cpu: s.cpu + Number(!win) }));
-          setMessage(win ? "RING OUT / YOU WIN" : "RING OUT / CPU WINS");
-          setRunning(false); keys.current = {}; break;
+    const sparks = Array.from({ length: 16 }, () => ({ x: 0, y: 0, vx: 0, vy: 0, life: 0 }));
+    let raf = 0, last = 0, acc = 0, hudAt = 0, lastBuzz = 0, lastRumble = 0, shake = 0, stop = 0, treadP = 0, treadC = 0, visible = true;
+
+    const place = (g: SVGGElement | null, b: Bot) => g?.setAttribute("transform", `translate(${b.x.toFixed(2)} ${b.y.toFixed(2)}) rotate(${((b.h * 180) / Math.PI).toFixed(2)})`);
+    const light = (els: (SVGCircleElement | null)[], on: boolean[]) => els.forEach((el, i) => { if (el) el.style.fill = on[i] ? "var(--lens)" : "#1b1a24"; });
+
+    const frame = (now: number) => {
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016; last = now;
+      const m: Match = e.m;
+      if (e.phase === "count") {
+        e.cd -= dt;
+        if (e.cd <= 0) { e.phase = "fight"; setHud((h) => ({ ...h, phase: "fight", msg: "FIGHT! Get on the centre side of it and push it out." })); }
+        else if (now - hudAt > 100) setHud((h) => ({ ...h, msg: e.cd > 1.6 ? "3" : e.cd > 0.8 ? "2" : "1" }));
+      }
+      if (e.phase === "fight") {
+        if (stop > 0) stop--; else {
+          acc += dt;
+          const ix = (e.keys.has("r") ? 1 : 0) - (e.keys.has("l") ? 1 : 0), iy = (e.keys.has("d") ? 1 : 0) - (e.keys.has("u") ? 1 : 0);
+          while (acc >= 1 / 120) { step(m, controlFromInput(m.bots[0], ix, iy), 1 / 120); acc -= 1 / 120; if (m.over) break; }
+          if (m.hit > 0.4) {
+            const s = Math.min(1, m.hit / 9);
+            if (!reduced) { shake = Math.max(shake, s); if (m.hit > 6) stop = 2; }
+            if (now - lastBuzz > 90) { buzz(Math.round(12 + s * 34)); lastBuzz = now; }
+            if (m.contactPoint && !reduced) for (let i = 0; i < 2 + Math.round(s * 5); i++) { const q = sparks.find((p) => p.life <= 0); if (q) { const a = Math.random() * 6.283, v = 40 + Math.random() * 90 * (0.4 + s); q.x = m.contactPoint.x; q.y = m.contactPoint.y; q.vx = Math.cos(a) * v; q.vy = Math.sin(a) * v; q.life = 0.35 + Math.random() * 0.25; } }
+            m.hit = 0;
+          }
+          if (m.rumble > 0.3 && now - lastRumble > 120) { buzz(Math.round(8 + m.rumble * 22)); lastRumble = now; }
+          if (m.over) {
+            e.phase = "over";
+            const won = m.winner === "you";
+            if (won) e.score.you++; else e.score.cpu++;
+            buzz(won ? [30, 40, 30, 40, 90] : [90, 40, 130]);
+            const why = m.over === "time" ? "Time. " : "";
+            setHud((h) => ({ ...h, phase: "over", you: e.score.you, cpu: e.score.cpu, msg: won ? `${why}You pushed it out. Nice.` : `${why}It pushed you out. Try getting behind it, and back off when your grip bar drops.` }));
+          }
         }
       }
-      const pose = (body: Matter.Body, angle: number): Pose => ({ x: body.position.x, y: body.position.y, speed: body.speed, angle });
-      setPoses({ player: pose(player, playerAngle), cpu: pose(cpu, cpuAngle) });
-      setImpact(contact ? Math.floor(time / 40) % 2 + 1 : 0);
-      if (contact && hapticRef.current && now - lastHaptic > 180 && typeof navigator.vibrate === "function") { navigator.vibrate(18); lastHaptic = now; }
-      raf = requestAnimationFrame(update);
+
+      const [P, C] = m.bots;
+      place(pG.current, P); place(cG.current, C);
+      treadP += (P.vx * Math.cos(P.h) + P.vy * Math.sin(P.h)) * dt; treadC += (C.vx * Math.cos(C.h) + C.vy * Math.sin(C.h)) * dt;
+      pTread.current.forEach((el) => el && (el.style.strokeDashoffset = String(-treadP))); cTread.current.forEach((el) => el && (el.style.strokeDashoffset = String(-treadC)));
+      light(pSens.current, P.sensors); light(cSens.current, C.sensors);
+      outer.current?.setAttribute("r", String(m.ringR + 8)); inner.current?.setAttribute("r", String(m.ringR));
+      sparks.forEach((q, i) => {
+        const el = spark.current[i]; if (!el) return;
+        if (q.life > 0) { q.life -= dt; q.x += q.vx * dt; q.y += q.vy * dt; el.setAttribute("cx", q.x.toFixed(1)); el.setAttribute("cy", q.y.toFixed(1)); el.style.opacity = String(Math.max(0, q.life * 3)); } else el.style.opacity = "0";
+      });
+      shake *= 0.88;
+      const s = reduced ? 0 : Math.max(shake, m.rumble * 0.3);
+      if (shakeEl.current) shakeEl.current.style.transform = s > 0.01 ? `translate(${((Math.random() - 0.5) * 9 * s).toFixed(1)}px, ${((Math.random() - 0.5) * 9 * s).toFixed(1)}px)` : "";
+
+      if (now - hudAt > 100) {
+        hudAt = now;
+        setHud((h) => (h.tactic === m.brain.tactic && Math.abs(h.fadeP - P.fade) < 0.02 && Math.abs(h.fadeC - C.fade) < 0.02 && h.sudden === (m.t > SUDDEN_DEATH.after) ? h : { ...h, tactic: m.brain.tactic, fadeP: P.fade, fadeC: C.fade, sudden: m.t > SUDDEN_DEATH.after }));
+      }
+      raf = visible ? requestAnimationFrame(frame) : 0;
     };
-    raf = requestAnimationFrame(update);
-    return () => { cancelAnimationFrame(raf); Composite.clear(engine.world, false); Engine.clear(engine); world.current = null; setImpact(0); };
-  }, [running]);
+    const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) { last = 0; raf = requestAnimationFrame(frame); } });
+    if (box.current) io.observe(box.current);
+    raf = requestAnimationFrame(frame);
+    return () => { cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
+  }, []);
 
-  const pad = (key: string, label: string, Icon: typeof ArrowUp, position: string) => <Button variant="outline" size="icon" className={`h-12 w-12 touch-none border-2 border-border ${position}`} aria-label={`Move ${label}`} onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); keys.current[key] = true; arena.current?.focus(); }} onPointerUp={() => { keys.current[key] = false; }} onPointerCancel={() => { keys.current[key] = false; }} onLostPointerCapture={() => { keys.current[key] = false; }}><Icon /></Button>;
+  const pad = (k: string, label: string, cls: string) => (
+    <button
+      type="button"
+      aria-label={`Drive ${label}`}
+      className={`flex h-12 w-12 touch-none select-none items-center justify-center border-2 border-border bg-card text-xl font-bold shadow-hard active:translate-x-0.5 active:translate-y-0.5 ${cls}`}
+      onPointerDown={(ev) => { ev.currentTarget.setPointerCapture(ev.pointerId); engine.current.keys.add(k); }}
+      onPointerUp={() => engine.current.keys.delete(k)}
+      onPointerCancel={() => engine.current.keys.delete(k)}
+    >
+      {label}
+    </button>
+  );
+  const busy = hud.phase === "count" || hud.phase === "fight";
+  const bar = (v: number, c: string) => (
+    <div className="h-2 w-full overflow-hidden border border-border bg-muted" aria-hidden="true"><div className={`h-full ${c}`} style={{ width: `${Math.round((1 - v / 0.55) * 100)}%`, transition: "width 120ms linear" }} /></div>
+  );
 
-  return <div ref={arena} tabIndex={0} className="sumo-arena grid gap-8 border-y-2 border-border py-6 md:grid-cols-[1.1fr_1fr] md:py-8">
-    <div className="relative overflow-hidden border-2 border-border bg-ink text-paper">
-      <div className="absolute left-3 top-3 z-10 font-mono text-[10px] text-paper/60">DOHYO / 01</div>
-      <svg viewBox="0 0 320 320" className={`block aspect-square w-full ${impact === 1 ? "collision-left" : impact === 2 ? "collision-right" : ""}`} role="img" aria-label="Mechanical sumo robots fighting in the ring">
-        <defs><pattern id="sumo-surface" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 0h8" className="stroke-paper/5" strokeWidth="0.5" /></pattern></defs>
-        <circle cx="160" cy="164" r="139" className="fill-paper/10" />
-        <circle cx="160" cy="160" r="138" className="fill-paper" />
-        <circle cx="160" cy="160" r="130" className="fill-ink" />
-        <circle cx="160" cy="160" r="130" fill="url(#sumo-surface)" />
-        <circle cx="160" cy="160" r="100" fill="none" className="stroke-paper/10" strokeDasharray="2 5" />
-        <path d="M140 132v56 M180 132v56" className="stroke-lilac" strokeWidth="2" />
-        {[0, 90, 180, 270].map((angle) => <path key={angle} d="M160 26v5" transform={`rotate(${angle} 160 160)`} className="stroke-ink" strokeWidth="2" />)}
-        <Machine pose={poses.player} player /><Machine pose={poses.cpu} player={false} />
-        {impact > 0 && <g transform={`translate(${(poses.player.x + poses.cpu.x) / 2} ${(poses.player.y + poses.cpu.y) / 2})`} className="stroke-lilac" strokeWidth="1.4"><path d="M-8 -4l-5 -5 M8 -4l5 -5 M-5 6l-4 5 M5 6l4 5" /></g>}
-      </svg>
-      <div className="flex justify-between border-t border-paper/20 px-3 py-2 font-mono text-[10px]"><span className="text-lilac">RB-02 / YOU</span><span className="text-lens">RB-03 / CPU</span></div>
-    </div>
-    <div className="flex flex-col justify-between gap-6">
-      <div><p className="font-pixel text-[11px] text-primary">BOT FORGE / PRACTICE ARENA</p><h3 className="mt-3 text-4xl font-black">Steel. Traction.<br />A little strategy.</h3><p className="mt-5 font-mono text-xs text-muted-foreground" role="status">{message}</p>
-        <div className="mt-6 flex items-end gap-6 border-y border-border/30 py-4"><span className="font-pixel text-xs">YOU</span><span className="font-display text-4xl font-bold tabular-nums">{score.you} : {score.cpu}</span><span className="font-pixel text-xs text-primary">CPU</span></div>
-        <p className="mt-4 font-mono text-[11px] text-muted-foreground">CPU / {running ? tactic : "STANDBY"} <span className="ml-3">{impact ? "CONTACT" : "CLEAR"}</span></p>
+  return (
+    <div ref={box} tabIndex={-1} className="grid gap-6 border-2 border-border bg-card p-4 shadow-hard outline-none md:grid-cols-[1fr_1fr] md:p-6">
+      <div ref={shakeEl} className="bg-ink p-2">
+        <svg viewBox="0 0 320 320" className="block w-full" role="img" aria-label="Robo Sumo ring seen from above, with two wedge-nosed robots pushing each other">
+          <circle ref={outer} cx={RING.cx} cy={RING.cy} r={RING.radius + 8} className="fill-paper" />
+          <circle ref={inner} cx={RING.cx} cy={RING.cy} r={RING.radius} className="fill-ink" />
+          <line x1={140} y1={130} x2={140} y2={190} className="stroke-paper/40" strokeWidth="3" />
+          <line x1={180} y1={130} x2={180} y2={190} className="stroke-paper/40" strokeWidth="3" />
+          <Robot g={pG} fill="var(--violet)" accent="var(--lilac)" sensors={pSens} treads={pTread} />
+          <Robot g={cG} fill="var(--lens)" accent="#d9d6e6" sensors={cSens} treads={cTread} />
+          {Array.from({ length: 16 }, (_, i) => <circle key={i} ref={(el) => { spark.current[i] = el; }} r={1.6} fill="#ffd36b" style={{ opacity: 0 }} />)}
+        </svg>
       </div>
-      <div className="flex items-end justify-between gap-3">
-        <div className="flex flex-col gap-3"><Button size="lg" onClick={() => { keys.current = {}; setMessage("ROUND ACTIVE"); setRunning(!running); arena.current?.focus(); }} className="h-12 border-2 border-border font-pixel text-xs shadow-hard">{running ? <Square /> : <Play />}{running ? "STOP" : "START"}</Button>
-          <Button variant="ghost" size="sm" aria-pressed={haptics} aria-label="Toggle collision vibration" onClick={() => { hapticRef.current = !haptics; setHaptics(!haptics); }}><Vibrate /><span className="font-mono text-[10px]">HAPTICS {haptics ? "ON" : "OFF"}</span></Button></div>
-        <div className="grid grid-cols-3 gap-1.5" aria-label="Touch controls">{pad("arrowup", "up", ArrowUp, "col-start-2")}{pad("arrowleft", "left", ArrowLeft, "col-start-1 row-start-2")}{pad("arrowdown", "down", ArrowDown, "col-start-2 row-start-2")}{pad("arrowright", "right", ArrowRight, "col-start-3 row-start-2")}</div>
+      <div className="flex flex-col justify-between gap-4">
+        <div>
+          <p className="font-pixel text-[11px] text-primary">BOT FORGE PREVIEW / ROBO SUMO</p>
+          <h3 className="mt-2 text-3xl font-black">Push it out of the ring.</h3>
+          <p role="status" className="mt-2 min-h-[3rem] text-muted-foreground">{hud.msg}</p>
+          <p className="mt-3 font-mono text-lg">YOU {hud.you} : {hud.cpu} CPU</p>
+          <div className="mt-3 grid gap-2 font-mono text-xs">
+            <div><div className="mb-1 flex justify-between"><span>YOUR WHEEL GRIP</span></div>{bar(hud.fadeP, "bg-primary")}</div>
+            <div><div className="mb-1 flex justify-between"><span>CPU WHEEL GRIP</span></div>{bar(hud.fadeC, "bg-lens")}</div>
+            <p className="text-muted-foreground">CPU brain: <span className="text-foreground">{BRAIN[hud.tactic]}</span></p>
+            {hud.sudden && <p className="font-bold text-primary">SUDDEN DEATH: the ring is shrinking.</p>}
+          </div>
+        </div>
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <button type="button" onClick={begin} disabled={busy} className="border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard disabled:opacity-50">
+              {hud.phase === "idle" ? "START" : busy ? "FIGHTING..." : "NEXT ROUND"}
+            </button>
+            {canVibrate && (
+              <button type="button" aria-pressed={haptics} onClick={() => setHaptics(!haptics)} className="border-2 border-border bg-card px-3 py-1 text-xs font-bold">
+                Vibration: {haptics ? "on" : "off"}
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-1" aria-label="Touch controls">
+            {pad("u", "↑", "col-start-2")}
+            {pad("l", "←", "col-start-1 row-start-2")}
+            {pad("d", "↓", "col-start-2 row-start-2")}
+            {pad("r", "→", "col-start-3 row-start-2")}
+          </div>
+        </div>
       </div>
     </div>
-  </div>;
+  );
 }
