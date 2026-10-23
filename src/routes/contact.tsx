@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
 import { contacts, site } from "@/lib/site";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
+    links: [canonical("/contact")],
     meta: [
       { title: "Contact | RO-BIO" },
       { name: "description", content: "Phone numbers, Instagram and address for RO-BIO at Mysore University School of Engineering, Manasa Gangotri." },
