@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { PageIntro, Pending } from "@/components/site/parts";
 
 export const Route = createFileRoute("/blog")({
   head: () => ({
+    links: [canonical("/blog")],
     meta: [
       { title: "Blog | RO-BIO" },
       { name: "description", content: "News and write-ups from RO-BIO, the Biomedical and Robotic Engineering club at MUSE." },
