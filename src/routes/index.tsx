@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { HeartbeatMonitor, SumoGame } from "@/components/site/toys";
+import { canonical } from "@/lib/seo";
+import { SumoGame } from "@/components/site/SumoGame";
+import { RoboCompanion } from "@/components/site/RoboCompanion";
+import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
 import { contacts, daysBetween, events, formatDate, site } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
   head: () => ({
+    links: [canonical("/")],
     meta: [
       { title: "RO-BIO | Biomedical and Robotic Engineering club, MUSE Mysuru" },
       {
@@ -48,6 +52,9 @@ function Hero() {
           <p className="mt-4 inline-block hazard p-[3px]">
             <span className="block bg-paper px-3 py-1.5 font-pixel text-[11px] text-ink">⚠ {site.tagline.toUpperCase()}</span>
           </p>
+          <p className="mt-4 font-mono text-sm text-muted-foreground">
+            At Bot Forge: <Typed words={next.activities.map((a) => a.name)} />
+          </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link to="/events/$slug" params={{ slug: next.slug }} className="rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5">
               {next.title}, {formatDate(next.date)}
@@ -71,11 +78,14 @@ function Hero() {
             </div>
           </dl>
         </div>
-        <div>
-          <RobotArm />
-          <p className="mt-3 text-sm text-muted-foreground">
-            Aim with your mouse or finger, press to grip. Grab the sample vial and drop it in the tray. Joint angles are solved live with inverse kinematics.
-          </p>
+        <div className="grid gap-6">
+          <RoboCompanion />
+          <div data-thought="That arm solves inverse kinematics. Two joint angles, live.">
+            <RobotArm />
+            <p className="mt-3 text-sm text-muted-foreground">
+              Aim with your mouse or finger, press to grip. Grab the sample vial and drop it in the tray. Joint angles are solved live with inverse kinematics.
+            </p>
+          </div>
         </div>
       </div>
       <LineFollower className="relative mx-auto -mb-1 h-16 w-full max-w-6xl px-4" />
@@ -99,7 +109,6 @@ function Index() {
             from real companies come to campus and teach us things you don't get from a textbook.
           </p>
         </div>
-        <div className="mt-12"><HeartbeatMonitor /></div>
       </section>
 
       <section className="mx-auto max-w-6xl px-4" aria-labelledby="next-event">
