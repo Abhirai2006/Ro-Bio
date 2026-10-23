@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { PageIntro, Pending, Uptime } from "@/components/site/parts";
 import { site } from "@/lib/site";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
+    links: [canonical("/about")],
     meta: [
       { title: "About RO-BIO | Biomedical and Robotic Engineering club" },
       { name: "description", content: "Who RO-BIO is: the student club of Biomedical and Robotic Engineering at MUSE, Mysuru, since 20 May 2026." },
