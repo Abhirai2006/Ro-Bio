@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
 import { events, formatDate } from "@/lib/site";
 
 export const Route = createFileRoute("/events/")({
   head: () => ({
+    links: [canonical("/events")],
     meta: [
       { title: "Events | RO-BIO" },
       { name: "description", content: "RO-BIO events at Mysore University School of Engineering. Bot Forge is on 28 Oct 2026." },
