@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { daysBetween, site, todayInIndia } from "@/lib/site";
 import logo from "@/assets/robio-logo.jpg";
+import { HeaderEcg } from "@/components/site/HeaderEcg";
 
 export const logoUrl = logo;
 
@@ -63,7 +64,7 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5">
         <Link to="/" className="flex items-center gap-2" aria-label="RO-BIO home">
           <img src={logoUrl} alt="" className="h-10 w-10 rounded-sm border-2 border-border bg-paper object-cover" />
-          <span className="font-display text-lg font-black italic">RO-BIO</span>
+          <span className="font-display text-lg font-black italic max-[420px]:hidden">RO-BIO</span>
         </Link>
         <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex gap-1">
@@ -81,6 +82,7 @@ export function SiteHeader() {
           </ul>
         </nav>
         <div className="flex items-center gap-2">
+          <HeaderEcg />
           <ThemeToggle />
           <button
             type="button"
@@ -202,6 +204,16 @@ export function SiteFooter() {
           <p className="mt-4 opacity-70">Built by students.</p>
         </div>
       </div>
-    </footer>
+            <div className="border-t border-current/20">
+          <nav aria-label="Help and legal" className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-sm font-semibold">
+            <Link to="/faq" className="underline underline-offset-4">FAQ</Link>
+            <Link to="/privacy" className="underline underline-offset-4">Privacy</Link>
+            <Link to="/terms" className="underline underline-offset-4">Terms</Link>
+            <Link to="/accessibility" className="underline underline-offset-4">Accessibility</Link>
+            <a href="/sitemap.xml" className="underline underline-offset-4">Sitemap</a>
+            <a href="/llms.txt" className="underline underline-offset-4">For AI assistants</a>
+          </nav>
+        </div>
+      </footer>
   );
 }
