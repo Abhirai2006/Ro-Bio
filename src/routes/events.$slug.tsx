@@ -1,4 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { JsonLd } from "@/components/site/JsonLd";
+import { address, canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
 import { contacts, events, formatDate, site } from "@/lib/site";
 
@@ -13,6 +15,7 @@ export const Route = createFileRoute("/events/$slug")({
     if (!e) return { meta: [{ title: "Event not found | RO-BIO" }, { name: "robots", content: "noindex" }] };
     const desc = `${e.title} by RO-BIO on ${formatDate(e.date)} at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`;
     return {
+      links: [canonical(`/events/${e.slug}`)],
       meta: [
         { title: `${e.title}, ${formatDate(e.date)} | RO-BIO` },
         { name: "description", content: desc },
@@ -28,6 +31,19 @@ function EventPage() {
   const { event: e } = Route.useLoaderData();
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org", "@type": "Event", name: e.title,
+          description: `${e.title} by RO-BIO at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`,
+          startDate: e.date,
+          ...(e.previousDate ? { previousStartDate: e.previousDate, eventStatus: "https://schema.org/EventRescheduled" } : { eventStatus: "https://schema.org/EventScheduled" }),
+          eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+          location: { "@type": "Place", name: site.college, address },
+          organizer: { "@type": "Organization", name: "RO-BIO", url: site.url },
+          url: `${site.url}/events/${e.slug}`, image: `${site.url}/og-image.png`,
+          subEvent: e.activities.map((a) => ({ "@type": "Event", name: a.name, startDate: e.date })),
+        }}
+      />
       <PageIntro label={`${e.kind.toUpperCase()} / ROBIO HUB PRESENTS`} title={e.title}>
         <span className="font-display text-2xl font-bold text-primary">{formatDate(e.date)}</span>
         {e.previousDate && (
