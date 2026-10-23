@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
 import { FlipCard } from "@/components/site/toys";
 import { contacts, coreTeam, currentSem } from "@/lib/site";
 
 export const Route = createFileRoute("/team")({
   head: () => ({
+    links: [canonical("/team")],
     meta: [
       { title: "Team | RO-BIO" },
       { name: "description", content: "RO-BIO coordinators and core team: President Thushar K L, Vice President Shloka D Raj and every squad." },
