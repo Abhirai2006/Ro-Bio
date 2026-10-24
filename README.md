@@ -10,7 +10,7 @@ Home with an interactive robot arm (inverse kinematics) and a live ECG, About, E
 
 ## Robots and games
 
-- `src/lib/robo-rig.ts`, `robo-brain.ts` and `components/site/RoboCompanion.tsx`: Robo, the full-body robot that sleeps, wakes, yawns and follows your cursor, with an X-ray anatomy view. Preview every pose with `node scripts/render-robo.mjs`.
+- `src/lib/robo-rig.ts` (front view), `robo-walk.ts` (side view), `robo-roam.ts` (his brain) and `components/site/RoboLayer.tsx`: Robo, the robot that roams the whole site. He sleeps, wakes, walks along the bottom of the screen, hops onto headings and cards, goes to what you are reading, can be picked up, and runs into a link and pops out on the next page. Preview poses with `node scripts/render-robo.mjs` and `render-walk.mjs`. Test his behaviour in a real browser with `scripts/roam-check` (23 checks: waking, walking, hopping, anchoring, the trip between pages, drag and drop, rest, reduced motion).
 - `src/lib/sumo.ts` and `components/site/SumoGame.tsx`: Robo Sumo. Physics and CPU brain are plain code. `node --experimental-strip-types scripts/sumo-sim.mjs` plays hundreds of seeded matches and prints win rates for players of different skill.
 - `components/site/HeaderEcg.tsx`: the live heartbeat in the header. Its rate follows how active the visitor is.
 
