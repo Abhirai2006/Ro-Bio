@@ -10,7 +10,7 @@ try {
   const plain = (iso) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, "");
   const soon = (file) => { try { return readFileSync(`src/routes/${file}.tsx`, "utf8").includes("<Pending") ? " (content coming soon)" : ""; } catch { return ""; } };
   const pages = [
-    ["/", "Home", "Meet the club. Interactive robot arm, line follower, Robo Sumo and a live ECG."],
+    ["/", "Home", "Meet the club. An interactive robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site."],
     ["/about", "About", "What RO-BIO is and why robots and bodies belong together."],
     ["/events", "Events", "Events run by RO-BIO."],
     [`/events/${bf.slug}`, bf.title, `${bf.title}, ${formatDate(bf.date)}: ${bf.activities.map((a) => a.name).join(", ")}.`],
