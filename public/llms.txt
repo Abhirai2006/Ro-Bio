@@ -15,7 +15,7 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - Bot Forge: Wed, 28 Oct 2026 (moved from 25 Jun 2026). Parts: Line Follower, Robot Race, Bot Expo, Robo Sumo, Shark Tank. Registration: coming soon.
 
 ## Pages
-- [Home](https://ro-bio.abhirai2006.workers.dev/): Meet the club. Interactive robot arm, line follower, Robo Sumo and a live ECG.
+- [Home](https://ro-bio.abhirai2006.workers.dev/): Meet the club. An interactive robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site.
 - [About](https://ro-bio.abhirai2006.workers.dev/about): What RO-BIO is and why robots and bodies belong together.
 - [Events](https://ro-bio.abhirai2006.workers.dev/events): Events run by RO-BIO.
 - [Bot Forge](https://ro-bio.abhirai2006.workers.dev/events/bot-forge): Bot Forge, Wed, 28 Oct 2026: Line Follower, Robot Race, Bot Expo, Robo Sumo, Shark Tank.
