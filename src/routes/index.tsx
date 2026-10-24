@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { SumoGame } from "@/components/site/SumoGame";
-import { RoboCompanion } from "@/components/site/RoboCompanion";
 import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
@@ -79,8 +78,7 @@ function Hero() {
           </dl>
         </div>
         <div className="grid gap-6">
-          <RoboCompanion />
-          <div data-thought="That arm solves inverse kinematics. Two joint angles, live.">
+          <div data-robo-avoid data-thought="That arm solves inverse kinematics. Two joint angles, live.">
             <RobotArm />
             <p className="mt-3 text-sm text-muted-foreground">
               Aim with your mouse or finger, press to grip. Grab the sample vial and drop it in the tray. Joint angles are solved live with inverse kinematics.
