@@ -139,7 +139,7 @@ export function Window({
   className?: string;
 }) {
   return (
-    <div className={`border-2 border-border bg-card shadow-hard ${className}`}>
+    <div data-robo-perch className={`border-2 border-border bg-card shadow-hard ${className}`}>
       <div className="flex items-center justify-between border-b-2 border-border bg-secondary px-2 py-1">
         <span className="font-pixel text-[10px] tracking-wider">{tag}</span>
         <span aria-hidden="true" className="grid h-3.5 w-3.5 place-items-center border-2 border-border text-[8px] leading-none">
