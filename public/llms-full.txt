@@ -49,13 +49,13 @@ The quickest way is a message on Instagram @ro_bio_hub. The Contact page lists t
 BMRE is short for Biomedical and Robotic Engineering. Most of the core team is from this branch, with some students from CS&D and AIML.
 
 ### What can I try on this website?
-The home page has a robot arm that solves inverse kinematics, a line-following robot you can tune with PID gains, a Robo Sumo game against a CPU, a live ECG in the header, and a small robot called Robo who wakes up and follows your cursor.
+The home page has a robot arm that solves inverse kinematics, a Robo Sumo game against a CPU, and a live ECG in the header. A small robot called Robo lives on the whole site: it walks around, jumps onto things, follows your cursor, and travels with you from page to page.
 
 ### Does this website collect my personal data?
 No. There are no accounts, forms or analytics, and the site sets no cookies. The Privacy Policy lists the little that is stored in your browser.
 
 ## Pages
-- [Home](https://ro-bio.abhirai2006.workers.dev/): Meet the club. Interactive robot arm, line follower, Robo Sumo and a live ECG.
+- [Home](https://ro-bio.abhirai2006.workers.dev/): Meet the club. An interactive robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site.
 - [About](https://ro-bio.abhirai2006.workers.dev/about): What RO-BIO is and why robots and bodies belong together.
 - [Events](https://ro-bio.abhirai2006.workers.dev/events): Events run by RO-BIO.
 - [Bot Forge](https://ro-bio.abhirai2006.workers.dev/events/bot-forge): Bot Forge, Wed, 28 Oct 2026: Line Follower, Robot Race, Bot Expo, Robo Sumo, Shark Tank.
