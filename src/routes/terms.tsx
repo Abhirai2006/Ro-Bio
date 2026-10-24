@@ -25,7 +25,7 @@ function Page() {
       <p>Dates, venues, rules and registration details are our best current information and can change. Bot Forge has already moved once. Check the event page and our Instagram, <a href={site.instagram}>{site.instagramHandle}</a>, for the latest. Events have their own rules, announced on the event page. Please follow the instructions of the coordinators and the college.</p>
 
       <h2>Demos and games</h2>
-      <p>The robot arm, line follower, Robo Sumo game, robot companion and other interactive parts of the site are for fun and learning. They are provided as they are, without promises that they will always work or work the same way on every device.</p>
+      <p>The robot arm, the Robo Sumo game, Robo the roaming robot and other interactive parts of the site are for fun and learning. They are provided as they are, without promises that they will always work or work the same way on every device.</p>
 
       <h2>Not medical advice</h2>
       <p>The ECG, heart rate numbers and X-ray anatomy graphics are illustrations for education. They are not medical devices and they do not measure your body. Do not use them to make decisions about your health. If you have a health concern, speak to a qualified doctor.</p>
