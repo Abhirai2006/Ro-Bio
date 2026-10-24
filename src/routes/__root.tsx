@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { SiteFooter, SiteHeader } from "@/components/site/parts";
-import { RobotFace } from "@/components/site/toys";
+import { RoboLayer } from "@/components/site/RoboLayer";
 import { site } from "@/lib/site";
 
 const orgLd = {
@@ -133,7 +133,7 @@ function RootComponent() {
         <Outlet />
       </main>
       <SiteFooter />
-      <RobotFace />
+      <RoboLayer />
     </QueryClientProvider>
   );
 }
