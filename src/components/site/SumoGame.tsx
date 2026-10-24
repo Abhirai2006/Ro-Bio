@@ -149,7 +149,7 @@ export function SumoGame() {
   );
 
   return (
-    <div ref={box} tabIndex={-1} className="grid gap-6 border-2 border-border bg-card p-4 shadow-hard outline-none md:grid-cols-[1fr_1fr] md:p-6">
+    <div ref={box} data-robo-avoid tabIndex={-1} className="grid gap-6 border-2 border-border bg-card p-4 shadow-hard outline-none md:grid-cols-[1fr_1fr] md:p-6">
       <div ref={shakeEl} className="bg-ink p-2">
         <svg viewBox="0 0 320 320" className="block w-full" role="img" aria-label="Robo Sumo ring seen from above, with two wedge-nosed robots pushing each other">
           <circle ref={outer} cx={RING.cx} cy={RING.cy} r={RING.radius + 8} className="fill-paper" />
