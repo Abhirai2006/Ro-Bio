@@ -30,6 +30,8 @@ export const POSES = {
   // A hand to the chin.
   think: P({ aRs: 62, aRe: 212, hr: 7, lRh: 3 }),
   wave: P({ aRs: 118, aRe: -8, hr: -4, mouth: 0.35 }),
+  // Being carried: arms up, legs dangling.
+  held: P({ aLs: 150, aLe: 10, aRs: 150, aRe: 10, lLh: 10, lLk: 14, lRh: 6, lRk: 10, mouth: 0.4 }),
 } as const;
 
 const f = (n: number) => n.toFixed(2);
@@ -95,8 +97,12 @@ function leg(side: "L" | "R", tf: Record<string, string>) {
 }
 
 /** The whole robot as an SVG string. Server-rendered in the sleeping pose, then updated by the animation loop. */
-export function rigMarkup(p: Pose, xray = false): string {
+export function rigMarkup(p: Pose, xray = false, floor = true): string {
   const tf = transforms(p), op = opacities(p);
+  const ticks = [-100, -60, -20, 20, 60, 100].map((x) => `<line x1="${x}" y1="115" x2="${x}" y2="119" stroke="${INK}" stroke-width="2"/>`).join("");
+  const floorSvg = floor
+    ? `<ellipse cx="0" cy="111" rx="112" ry="5" fill="rgba(0,0,0,.2)"/><rect x="-124" y="106" width="248" height="9" fill="${INK}"/><rect x="-124" y="106" width="248" height="2.5" fill="#fffffa" opacity=".85"/>${ticks}`
+    : "";
   return `<svg class="rb" data-x="${xray ? 1 : 0}" viewBox="-130 -160 260 284" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Robo, a friendly robot with a biological skeleton inside. It starts asleep, wakes up, and then follows your cursor with its eyes.">
 <style>
 .rb{display:block;width:100%;height:100%}.rb .shell,.rb .keep{transition:opacity .4s}.rb .bones{opacity:0;transition:opacity .4s}
@@ -106,9 +112,7 @@ export function rigMarkup(p: Pose, xray = false): string {
 @keyframes rbz{0%{transform:translate(0,8px);opacity:0}25%{opacity:1}100%{transform:translate(10px,-26px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.rb[data-phase="sleep"] .zz{animation:none}}
 </style>
-<ellipse cx="0" cy="111" rx="112" ry="5" fill="rgba(0,0,0,.2)"/>
-<rect x="-124" y="106" width="248" height="9" fill="${INK}"/><rect x="-124" y="106" width="248" height="2.5" fill="#fffffa" opacity=".85"/>
-${[-100, -60, -20, 20, 60, 100].map((x) => `<line x1="${x}" y1="115" x2="${x}" y2="119" stroke="${INK}" stroke-width="2"/>`).join("")}
+${floorSvg}
 <g ${T(tf, "root")}>
   ${leg("L", tf)}${leg("R", tf)}
   <rect class="shell" x="-25" y="-9" width="50" height="22" rx="7" fill="${INK}"/>
