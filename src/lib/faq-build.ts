@@ -14,7 +14,7 @@ export function buildFaqs(site: Site, events: Event[], formatDate: (iso: string)
     { q: "How do I register for Bot Forge?", a: `Registration details are coming soon. Team size, deadline and rules are not final yet. They will be announced on the Bot Forge page and on Instagram ${site.instagramHandle}.` },
     { q: "How can I contact RO-BIO?", a: `The quickest way is a message on Instagram ${site.instagramHandle}. The Contact page lists the Bot Forge coordinators and the college address.` },
     { q: "What does BMRE mean?", a: "BMRE is short for Biomedical and Robotic Engineering. Most of the core team is from this branch, with some students from CS&D and AIML." },
-    { q: "What can I try on this website?", a: "The home page has a robot arm that solves inverse kinematics, a line-following robot you can tune with PID gains, a Robo Sumo game against a CPU, a live ECG in the header, and a small robot called Robo who wakes up and follows your cursor." },
+    { q: "What can I try on this website?", a: "The home page has a robot arm that solves inverse kinematics, a Robo Sumo game against a CPU, and a live ECG in the header. A small robot called Robo lives on the whole site: it walks around, jumps onto things, follows your cursor, and travels with you from page to page." },
     { q: "Does this website collect my personal data?", a: "No. There are no accounts, forms or analytics, and the site sets no cookies. The Privacy Policy lists the little that is stored in your browser." },
   ];
 }
