@@ -6,9 +6,9 @@ mkdirSync("/tmp/rt", { recursive: true });
 const LIB = new URL("../../src/lib/", import.meta.url);
 const { rigMarkup, POSES } = await import(new URL("robo-rig.ts", LIB).href);
 const { walkMarkup } = await import(new URL("robo-walk.ts", LIB).href);
-for (const f of ["site", "robo-talk", "robo-rig", "robo-walk", "heart", "robo-roam"]) {
+for (const f of ["site", "robo-talk", "robo-pixels", "robo-rig", "robo-walk", "heart", "robo-roam"]) {
   let c = stripTypeScriptTypes(readFileSync(new URL(`${f}.ts`, LIB), "utf8"));
-  c = c.replace(/from "\.\/(site|robo-talk|robo-rig|robo-walk|heart)"/g, 'from "./$1.mjs"');
+  c = c.replace(/from "\.\/(site|robo-talk|robo-pixels|robo-rig|robo-walk|heart)"/g, 'from "./$1.mjs"');
   writeFileSync(`/tmp/rt/${f}.mjs`, c);
 }
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
