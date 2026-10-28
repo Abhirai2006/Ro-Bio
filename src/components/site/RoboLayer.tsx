@@ -6,15 +6,6 @@ import { startRoam } from "@/lib/robo-roam";
 
 type Pref = "on" | "rest" | "hidden";
 const KEY = "robio-robo";
-// The black hole Robo travels through: a lensing halo, a tilted accretion disc that spins (::before), and the event horizon (::after).
-const css = `.rr{position:absolute;width:132px;height:132px;margin:-66px 0 0 -66px;border-radius:50%;opacity:0;pointer-events:none;transform:scale(0);background:radial-gradient(circle,transparent 31%,color-mix(in oklab,var(--lilac) 40%,transparent) 37%,color-mix(in oklab,var(--lens) 16%,transparent) 50%,transparent 66%)}
-.rr::before{content:"";position:absolute;inset:-14%;border-radius:50%;background:repeating-conic-gradient(from 0deg,var(--lens) 0 7deg,#fffffa 9deg,var(--violet) 15deg,transparent 22deg,var(--lilac) 30deg,transparent 40deg);-webkit-mask:radial-gradient(circle,transparent 24%,#000 27%,#000 46%,transparent 64%);mask:radial-gradient(circle,transparent 24%,#000 27%,#000 46%,transparent 64%);transform:rotate(-16deg) scaleY(.4);filter:drop-shadow(0 0 4px var(--violet))}
-.rr::after{content:"";position:absolute;inset:35%;border-radius:50%;background:#05040a;box-shadow:0 0 0 1.5px #fffffa,0 0 0 3.5px var(--lens),0 0 14px 5px var(--violet),inset 0 0 8px 2px #000}
-.rr.go{animation:rrgo 1.25s cubic-bezier(.2,.8,.2,1) forwards}.rr.go.out{animation-duration:1s}.rr.go::before{animation:rrspin .7s linear infinite}
-@keyframes rrgo{0%{opacity:0;transform:scale(.05) rotate(0)}16%{opacity:1;transform:scale(1) rotate(-6deg)}74%{opacity:1;transform:scale(1.08) rotate(-14deg)}100%{opacity:0;transform:scale(0) rotate(-24deg)}}
-@keyframes rrspin{from{transform:rotate(-16deg) scaleY(.4) rotate(0)}to{transform:rotate(-16deg) scaleY(.4) rotate(-360deg)}}
-@media (prefers-reduced-motion:reduce){.rr.go,.rr.go::before{animation:none}}`;
-
 /** Robo lives here: a fixed layer over the whole site, mounted once in the root layout so he travels between pages. */
 export function RoboLayer() {
   const [ready, setReady] = useState(false);
@@ -23,7 +14,7 @@ export function RoboLayer() {
   const r = {
     layer: useRef<HTMLDivElement>(null), robo: useRef<HTMLDivElement>(null), puppet: useRef<HTMLDivElement>(null), front: useRef<HTMLDivElement>(null),
     side: useRef<HTMLDivElement>(null), hit: useRef<HTMLButtonElement>(null), bubble: useRef<HTMLDivElement>(null), live: useRef<HTMLParagraphElement>(null),
-    scan: useRef<HTMLDivElement>(null), ringA: useRef<HTMLDivElement>(null), ringB: useRef<HTMLDivElement>(null),
+    scan: useRef<HTMLDivElement>(null), pix: useRef<HTMLCanvasElement>(null),
   };
   const brain = useRef<ReturnType<typeof startRoam> | null>(null);
   const prefRef = useRef<Pref>("on");
@@ -40,7 +31,7 @@ export function RoboLayer() {
   useEffect(() => {
     if (!active) return;
     const el = (k: keyof typeof r) => r[k].current as HTMLElement | null;
-    const dom = { layer: el("layer"), robo: el("robo"), puppet: el("puppet"), front: el("front"), side: el("side"), hit: el("hit"), bubble: el("bubble"), live: el("live"), scan: el("scan"), ringA: el("ringA"), ringB: el("ringB") };
+    const dom = { layer: el("layer"), robo: el("robo"), puppet: el("puppet"), front: el("front"), side: el("side"), hit: el("hit"), bubble: el("bubble"), live: el("live"), scan: el("scan"), pix: el("pix") };
     if (Object.values(dom).some((v) => !v)) return;
     let seen = false;
     try { seen = sessionStorage.getItem("robo-woke") === "1"; } catch { /* private mode */ }
@@ -73,7 +64,6 @@ export function RoboLayer() {
     <>
       {active && (
         <div ref={r.layer} className="robo-ui pointer-events-none fixed inset-0 z-[60] overflow-hidden">
-          <style>{css}</style>
           <div ref={r.robo} className="absolute left-0 top-0">
             <div ref={r.puppet} className="relative h-full w-full" style={{ transformOrigin: "50% 93.7%" }}>
               <div ref={r.front} className="absolute inset-0" dangerouslySetInnerHTML={{ __html: rigMarkup(POSES.sleep, false, false) }} />
@@ -87,7 +77,7 @@ export function RoboLayer() {
             />
           </div>
           <div ref={r.bubble} data-on="false" aria-hidden="true" className="pointer-events-none absolute left-0 top-0 z-10 w-max max-w-[min(260px,70vw)] border-2 border-border bg-paper px-3 py-2 font-pixel text-[10px] leading-4 text-ink opacity-0 shadow-hard transition-opacity data-[on=true]:opacity-100" />
-          <div ref={r.ringA} className="rr" /><div ref={r.ringB} className="rr" />
+          <canvas ref={r.pix} aria-hidden="true" className="pointer-events-none absolute left-0 top-0" />
           <p ref={r.live} role="status" className="sr-only" />
           {menu && (
             <div
