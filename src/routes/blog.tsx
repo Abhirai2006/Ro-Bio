@@ -20,7 +20,7 @@ function Blog() {
     <>
       <PageIntro label="BLOG / LAB NOTES" title="Lab notes." />
       <section className="mx-auto max-w-3xl px-4 py-14">
-        <Pending title="No posts yet">The first write-up will probably be about Bot Forge. Check back after 28 Oct.</Pending>
+        <Pending title="No posts yet">The first write-up will probably be about Bot Forge. Check back after 6 Nov.</Pending>
       </section>
     </>
   );
