@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Pending, Uptime } from "@/components/site/parts";
 import { site } from "@/lib/site";
+import { FeedbackLoops, type Loop } from "@/components/site/FeedbackLoop";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -16,9 +17,25 @@ export const Route = createFileRoute("/about")({
   component: About,
 });
 
-const loops = [
-  { title: "A robot", steps: ["Sensor", "Controller", "Actuator"] },
-  { title: "A body", steps: ["Senses", "Brain", "Muscle"] },
+const loops: Loop[] = [
+  {
+    title: "A robot",
+    steps: [
+      { stage: "Sense", part: "Sensor", what: "An IR sensor under a line follower sees where the black line is." },
+      { stage: "Decide", part: "Controller", what: "The microcontroller works out how far off the line the robot has drifted." },
+      { stage: "Act", part: "Motors", what: "One wheel speeds up, the other slows down, and the robot steers back." },
+      { stage: "Feed back", part: "Sensor again", what: "The sensor reads the new position. Smaller error, smaller correction. Round it goes." },
+    ],
+  },
+  {
+    title: "A body",
+    steps: [
+      { stage: "Sense", part: "Eyes", what: "You see the cup in your hand starting to slip." },
+      { stage: "Decide", part: "Brain", what: "The brain decides to grip harder, in a fraction of a second." },
+      { stage: "Act", part: "Muscles", what: "The muscles in your hand and forearm tighten." },
+      { stage: "Feed back", part: "Nerves", what: "Touch and stretch receptors report the new grip, so the brain can ease off once the cup is steady." },
+    ],
+  },
 ];
 
 function About() {
@@ -31,26 +48,9 @@ function About() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-black md:text-3xl">Sense, decide, act, feed back.</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Our branch studies both. A servo and a muscle solve the same kind of problem, so we put them side by side.
+          Our branch studies both. A line-following robot and a hand holding a cup solve the same kind of problem, so we put them side by side.
         </p>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          {loops.map((l) => (
-            <div key={l.title} className="border-2 border-border bg-card p-6 shadow-hard">
-              <p className="font-pixel text-xs text-primary">{l.title.toUpperCase()}</p>
-              <ol className="mt-4 flex flex-wrap items-center gap-2 font-display font-bold">
-                {l.steps.map((s, i) => (
-                  <li key={s} className="flex items-center gap-2">
-                    <span className="border-2 border-border bg-secondary px-3 py-2">{s}</span>
-                    <span aria-hidden="true" className="text-primary">
-                      {i < l.steps.length - 1 ? "→" : "↺"}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <p className="mt-3 text-sm text-muted-foreground">The last step loops back to the first. That's the feedback.</p>
-            </div>
-          ))}
-        </div>
+        <FeedbackLoops loops={loops} />
       </section>
       <section className="mx-auto grid max-w-6xl gap-6 px-4 md:grid-cols-3">
         <div className="border-2 border-border p-5">
