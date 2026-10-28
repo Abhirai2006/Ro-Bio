@@ -1,15 +1,23 @@
-RO-BIO update, 28 Oct 2026
+RO-BIO update, round 2 (28 Oct 2026)
 
-1. Unzip this. You get a folder structure that matches your repo.
-2. Copy everything inside it into your local Ro-Bio folder (the one GitHub Desktop uses).
+This zip has EVERYTHING changed since your current main, including round 1.
+So it works whether or not you already applied the first zip.
+
+1. Unzip this. The folders inside match your repo.
+2. Copy everything inside into your local Ro-Bio folder (the one GitHub Desktop uses).
    Say "Replace" when it asks about existing files.
-3. DELETE these two old files from your Ro-Bio folder (nothing uses them any more):
+3. DELETE these files from your Ro-Bio folder (nothing uses them any more).
+   Skip any that are already gone:
      src/components/site/RoboCompanion.tsx
      src/lib/robo-brain.ts
-4. Open GitHub Desktop. You should see the changed files. Make sure package-lock.json
-   and the docs/screenshots folder are included.
-5. Commit with a message like "Bot Forge 6 Nov, team update, Robo upgrades, loader, security headers"
-   and Push to main. Cloudflare builds and deploys by itself in a minute or two.
+4. Open GitHub Desktop and check the changed list includes:
+     package-lock.json   (very important: Cloudflare needs it to build)
+     docs/screenshots/   (the README images)
+     src/lib/robo-pixels.ts and src/components/site/BootScreen.tsx
+5. Commit with a message like "Pixel teleport, Robo intro, new fonts" and Push to main.
+   Cloudflare builds and deploys by itself in a minute or two.
 
-After it is live: paste https://ro-bio.robiohub2026.workers.dev into a WhatsApp chat once
-to check the link preview shows the logo.
+After it is live:
+- Open the site in a private window to see the intro (it only plays once per visit).
+- Click a link and watch Robo upload himself.
+- Paste the link into a WhatsApp chat once to check the preview shows the logo.
