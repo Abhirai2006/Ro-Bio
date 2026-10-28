@@ -12,6 +12,22 @@ const FRONT = [{ x: 13, y: -13 }, { x: 24, y: -5 }, { x: 24, y: 5 }, { x: 13, y:
 type Hud = { phase: "idle" | "count" | "fight" | "over"; msg: string; you: number; cpu: number; tactic: Tactic; fadeP: number; fadeC: number; sudden: boolean };
 type Els<T> = React.MutableRefObject<(T | null)[]>;
 
+/** Name tag that follows a robot but never spins with it. */
+function Tag({ g, label, fill, text }: { g: React.Ref<SVGGElement>; label: string; fill: string; text: string }) {
+  return (
+    <g ref={g} pointerEvents="none">
+      <g transform="translate(0 -33)">
+        <rect x={-17} y={-8} width={34} height={14} rx={7} fill={fill} stroke="#15131c" strokeWidth={1.4} />
+        <path d="M-3.5,6 L0,10.5 L3.5,6Z" fill={fill} stroke="#15131c" strokeWidth={1.2} strokeLinejoin="round" />
+        <rect x={-4} y={4.6} width={8} height={2} fill={fill} />
+        <text y={2.6} textAnchor="middle" fontSize={8} fontWeight={700} fill={text} style={{ fontFamily: "var(--font-pixel)", letterSpacing: "0.04em" }}>
+          {label}
+        </text>
+      </g>
+    </g>
+  );
+}
+
 function Robot({ fill, accent, g, sensors, treads }: { fill: string; accent: string; g: React.Ref<SVGGElement>; sensors: Els<SVGCircleElement>; treads: Els<SVGLineElement> }) {
   return (
     <g ref={g}>
@@ -39,6 +55,7 @@ export function SumoGame() {
   const box = useRef<HTMLDivElement>(null);
   const shakeEl = useRef<HTMLDivElement>(null);
   const pG = useRef<SVGGElement>(null), cG = useRef<SVGGElement>(null);
+  const pTag = useRef<SVGGElement>(null), cTag = useRef<SVGGElement>(null), pHalo = useRef<SVGGElement>(null);
   const outer = useRef<SVGCircleElement>(null), inner = useRef<SVGCircleElement>(null);
   const pSens = useRef<(SVGCircleElement | null)[]>([]), cSens = useRef<(SVGCircleElement | null)[]>([]);
   const pTread = useRef<(SVGLineElement | null)[]>([]), cTread = useRef<(SVGLineElement | null)[]>([]);
@@ -107,6 +124,7 @@ export function SumoGame() {
 
       const [P, C] = m.bots;
       place(pG.current, P); place(cG.current, C);
+      for (const [el, b] of [[pTag.current, P], [cTag.current, C], [pHalo.current, P]] as const) el?.setAttribute("transform", `translate(${b.x.toFixed(2)} ${b.y.toFixed(2)})`);
       treadP += (P.vx * Math.cos(P.h) + P.vy * Math.sin(P.h)) * dt; treadC += (C.vx * Math.cos(C.h) + C.vy * Math.sin(C.h)) * dt;
       pTread.current.forEach((el) => el && (el.style.strokeDashoffset = String(-treadP))); cTread.current.forEach((el) => el && (el.style.strokeDashoffset = String(-treadC)));
       light(pSens.current, P.sensors); light(cSens.current, C.sensors);
@@ -125,7 +143,7 @@ export function SumoGame() {
       }
       raf = visible ? requestAnimationFrame(frame) : 0;
     };
-    const io = new IntersectionObserver(([en]) => { visible = en.isIntersecting; if (visible && !raf) { last = 0; raf = requestAnimationFrame(frame); } });
+    const io = new IntersectionObserver(([en]) => { visible = !!en?.isIntersecting; if (visible && !raf) { last = 0; raf = requestAnimationFrame(frame); } });
     if (box.current) io.observe(box.current);
     raf = requestAnimationFrame(frame);
     return () => { cancelAnimationFrame(raf); io.disconnect(); window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
@@ -151,13 +169,19 @@ export function SumoGame() {
   return (
     <div ref={box} data-robo-avoid tabIndex={-1} className="grid gap-6 border-2 border-border bg-card p-4 shadow-hard outline-none md:grid-cols-[1fr_1fr] md:p-6">
       <div ref={shakeEl} className="bg-ink p-2">
-        <svg viewBox="0 0 320 320" className="block w-full" role="img" aria-label="Robo Sumo ring seen from above, with two wedge-nosed robots pushing each other">
+        <svg viewBox="0 0 320 320" className="block w-full" role="img" aria-label="Robo Sumo ring seen from above. Your robot is violet and tagged YOU. The CPU robot is blue and tagged CPU.">
           <circle ref={outer} cx={RING.cx} cy={RING.cy} r={RING.radius + 8} className="fill-paper" />
           <circle ref={inner} cx={RING.cx} cy={RING.cy} r={RING.radius} className="fill-ink" />
           <line x1={140} y1={130} x2={140} y2={190} className="stroke-paper/40" strokeWidth="3" />
           <line x1={180} y1={130} x2={180} y2={190} className="stroke-paper/40" strokeWidth="3" />
+          <g ref={pHalo} pointerEvents="none">
+            <circle r={27} fill="var(--violet)" opacity={0.18} />
+            <circle r={27} fill="none" stroke="var(--lilac)" strokeWidth={1.6} strokeDasharray="4 4" className="sumo-halo" />
+          </g>
           <Robot g={pG} fill="var(--violet)" accent="var(--lilac)" sensors={pSens} treads={pTread} />
           <Robot g={cG} fill="var(--lens)" accent="#d9d6e6" sensors={cSens} treads={cTread} />
+          <Tag g={pTag} label="YOU" fill="var(--violet)" text="#fffffa" />
+          <Tag g={cTag} label="CPU" fill="var(--lens)" text="#15131c" />
           {Array.from({ length: 16 }, (_, i) => <circle key={i} ref={(el) => { spark.current[i] = el; }} r={1.6} fill="#ffd36b" style={{ opacity: 0 }} />)}
         </svg>
       </div>
@@ -166,7 +190,10 @@ export function SumoGame() {
           <p className="font-pixel text-[11px] text-primary">BOT FORGE PREVIEW / ROBO SUMO</p>
           <h3 className="mt-2 text-3xl font-black">Push it out of the ring.</h3>
           <p role="status" className="mt-2 min-h-[3rem] text-muted-foreground">{hud.msg}</p>
-          <p className="mt-3 font-mono text-lg">YOU {hud.you} : {hud.cpu} CPU</p>
+          <p className="mt-3 flex items-center gap-2 font-mono text-lg">
+            <span aria-hidden="true" className="h-3 w-3 rounded-full border border-border bg-violet" />YOU {hud.you} : {hud.cpu} CPU
+            <span aria-hidden="true" className="h-3 w-3 rounded-full border border-border bg-lens" />
+          </p>
           <div className="mt-3 grid gap-2 font-mono text-xs">
             <div><div className="mb-1 flex justify-between"><span>YOUR WHEEL GRIP</span></div>{bar(hud.fadeP, "bg-primary")}</div>
             <div><div className="mb-1 flex justify-between"><span>CPU WHEEL GRIP</span></div>{bar(hud.fadeC, "bg-lens")}</div>
