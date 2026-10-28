@@ -1,58 +1,147 @@
-import { logoUrl } from "@/components/site/parts";
+import { useEffect, useRef, useState } from "react";
+import { POSES, rigMarkup } from "@/lib/robo-rig";
 
-// Runs before the boot screen is parsed. Skips it on repeat visits in this tab, for reduced motion, and on any tap or key.
+// Runs before the intro is parsed. Skips it on repeat visits in this tab and for reduced motion.
 // It only ever adds a <style> to <head>, so React's hydration never sees a difference.
-const skip = `(function(){try{var h=document.head,s=function(){if(!document.getElementById("boot-skip")){var e=document.createElement("style");e.id="boot-skip";e.textContent=".boot{display:none!important}";h.appendChild(e)}};
-if(sessionStorage.getItem("robio-boot")||matchMedia("(prefers-reduced-motion: reduce)").matches)return s();sessionStorage.setItem("robio-boot","1");
-addEventListener("pointerdown",s,{once:true});addEventListener("keydown",s,{once:true})}catch(e){}})();`;
+const skip = `(function(){try{var s=function(){var e=document.createElement("style");e.id="boot-skip";e.textContent=".boot{display:none!important}";document.head.appendChild(e)};
+if(sessionStorage.getItem("robio-boot")||matchMedia("(prefers-reduced-motion: reduce)").matches)return s();sessionStorage.setItem("robio-boot","1")}catch(e){}})();`;
 
-// A heartbeat that turns into a circuit trace: the club in one line. Drawn in a 320 x 60 box.
-const TRACE = "M0 34 H70 L80 34 L86 28 L92 34 L104 34 L110 40 L120 6 L132 56 L140 34 L156 34 L166 24 L176 34 H206 V18 H246 V44 H284 V30 H312";
+// Robo, standing, with his ids renamed so they never clash with the Robo who roams the site.
+const robo = rigMarkup({ ...POSES.stand }, false, false)
+  .replace(/id="rb-/g, 'id="bt-')
+  .replace('<rect class="shell" x="-25" y="-9"', '<rect class="shell bt-pelvis" x="-25" y="-9"');
 
-const LOG = ["POWER ON", "SENSORS OK", "HEARTBEAT FOUND", "RO-BIO READY"];
+const LOG = [
+  [0.2, "Unpacking Robo..."],
+  [0.9, "Fitting servos 6/6"],
+  [1.7, "Head on. Eyes on."],
+  [2.6, "X-ray: bones, lungs, heart"],
+  [3.5, "Heartbeat found"],
+  [4.3, "RO-BIO is awake. Let's build!"],
+] as const;
 
-/** First-visit boot screen. Pure CSS timing, so it hides itself even if JavaScript never runs. */
+// Where the parts snap together, as a share of his box: hips, shoulders, neck. Third value: when.
+const SPARKS = [
+  [50, 58, 0.62],
+  [38.5, 31, 1.18],
+  [61.5, 31, 1.32],
+  [50, 24, 1.62],
+] as const;
+
+// One heartbeat, 150 units wide. Four of them scroll by 300 units, so the strip loops without a seam.
+const BEAT = "h34 l6 -5 l6 5 h10 l5 7 l8 -34 l9 44 l6 -17 h14 l9 -8 l9 8 h34";
+
+const TAP_LINES = ["Again!", "Ooh, that tickles.", "My heart is racing!", "Faster, faster!", "Okay okay, I'm awake!"];
+
+/** First-visit intro: Robo gets built, X-rayed and switched on. Times itself in CSS, so it hides even without JavaScript. */
 export function BootScreen() {
+  const [gone, setGone] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [held, setHeld] = useState(false); // once you start playing, it waits for you
+  const [bpm, setBpm] = useState(72);
+  const [taps, setTaps] = useState(0);
+  const idle = useRef(0);
+  const body = useRef<HTMLSpanElement>(null);
+
+  const leave = () => {
+    if (leaving) return;
+    setLeaving(true);
+    window.setTimeout(() => setGone(true), 650);
+  };
+
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if (e.key === "Escape" || e.key === "Enter") leave();
+    };
+    addEventListener("keydown", key);
+    return () => removeEventListener("keydown", key);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leaving]);
+
+  // The heart settles back down when you stop tapping.
+  useEffect(() => {
+    if (!held || leaving) return;
+    const calm = window.setInterval(() => setBpm((b) => Math.max(72, b - 3)), 400);
+    return () => window.clearInterval(calm);
+  }, [held, leaving]);
+
+  useEffect(() => () => window.clearTimeout(idle.current), []);
+
+  const tap = () => {
+    if (leaving) return;
+    setHeld(true);
+    setTaps((t) => t + 1);
+    setBpm((b) => Math.min(180, b + 14));
+    // a squash each time you tap him (re-mounting him would replay the whole assembly)
+    body.current?.animate([{ transform: "scale(1)" }, { transform: "scale(1.06, 0.94)" }, { transform: "scale(1)" }], { duration: 280, easing: "ease-out" });
+    window.clearTimeout(idle.current);
+    idle.current = window.setTimeout(leave, 7000); // let them go once they stop playing
+  };
+
+  if (gone) return null;
+  const line = taps ? TAP_LINES[Math.min(TAP_LINES.length - 1, Math.floor((bpm - 72) / 24))]! : "Tap me. My heart speeds up.";
+
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: skip }} />
-      <div className="boot" aria-hidden="true">
-        <div className="boot-door boot-door-top" />
-        <div className="boot-door boot-door-bottom" />
+      <div
+        className={`boot${held ? " boot-held" : ""}${leaving ? " boot-leave" : ""}`}
+        style={{ "--bpm": bpm } as React.CSSProperties}
+        role="dialog"
+        aria-label="RO-BIO intro"
+      >
+        <div className="boot-door boot-door-top" aria-hidden="true" />
+        <div className="boot-door boot-door-bottom" aria-hidden="true" />
+        <button type="button" className="boot-skip" onClick={leave}>
+          Skip intro
+        </button>
         <div className="boot-stage">
-          <div className="boot-dial">
-            <svg viewBox="0 0 120 120" className="boot-ring">
-              {Array.from({ length: 24 }, (_, i) => (
-                <line key={i} x1="60" y1="4" x2="60" y2={i % 6 ? "9" : "13"} transform={`rotate(${i * 15} 60 60)`} />
+          <p className="boot-title" aria-hidden="true">
+            RO-BIO <span>/ assembly bench</span>
+          </p>
+
+          <div className="boot-bench">
+            <button type="button" className="boot-robo-hit" onClick={tap} aria-label={`Tap Robo to speed up his heart. ${bpm} beats per minute.`}>
+              <span ref={body} className="boot-robo" aria-hidden="true" dangerouslySetInnerHTML={{ __html: robo }} />
+              <span className="boot-scan" aria-hidden="true" />
+              {SPARKS.map(([x, y, t]) => (
+                <span key={t} className="boot-spark" aria-hidden="true" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${t}s` }} />
               ))}
-              <circle cx="60" cy="60" r="47" className="boot-arc" />
-            </svg>
-            <img src={logoUrl} alt="" width={112} height={112} className="boot-logo" />
+            </button>
+            <p className="boot-say boot-say-hi" aria-hidden="true">
+              Hi! I'm Robo.
+            </p>
+            <p className={`boot-say boot-say-tap${taps ? " boot-say-live" : ""}`} aria-live="polite">
+              {line}
+            </p>
+            <p className="boot-xray-note" aria-hidden="true">
+              Robot outside. <em>Biology inside.</em>
+            </p>
           </div>
-          <svg viewBox="0 0 320 80" className="boot-trace">
-            <defs>
-              <linearGradient id="boot-grad" x1="0" x2="320" y1="0" y2="0" gradientUnits="userSpaceOnUse">
-                <stop offset="0.35" stopColor="#f3a9c0" />
-                <stop offset="0.62" stopColor="#6294ff" />
-              </linearGradient>
-            </defs>
-            <path d={TRACE} className="boot-trace-dim" />
-            <path d={TRACE} className="boot-trace-live" />
-            <circle cx="312" cy="30" r="5" className="boot-pad" />
-            <text x="88" y="76" className="boot-label boot-label-bio">BIO</text>
-            <text x="246" y="76" className="boot-label boot-label-robo">ROBOTICS</text>
-          </svg>
-          <ol className="boot-log">
-            {LOG.map((l, i) => (
-              <li key={l} style={{ animationDelay: `${0.15 + i * 0.25}s` }}>
+
+          <div className="boot-ecg" aria-hidden="true">
+            <span className="boot-bpm">
+              <b key={taps}>♥</b> {bpm} BPM
+            </span>
+            <svg viewBox="0 0 300 60" preserveAspectRatio="none">
+              <path className="boot-ecg-run" d={`M0 36 ${BEAT} ${BEAT} ${BEAT} ${BEAT}`} />
+            </svg>
+            <span className="boot-servo">SERVOS 6/6</span>
+          </div>
+
+          <ol className="boot-log" aria-hidden="true">
+            {LOG.map(([t, l]) => (
+              <li key={l} style={{ animationDelay: `${t}s` }}>
                 <span>&gt;</span> {l}
               </li>
             ))}
           </ol>
-          <div className="boot-bar">
+          <div className="boot-bar" aria-hidden="true">
             <div />
           </div>
-          <p className="boot-tag">Biomedical and Robotic Engineering / MUSE</p>
+          <button type="button" className="boot-enter" onClick={leave}>
+            Enter RO-BIO →
+          </button>
         </div>
       </div>
     </>
