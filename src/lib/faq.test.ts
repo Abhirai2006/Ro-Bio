@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildFaqs } from "./faq-build";
-import { events, formatDate, site } from "./site";
+import { coreTeamSize, events, formatDate, site } from "./site";
 
 describe("faq", () => {
-  const faqs = buildFaqs(site, events, formatDate);
+  const faqs = buildFaqs(site, events, formatDate, coreTeamSize);
   it("has complete questions and answers", () => {
     expect(faqs.length).toBeGreaterThanOrEqual(8);
     for (const f of faqs) { expect(f.q.endsWith("?")).toBe(true); expect(f.a.length).toBeGreaterThan(20); }
