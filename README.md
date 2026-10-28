@@ -38,7 +38,7 @@ _Unauthorised innovation in progress!_
 
 RO-BIO started on 20 May 2026 at Mysore University School of Engineering. It brings together students of Biomedical and Robotic Engineering, the branch that studies both kinds of machine: robots and the human body. Most Saturdays, engineers from companies like L&T come to campus to teach practical skills.
 
-The club's first event is **Bot Forge** on **6 November 2026**, with Line Follower, Robot Race, Bot Expo, Robo Sumo and Shark Tank. Registration details are coming soon on the [Bot Forge page](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) and on Instagram.
+The club's first event is **Bot Forge**, with Line Follower, Robot Race, Bot Expo, Robo Sumo and Shark Tank. The date and registration news are on the [Bot Forge page](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) and on Instagram.
 
 <br />
 
@@ -49,12 +49,12 @@ The club's first event is **Bot Forge** on **6 November 2026**, with Line Follow
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="docs/screenshots/boot.jpg" alt="Start-up screen: a heartbeat line turning into a circuit trace" /><br />
-      <sub><b>Start-up screen.</b> A heartbeat (bio) turns into a circuit trace (robotics).</sub>
+      <img src="docs/screenshots/boot.jpg" alt="The intro: Robo under the X-ray, showing his skeleton and heart" /><br />
+      <sub><b>The intro.</b> Robo gets assembled, X-rayed and switched on. Tap him to speed up his heart.</sub>
     </td>
     <td align="center" width="50%">
       <img src="docs/screenshots/robo.jpg" alt="Robo standing on an activity card and talking about it" /><br />
-      <sub><b>Robo.</b> Roams every page, reads along and travels through black holes.</sub>
+      <sub><b>Robo.</b> Roams every page, reads along and travels between pages as pixels.</sub>
     </td>
   </tr>
   <tr>
@@ -111,14 +111,16 @@ Pages that are waiting for the club's own content say so honestly. Nothing on th
 
 ## The interactive parts
 
-- **Robo** (`src/lib/robo-roam.ts`, `robo-rig.ts`, `robo-walk.ts`, `robo-talk.ts`, `components/site/RoboLayer.tsx`). A robot with a skeleton inside (try the X-ray from his menu). He wakes up, walks along the bottom of the screen, hops onto headings and cards, and can be picked up and dropped. When you stop scrolling he looks at the section you are reading, tilts his head at it and says something about it. Click a link and a black hole opens: he gets pulled in and pops out on the next page. Everything he says comes from the club facts, so it never goes out of date.
+- **Robo** (`src/lib/robo-roam.ts`, `robo-rig.ts`, `robo-walk.ts`, `robo-talk.ts`, `components/site/RoboLayer.tsx`). A robot with a skeleton inside (try the X-ray from his menu). He wakes up, walks along the bottom of the screen, hops onto headings and cards, and can be picked up and dropped. When you stop scrolling he looks at the section you are reading, tilts his head at it and says something about it. Click a link and he uploads himself into it as a stream of pixels (`robo-pixels.ts`), then gets rebuilt pixel by pixel on the next page. Everything he says comes from the club facts, so it never goes out of date.
 - **Robot arm** (`components/site/RobotArm.tsx`). Two-joint inverse kinematics with real physics. Pick up the sample vial and drop it in the tray.
 - **Robo Sumo** (`src/lib/sumo.ts`, `components/site/SumoGame.tsx`). Physics, wheel grip and a CPU with tactics. `node --experimental-strip-types scripts/sumo-sim.mjs` plays hundreds of seeded matches and prints win rates.
 - **Live heartbeat** (`components/site/HeaderEcg.tsx`). The ECG in the header speeds up when you are active.
 - **Feedback loop** (`components/site/FeedbackLoop.tsx`). Sense, decide, act, feed back, for a robot and a body at the same time.
-- **Start-up screen** (`components/site/BootScreen.tsx`). Plays once per visit, about 1.7 seconds, skippable with a tap or a key, and never shown to people who turn on reduced motion. It is timed entirely in CSS, so it hides itself even if JavaScript fails.
+- **Intro** (`components/site/BootScreen.tsx`). On the first visit, Robo is assembled part by part, X-rayed (robot outside, biology inside) and switched on, in about 6 seconds. Tap him and his heart races, and the intro waits while you play. Skip it any time, or press Esc. It is never shown to people who turn on reduced motion, and its timing is pure CSS, so it ends by itself even if JavaScript fails.
 
 Everything respects `prefers-reduced-motion`, works with a keyboard, and has a light and a dark theme.
+
+**Type:** [Tektur](https://fonts.google.com/specimen/Tektur) for headings (angular, like machined parts), [Atkinson Hyperlegible Next](https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next) for text (drawn by the Braille Institute for low vision readers), Silkscreen for the pixel labels and JetBrains Mono for numbers. All free from Google Fonts.
 
 <br />
 
@@ -128,7 +130,7 @@ All the facts live in one file: **`src/lib/site.ts`**. Change them there and eve
 
 | To change | Edit this in `src/lib/site.ts` |
 | --- | --- |
-| Event date | `date: "2026-11-06"` inside `events`. Put the old date in `previousDates` |
+| Event date | `date` inside `events` (written `YYYY-MM-DD`). Move the old date into `previousDates` |
 | Registration | `registration: "coming-soon"` (or `"open"` / `"closed"`) |
 | Coordinators and phone numbers | `contacts` |
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")`. `sem` is the semester at the time of the announcement |
@@ -190,10 +192,10 @@ Every page has its own title, description, canonical link and share image, so li
 ```text
 src/
   routes/            one file per page (file-based routing, see src/routes/README.md)
-  components/site/   the site's own components: header, footer, Robo, arm, sumo, loop, start-up screen
+  components/site/   the site's own components: header, footer, Robo, arm, sumo, loop, intro
   components/ui/     shared UI building blocks
   lib/site.ts        all club facts, edit here
-  lib/robo-*.ts      Robo's body, walk, brain and lines
+  lib/robo-*.ts      Robo's body, walk, brain, lines and pixel teleport
   lib/sumo.ts        Robo Sumo physics and CPU
   server.ts          Cloudflare Worker entry and security headers
   styles.css         colours, fonts and animations
