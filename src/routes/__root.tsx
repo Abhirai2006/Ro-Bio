@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { SiteFooter, SiteHeader } from "@/components/site/parts";
 import { RoboLayer } from "@/components/site/RoboLayer";
+import { BootScreen } from "@/components/site/BootScreen";
 import { site } from "@/lib/site";
 
 const orgLd = {
@@ -86,8 +87,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:site_name", content: "RO-BIO" },
+      { property: "og:locale", content: "en_IN" },
+      // WhatsApp, Instagram and Telegram previews need an absolute image URL under 300 KB with its size stated.
       { property: "og:image", content: `${site.url}/og-image.png` },
+      { property: "og:image:secure_url", content: `${site.url}/og-image.png` },
+      { property: "og:image:type", content: "image/png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "The RO-BIO logo: a robot in a space helmet over a wireframe globe" },
       { name: "twitter:image", content: `${site.url}/og-image.png` },
+      { name: "theme-color", content: "#725dff" },
     ],
     links: [
       { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "Summary for AI assistants" },
@@ -115,6 +124,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <BootScreen />
         <JsonLd data={orgLd} />
         {children}
         <Scripts />
