@@ -1,7 +1,7 @@
 // Real club facts supplied by the club. Edit here, not in components.
 export const site = {
   name: "RO-BIO",
-  url: "https://ro-bio.abhirai2006.workers.dev", // change this when a custom domain is connected
+  url: "https://ro-bio.robiohub2026.workers.dev", // change this when a custom domain is connected
   tagline: "Unauthorised innovation in progress!",
   branch: "Biomedical and Robotic Engineering",
   college: "Mysore University School of Engineering",
@@ -29,7 +29,8 @@ export type ClubEvent = {
   title: string;
   kind: string;
   date: string; // YYYY-MM-DD, India time
-  previousDate?: string;
+  /** Earlier dates this event was set for, oldest first. */
+  previousDates?: string[];
   venue: string;
   activities: Activity[];
   registration: "coming-soon" | "open" | "closed";
@@ -40,8 +41,8 @@ export const events: ClubEvent[] = [
     slug: "bot-forge",
     title: "Bot Forge",
     kind: "Competition",
-    date: "2026-10-28",
-    previousDate: "2026-06-25",
+    date: "2026-11-06",
+    previousDates: ["2026-06-25", "2026-10-28"],
     venue: site.address,
     activities: [
       { name: "Line Follower", tag: "EVENT" },
@@ -90,7 +91,6 @@ const m = (name: string, sem: number, dept = "BMRE", head = false, role?: string
 
 export const coreTeam: Squad[] = [
   { title: "President and Vice President", members: [m("Thushar K L", 6, "BMRE", false, "President"), m("Shloka D Raj", 4, "BMRE", false, "Vice President")] },
-  { title: "Fundraising", members: [m("Parinitha Aradhya", 6, "BMRE", true), m("Rajalakshmi", 6), m("Manvith", 6), m("Vikas", 6)] },
   {
     title: "Projects",
     members: [m("Anagha A Raichurkar", 6, "BMRE", true), m("Ananya R", 6), m("Bhoomika S", 6), m("Varsha Yogesh", 4, "CS&D"), m("Rohan", 4, "CS&D"), m("Shivprasad", 6, "AIML")],
@@ -101,11 +101,14 @@ export const coreTeam: Squad[] = [
   },
   {
     title: "Technical",
-    members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica", 4)],
+    members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica", 4), m("Abhishek Rai A", 4, "AIML")],
   },
   {
     title: "Social Media and Outreach",
     members: [m("Sumith S", 4, "BMRE", true), m("Deekshitha H", 6), m("Amina Aslam", 6), m("Kulsum", 4, "AIML"), m("Siddharth A", 4, "CS&D"), m("Siddharth", 4), m("Deeksha B H", 4), m("Nishanth Raj", 4, "CS&D")],
   },
-  { title: "Design", members: [m("Viren Biddappa", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham", 4)] },
+  { title: "Design", members: [m("Viren Biddappa", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham Gowda S R", 4)] },
 ];
+
+/** How many people are on the core team, counted from the list above. */
+export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
