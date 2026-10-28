@@ -31,6 +31,7 @@ function Page() {
       <ul>
         <li><strong>robio-theme</strong> (local storage): remembers whether you chose the light or dark theme. It stays until you clear your browser data.</li>
         <li><strong>robo-woke</strong> (session storage): remembers that the robot on the home page has already woken up during this visit, so it does not repeat the whole routine. It disappears when you close the tab.</li>
+        <li><strong>robio-boot</strong> (session storage): remembers that you have already seen the start-up screen during this visit, so it only plays once. It disappears when you close the tab.</li>
         <li><strong>robio-robo</strong> (local storage): remembers if you chose to rest or hide Robo, the robot that roams the site. It stays until you clear your browser data.</li>
       </ul>
       <p>None of these contains personal information, and none is sent to us.</p>
