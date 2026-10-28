@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. Bot Forge is on 28 Oct 2026.",
+          "RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. Bot Forge is on 6 Nov 2026.",
       },
       { property: "og:title", content: "RO-BIO | Unauthorised innovation in progress!" },
       {
@@ -65,7 +65,7 @@ function Hero() {
           <dl className="mt-8 grid max-w-md grid-cols-3 gap-2 font-mono text-[12px]">
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">T MINUS</dt>
-              <dd className="text-lg font-bold">{daysLeft !== null && daysLeft >= 0 ? `${daysLeft}d` : "..."}</dd>
+              <dd className="text-lg font-bold">{daysLeft === null || daysLeft < 0 ? "..." : daysLeft === 0 ? "TODAY" : `${daysLeft}d`}</dd>
             </div>
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">MEMBERS</dt>
@@ -118,7 +118,7 @@ function Index() {
             </h2>
             <p className="mt-4 font-display text-2xl font-bold text-primary">{formatDate(next.date)}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Rescheduled. The old poster says 25/6/26, the new date is 28 Oct 2026.
+              Moved again. It was set for 25 Jun, then 28 Oct. The new date is 6 Nov 2026.
             </p>
             <p className="mt-4 text-muted-foreground">{next.venue}</p>
             <div className="mt-6 flex flex-wrap gap-3">
