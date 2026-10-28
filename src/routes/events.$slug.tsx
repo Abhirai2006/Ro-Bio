@@ -36,7 +36,7 @@ function EventPage() {
           "@context": "https://schema.org", "@type": "Event", name: e.title,
           description: `${e.title} by RO-BIO at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`,
           startDate: e.date,
-          ...(e.previousDate ? { previousStartDate: e.previousDate, eventStatus: "https://schema.org/EventRescheduled" } : { eventStatus: "https://schema.org/EventScheduled" }),
+          ...(e.previousDates?.length ? { previousStartDate: e.previousDates, eventStatus: "https://schema.org/EventRescheduled" } : { eventStatus: "https://schema.org/EventScheduled" }),
           eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
           location: { "@type": "Place", name: site.college, address },
           organizer: { "@type": "Organization", name: "RO-BIO", url: site.url },
@@ -46,11 +46,11 @@ function EventPage() {
       />
       <PageIntro label={`${e.kind.toUpperCase()} / ROBIO HUB PRESENTS`} title={e.title}>
         <span className="font-display text-2xl font-bold text-primary">{formatDate(e.date)}</span>
-        {e.previousDate && (
+        {e.previousDates?.length ? (
           <span className="mt-1 block text-base">
-            Rescheduled from {formatDate(e.previousDate)}. A new poster is on its way. Start time to be announced.
+            Rescheduled. It was set for {e.previousDates.map(formatDate).join(", then ")}. Start time to be announced.
           </span>
-        )}
+        ) : null}
       </PageIntro>
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.4fr_1fr]">
         <div>
