@@ -45,4 +45,4 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://ro-bio.abhirai2006.workers.dev/sitemap.xml
+Sitemap: https://ro-bio.robiohub2026.workers.dev/sitemap.xml
