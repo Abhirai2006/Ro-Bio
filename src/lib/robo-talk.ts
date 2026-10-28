@@ -3,7 +3,14 @@
 import { coreTeamSize, events, formatDate, site } from "./site";
 
 const bf = events[0]!;
-const bfDay = formatDate(bf.date).replace(/^[A-Za-z]{3},\s*/, "").replace(/\s\d{4}$/, ""); // "6 Nov"
+const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026"
+const bfDay = plain(bf.date).replace(/\s\d{4}$/, ""); // "6 Nov"
+const moves = bf.previousDates?.length ?? 0;
+const movedLine = moves === 0 ? "Mark it down." : moves === 1 ? "It moved once. This date is the one." : moves === 2 ? "It moved twice. Third time lucky." : `It moved ${moves} times. Still excited.`;
+const regLine = bf.registration === "open" ? "Registration is open. Go, go, go!" : bf.registration === "closed" ? "Registration is closed. See you there." : "Registration is not open yet. I am refreshing constantly.";
+
+/** Said now and then while he idles. */
+export const FORGE_IDLE = `${bf.title} is on ${bfDay}. Still tuning my motors.`;
 
 export const GREET: Record<string, string> = {
   "/": "Home page loaded. Arm, sumo ring, heartbeat. Everything I love.",
@@ -29,12 +36,12 @@ const SECTIONS: [RegExp, string[]][] = [
   [/bot expo/i, ["Bot Expo. Show and tell, but with motors.", "Bot Expo. I would stand very still and look impressive."]],
   [/robo sumo/i, ["Robo Sumo. Two bots, one ring. You can practise on the home page.", "Robo Sumo. Push, do not get pushed. Simple. Not easy."]],
   [/shark tank/i, ["Shark Tank. Pitch an idea to the judges. I would pitch myself.", "Shark Tank. Ideas, nerves and a timer. Very human."]],
-  [/bot forge/i, [`${bf.title}, ${bfDay}. It moved twice. Third time lucky.`, `${bf.title}. Registration is not open yet. I am refreshing constantly.`]],
+  [/bot forge/i, [`${bf.title}, ${bfDay}. ${movedLine}`, `${bf.title}. ${regLine}`]],
   [/activities/i, [`${bf.activities.length} activities. I would enter all of them. Probably lose all of them.`]],
   [/core team|keeping it running/i, [`Scanning faces... ${coreTeamSize} humans found. Photos not loaded yet.`, "The core team. They keep the lights on. And me."]],
   [/sense, decide|feed ?back/i, ["Sense, decide, act, feed back. That is literally how I work.", "A loop. I run about sixty of these every second. Feels normal."]],
   [/two kinds of machine|one branch/i, ["Robots and bodies. I am a bit of both. Try the X-ray from my menu.", "One branch, two machines. Wires and nerves. Same idea."]],
-  [/students of|this is our club/i, [`Around ${site.memberCount} humans and one robot. Me.`, "A club that started on 20 May 2026. I joined on day one. I think."]],
+  [/students of|this is our club/i, [`Around ${site.memberCount} humans and one robot. Me.`, `A club that started on ${plain(site.startedOn)}. I joined on day one. I think.`]],
   [/real engineers|saturdays|visitor badge/i, ["Saturday workshops. People from real companies. I sit at the back.", "The badge wall is empty. Waiting for the first speaker."]],
   [/stuff we.re building|build reel/i, ["Projects loading... the builders are still writing them up.", "Videos coming soon. I hope one of them is about me."]],
   [/photos and drawings|field notebook/i, ["Empty frames. Ready for my close-up.", "Hand-drawn art, coming soon. I can pose."]],
