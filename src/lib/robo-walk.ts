@@ -71,7 +71,8 @@ function leg(side: "N" | "F", tf: Record<string, string>) {
 export function walkMarkup(p: WalkPose = WALK_IDLE): string {
   const tf = walkTransforms(p);
   return `<svg class="rw" viewBox="-130 -160 260 284" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-<style>.rw{display:block;width:100%;height:100%}.rw .flame{opacity:0}.rw[data-fly="1"] .flame{opacity:1;animation:rwf .12s linear infinite alternate}@keyframes rwf{to{transform:scale(1,1.3)}}</style>
+<style>.rw{display:block;width:100%;height:100%;overflow:visible}.rw .shadow{transition:opacity .2s}.rw[data-air="1"] .shadow{opacity:0}.rw .flame{opacity:0}.rw[data-fly="1"] .flame{opacity:1;animation:rwf .12s linear infinite alternate}@keyframes rwf{to{transform:scale(1,1.3)}}</style>
+<ellipse class="shadow" cx="4" cy="106" rx="32" ry="5" fill="rgba(21,19,28,.16)"/>
 <g ${id(tf, "root")}>
   ${arm("F", tf)}${leg("F", tf)}
   <g ${id(tf, "torso")}>
@@ -80,15 +81,18 @@ export function walkMarkup(p: WalkPose = WALK_IDLE): string {
     <rect x="-3" y="-72" width="15" height="34" rx="6" fill="var(--lilac)" stroke="${INK}" stroke-width="1.6"/>
     <circle cx="5" cy="-54" r="7" fill="${INK}"/><circle cx="5" cy="-54" r="3.6" fill="var(--lens)"/>
     <rect x="-14" y="-28" width="26" height="4.5" rx="2" fill="${INK}"/><rect x="-14" y="-19" width="26" height="4.5" rx="2" fill="${INK}"/>
+    <rect x="-11" y="-79" width="4" height="52" rx="2" fill="#fffffa" opacity=".22"/>
     <rect x="-5" y="-98" width="10" height="18" rx="3" fill="${INK}"/>
-    <g ${id(tf, "head")}>
+    <g ${id(tf, "head")}><g transform="scale(1.14)">
       <line x1="-2" y1="-44" x2="-3" y2="-55" stroke="${INK}" stroke-width="2.4"/><circle cx="-3" cy="-57" r="3.6" fill="var(--lens)" stroke="${INK}" stroke-width="1.6"/>
       <rect x="-18" y="-46" width="40" height="46" rx="14" fill="var(--violet)" stroke="${INK}" stroke-width="2"/>
       <circle cx="-5" cy="-22" r="7" fill="var(--lilac)" stroke="${INK}" stroke-width="2"/>
       <rect x="2" y="-38" width="20" height="26" rx="10" fill="${INK}"/>
       <ellipse cx="12.5" cy="-25" rx="5.4" ry="7" fill="var(--lens)"/><circle ${id(tf, "pupil")} cx="13.5" cy="-25" r="2.3" fill="#fffffa"/>
+      <path d="M6,-34.5 Q12,-36 18,-34.5" fill="none" stroke="#fffffa" stroke-opacity=".32" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="16" cy="-15.5" rx="3" ry="1.9" fill="#f3a9c0" opacity=".8"/>
       <rect ${id(tf, "lid")} x="-6.5" y="0" width="13" height="14" fill="${INK}"/>
-    </g>
+    </g></g>
   </g>
   ${leg("N", tf)}${arm("N", tf)}
 </g>
