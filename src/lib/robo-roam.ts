@@ -1,16 +1,17 @@
 // Robo's life on the page. He lives in a fixed layer over the whole site: he wakes up, walks along the bottom of the
 // screen, hops onto headings and cards, wanders, goes to whatever you are reading, can be picked up and dropped, and
-// when you click a link he runs to it, a black hole opens, he gets pulled in, and another one spits him out on the new
+// when you click a link he uploads himself into it as a stream of pixels and gets rebuilt, pixel by pixel, on the new
 // page. While you read, he looks at the section you stopped on, tilts his head at it and says something about it.
 // No React in here, so it can be tested.
-import { POSES, opacities, transforms, type Pose } from "./robo-rig";
+import { POSES, opacities, rigMarkup, transforms, type Pose } from "./robo-rig";
+import { pixelStream, sampleSvg, type Cell } from "./robo-pixels";
 import { WALK_FALL, WALK_IDLE, WALK_JUMP, walkCycle, walkTransforms, type WalkPose } from "./robo-walk";
 import { heart } from "./heart";
-import { GREET, sectionLine } from "./robo-talk";
+import { FORGE_IDLE, GREET, sectionLine } from "./robo-talk";
 
 export type RoamDom = {
   layer: HTMLElement; robo: HTMLElement; puppet: HTMLElement; front: HTMLElement; side: HTMLElement; hit: HTMLElement;
-  bubble: HTMLElement; live: HTMLElement; scan: HTMLElement; ringA: HTMLElement; ringB: HTMLElement;
+  bubble: HTMLElement; live: HTMLElement; scan: HTMLElement; pix?: HTMLCanvasElement; // pix: the teleport canvas
 };
 export type RoamOpts = { reduced?: boolean; seen?: boolean; rest?: boolean; timeScale?: number; onTap?: (x: number, y: number) => void };
 
@@ -37,10 +38,10 @@ const IDLE = [
   "Do you hear a heartbeat? It is in the header. Scroll fast and it races.",
   "Click me for a menu. There is an X-ray.",
   "Stop scrolling for a second and I will read along with you.",
-  "Click any link and watch me. I travel by black hole.",
+  "Click any link and watch me. I travel as pixels.",
   "On the home page there is a robot arm. It solves inverse kinematics.",
   "Further down the home page there is a Robo Sumo game. The CPU is tough.",
-  "Bot Forge moved to 6 Nov. More time to tune my motors.",
+  FORGE_IDLE,
   "Pick me up and put me somewhere. I dare you.",
 ];
 const POKES = ["Hi, human!", "Fun fact: your heart beats about 100,000 times a day.", "A prosthetic hand can read the electrical signals of your muscles. That is called EMG.", "Careful. I am sensitive."];
@@ -77,7 +78,8 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   const lastVisit = new WeakMap<Element, number>(), hovered = new Map<string, number>();
   type Msg = { text: string; kind: Kind; hold: number };
   const mq: Msg[] = []; let msg: Msg | null = null, msgAt = 0, msgDone = 0, mkind: Kind = "plain";
-  let travel: { st: "leap" | "in" | "wait" | "out" | "drop"; P: V | null; t0: number; from: V; Q?: V; el?: Element | null; routeAt: number; path: string; hole?: boolean } | null = null;
+  type Trip = { st: "scan" | "stream" | "wait" | "build" | "glitch" | "drop"; P: V | null; t0: number; from: V; Q?: V; el?: Element | null; routeAt: number; path: string; cells?: Cell[] | null | undefined; box?: V; started?: boolean }; // cells: undefined while sampling, null if there is no canvas
+  let travel: Trip | null = null;
   let carry: { sx: number; sy: number; down: boolean; moved: boolean; t0: number; lx: number; vx: number } | null = null;
   let currentPath = location.pathname;
   const shown = new Map<string, string>();
@@ -98,7 +100,6 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   const startTurn = (to: "front" | "side") => { if (!turn && view !== to) turn = { to, t0: ms }; };
   const needFront = () => { if (view !== "front") { startTurn("front"); return false; } return !turn; };
   const needSide = () => { if (view !== "side") { startTurn("side"); return false; } return !turn; };
-  const ring = (el: HTMLElement, p: V, out = false) => { el.style.left = `${p.x}px`; el.style.top = `${p.y}px`; el.classList.remove("go", "out"); void el.offsetWidth; el.classList.add("go"); if (out) el.classList.add("out"); };
   const land = (el: Element | null) => { perch = el; squash = ms; fly = false; if (el) lastVisit.set(el, ms); };
   const headingText = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 36);
   const reactTo = (el: Element) => el.getAttribute("data-thought") ?? sectionLine(headingText(el));
@@ -252,52 +253,81 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     if (poseName !== "wave" && tAll >= waveUntil) { ftgt.aLs += Math.max(0, -lean) * 4; ftgt.aRs += Math.max(0, lean) * 4; }
   };
 
-  // ---- travel between pages
+  // ---- travel between pages: upload as pixels, wait for the new page, download and rebuild
+  const stream = d.pix ? pixelStream(d.pix) : null;
+  const SCAN = 450, cellPx = () => (H < 110 ? 5 : 6);
+  const boxAt = (fx: number, fy: number): V => ({ x: fx - 130 * S, y: fy - 266 * S }); // his box, from the point between his feet
+  const sample = (svg: SVGSVGElement, mirror: boolean, t: Trip) => {
+    t.cells = undefined;
+    sampleSvg(svg, 260 * S, 284 * S, cellPx(), mirror).then((c) => { if (travel === t) t.cells = c; });
+  };
+  const standSvg = () => { const tmp = document.createElement("div"); tmp.innerHTML = rigMarkup({ ...POSES.stand }, false, false); return tmp.firstElementChild as SVGSVGElement; };
+  const unclip = () => { d.puppet.style.clipPath = ""; d.scan.style.opacity = "0"; };
   const startTravel = (P: V | null) => {
     if (mode === "wake" || mode === "carried" || mode === "static" || rest) return;
     cur = null; queue.length = 0; perch = null; mq.length = 0; msg = null; d.bubble.setAttribute("data-on", "false");
-    mode = "travel"; puppetOp = 1;
-    travel = P ? { st: "leap", P, t0: ms, from: { x, y }, routeAt: -1, path: currentPath } : { st: "wait", P: null, t0: ms, from: { x, y }, routeAt: ms, path: currentPath };
-    if (!P) puppetOp = 0;
+    mode = "travel"; puppetOp = 1; wmoving = false;
+    const t: Trip = { st: P ? "scan" : "wait", P, t0: ms, from: { x, y }, routeAt: P ? -1 : ms, path: currentPath, box: boxAt(x, y) };
+    travel = t;
+    if (!P) { puppetOp = 0; return; }
+    say("Uploading myself. Hold still.", "plain", 900, true);
+    if (stream) sample(view === "front" ? fsvg : wsvg, view === "side" && face < 0, t); else t.cells = null;
   };
   const updateTravel = () => {
     const t = travel!; const el = ms - t.t0;
-    if (t.st === "leap") {
-      view = "side"; wmoving = false;
-      const T = clamp(500 + Math.hypot(t.P!.x - t.from.x, t.P!.y - t.from.y) / 1.4, 500, 950), u = clamp(el / T, 0, 1), dxx = t.P!.x - t.from.x;
-      if (Math.abs(dxx) > 2) face = dxx > 0 ? 1 : -1;
-      x = t.from.x + dxx * ease(u); y = t.from.y + (t.P!.y - t.from.y) * ease(u) - 4 * 70 * u * (1 - u); fly = Math.abs(t.P!.y - t.from.y) > 120;
-      if (u >= 0.55 && !t.hole) { t.hole = true; ring(d.ringA, t.P!); } // the black hole opens before he gets there
-      if (u >= 1) { t.st = "in"; t.t0 = ms; say("Uh oh.", "plain", 500, true); }
-    } else if (t.st === "in") {
-      // Pulled in: he spirals round the hole, shrinks to a point and gets stretched on the way down.
-      const u = clamp(el / 560, 0, 1), e = ease(u), a = e * Math.PI * 2.4, rad = 34 * (1 - e);
-      x = t.P!.x + Math.cos(a) * rad; y = t.P!.y + Math.sin(a) * rad * 0.5; fly = false;
-      sx = (1 - 0.97 * e) * (1 - 0.25 * Math.sin(Math.PI * u)); sy = (1 - 0.97 * e) * (1 + 0.6 * Math.sin(Math.PI * u)); rot = 720 * e;
-      if (u >= 1) { puppetOp = 0; t.st = "wait"; t.t0 = ms; }
+    if (t.st === "scan") {
+      wmoving = false; x = t.from.x; y = t.from.y;
+      if (t.cells === undefined && el < 500) return; // still rasterising him
+      if (!t.cells?.length || !stream) { puppetOp = 0; t.st = "wait"; t.t0 = ms; return; } // no canvas: just vanish
+      if (!t.started) { t.started = true; t.t0 = ms; stream.up(t.cells, t.box!, t.P!, ms, cellPx(), SCAN); return; }
+      // a scan line sweeps down him; everything above it has already turned into pixels
+      const u = clamp(el / SCAN, 0, 1);
+      d.puppet.style.clipPath = `inset(${(u * 100).toFixed(1)}% 0 0 0)`; d.scan.style.opacity = "1"; d.scan.style.top = `${(u * 94 + 3).toFixed(1)}%`;
+      if (u >= 1) { unclip(); puppetOp = 0; t.st = "stream"; mq.length = 0; msg = null; d.bubble.setAttribute("data-on", "false"); } // no talking while he is pixels
+    } else if (t.st === "stream") {
+      puppetOp = 0;
+      if (stream!.progress(ms) >= 1 && ms - t.t0 > SCAN + 250) { t.st = "wait"; t.t0 = ms; stream!.clear(); }
     } else if (t.st === "wait") {
       puppetOp = 0;
       if ((t.routeAt > 0 && ms - t.routeAt > 320) || el > 2200) {
         const h1 = document.querySelector("main h1"), r = h1?.getBoundingClientRect();
         if (h1 && r && r.top >= 78 + H * 0.9 && r.top <= innerHeight - 140 && ms - t.routeAt >= 0) t.Q = { x: clamp(r.left + 80, 40, innerWidth - 40), y: r.top - 70 }, t.el = h1;
-        else t.Q = { x: innerWidth * 0.5, y: innerHeight * 0.4 }, t.el = null;
-        t.st = "out"; t.t0 = ms; x = t.Q.x; y = t.Q.y; view = "front"; poseName = "stand"; ring(d.ringB, t.Q, true);
+        else {
+          // heading too close to the header: rebuild just above the first card or heading he can stand on
+          const c = perchList().sort((a, b) => a.r.top - b.r.top)[0];
+          if (c) t.Q = { x: clamp(c.r.left + Math.min(c.r.width * 0.3, 120), 40, innerWidth - 40), y: c.r.top - 36 }, t.el = c.el;
+          else t.Q = { x: clamp(innerWidth * 0.3, 60, innerWidth - 60), y: floorY() }, t.el = null; // nothing to stand on: rebuild on the floor
+        }
+        t.st = "build"; t.t0 = ms; t.started = false; x = t.Q.x; y = t.Q.y; view = "front"; poseName = "stand";
+        Object.assign(fcur, POSES.stand); Object.assign(ftgt, POSES.stand); // rebuild him standing, not mid-stride
+        t.box = boxAt(x, y);
+        if (stream) sample(standSvg(), false, t); else t.cells = null;
       }
-    } else if (t.st === "out") {
-      // The new hole opens first, then spits him out spinning.
-      const u = clamp((el - 200) / 420, 0, 1); puppetOp = el < 200 ? 0 : 1; x = t.Q!.x; y = t.Q!.y;
-      sx = sy = Math.max(0.03, u < 0.7 ? (u / 0.7) * 1.15 : 1.15 - 0.15 * ((u - 0.7) / 0.3)); rot = -540 * (1 - ease(u));
-      if (u >= 1) { sx = sy = 1; rot = 0; t.st = "drop"; t.t0 = ms; t.from = { x, y }; view = "side"; }
+    } else if (t.st === "build") {
+      x = t.Q!.x; y = t.Q!.y;
+      if (t.cells === undefined && el < 500) { puppetOp = 0; return; }
+      if (!t.cells?.length || !stream) { t.st = "glitch"; t.t0 = ms; return; }
+      if (!t.started) { t.started = true; t.t0 = ms; stream.down(t.cells, t.box!, t.P ?? { x: innerWidth / 2, y: 64 }, ms, cellPx()); }
+      // the real robot shows wherever the pixels have all landed, from the feet up
+      const line = stream.solidBelow(ms);
+      puppetOp = 1; d.puppet.style.clipPath = line === -Infinity ? "" : `inset(${Math.max(0, line - t.box!.y).toFixed(0)}px 0 0 0)`;
+      if (stream.progress(ms) >= 1) { t.st = "glitch"; t.t0 = ms; unclip(); }
+    } else if (t.st === "glitch") {
+      // a short hologram flicker while the last bits lock in
+      x = t.Q!.x + (el < 200 ? (Math.random() - 0.5) * 3 : 0); y = t.Q!.y;
+      puppetOp = el < 220 ? (Math.floor(el / 45) % 2 ? 0.35 : 1) : 1;
+      if (el > 260) { stream?.clear(); x = t.Q!.x; t.st = "drop"; t.t0 = ms; t.from = { x, y }; view = "side"; }
     } else if (t.st === "drop") {
       view = "side"; wmoving = false;
       const ty = t.el ? t.el.getBoundingClientRect().top : floorY(), dyy = ty - t.from.y, T = Math.max(0.22, Math.sqrt(Math.abs(dyy) * 2 / 1900) * 1.1), u = clamp(el / (T * 1000), 0, 1);
       y = t.from.y + dyy * u * u;
       if (u >= 1) { y = ty; land(t.el ?? null); startAfterTravel(); }
     }
+    if (stream && (t.st === "scan" || t.st === "stream" || t.st === "build")) stream.draw(ms);
   };
   const startAfterTravel = () => {
     const path = currentPath; travel = null; mode = "free"; view = "side"; startTurn("front");
-    say("Made it. Still in one piece.", "plain", 1100, true);
+    say("Download complete. All parts accounted for.", "plain", 1300, true);
     say(GREET[path] ?? "New page. Let us look around.", "plain", 2200);
     enqueue(wait(2.4, "look"));
   };
@@ -358,7 +388,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     say(DROPS[Math.floor(Math.random() * DROPS.length)]!, "plain", 1300, true);
   };
   const onKey = (e: MouseEvent) => { if (e.detail === 0) tap(); };
-  const onResize = () => { sizeUp(); x = clamp(x, 30, innerWidth - 30); if (!perch) y = floorY(); };
+  const onResize = () => { stream?.fit(); sizeUp(); x = clamp(x, 30, innerWidth - 30); if (!perch) y = floorY(); };
   d.hit.addEventListener("pointerdown", onDown); d.hit.addEventListener("pointermove", onDrag); d.hit.addEventListener("pointerup", onUp); d.hit.addEventListener("pointercancel", onUp); d.hit.addEventListener("click", onKey);
   addEventListener("pointermove", onMove, { passive: true }); addEventListener("scroll", onScroll, { passive: true }); addEventListener("resize", onResize);
   document.addEventListener("pointerover", onOver); document.addEventListener("click", onLink, true);
@@ -468,7 +498,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
       else { waveUntil = tAll + 1.6; say(POKES[Math.floor(Math.random() * POKES.length)]!, "plain", 2400, true); }
     },
     stop() {
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf); stream?.clear(); unclip();
       d.hit.removeEventListener("pointerdown", onDown); d.hit.removeEventListener("pointermove", onDrag); d.hit.removeEventListener("pointerup", onUp); d.hit.removeEventListener("pointercancel", onUp); d.hit.removeEventListener("click", onKey);
       removeEventListener("pointermove", onMove); removeEventListener("scroll", onScroll); removeEventListener("resize", onResize);
       document.removeEventListener("pointerover", onOver); document.removeEventListener("click", onLink, true);
