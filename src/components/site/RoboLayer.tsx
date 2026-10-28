@@ -6,9 +6,14 @@ import { startRoam } from "@/lib/robo-roam";
 
 type Pref = "on" | "rest" | "hidden";
 const KEY = "robio-robo";
-const css = `.rr{position:absolute;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;border:3px solid var(--lens);box-shadow:0 0 14px var(--lens),inset 0 0 14px var(--lens);opacity:0;pointer-events:none}
-.rr.go{animation:rrgo .6s ease-out}@keyframes rrgo{0%{opacity:0;transform:scale(.2) rotate(0)}25%{opacity:1}100%{opacity:0;transform:scale(1.5) rotate(160deg)}}
-@media (prefers-reduced-motion:reduce){.rr.go{animation:none}}`;
+// The black hole Robo travels through: a lensing halo, a tilted accretion disc that spins (::before), and the event horizon (::after).
+const css = `.rr{position:absolute;width:132px;height:132px;margin:-66px 0 0 -66px;border-radius:50%;opacity:0;pointer-events:none;transform:scale(0);background:radial-gradient(circle,transparent 31%,color-mix(in oklab,var(--lilac) 40%,transparent) 37%,color-mix(in oklab,var(--lens) 16%,transparent) 50%,transparent 66%)}
+.rr::before{content:"";position:absolute;inset:-14%;border-radius:50%;background:repeating-conic-gradient(from 0deg,var(--lens) 0 7deg,#fffffa 9deg,var(--violet) 15deg,transparent 22deg,var(--lilac) 30deg,transparent 40deg);-webkit-mask:radial-gradient(circle,transparent 24%,#000 27%,#000 46%,transparent 64%);mask:radial-gradient(circle,transparent 24%,#000 27%,#000 46%,transparent 64%);transform:rotate(-16deg) scaleY(.4);filter:drop-shadow(0 0 4px var(--violet))}
+.rr::after{content:"";position:absolute;inset:35%;border-radius:50%;background:#05040a;box-shadow:0 0 0 1.5px #fffffa,0 0 0 3.5px var(--lens),0 0 14px 5px var(--violet),inset 0 0 8px 2px #000}
+.rr.go{animation:rrgo 1.25s cubic-bezier(.2,.8,.2,1) forwards}.rr.go.out{animation-duration:1s}.rr.go::before{animation:rrspin .7s linear infinite}
+@keyframes rrgo{0%{opacity:0;transform:scale(.05) rotate(0)}16%{opacity:1;transform:scale(1) rotate(-6deg)}74%{opacity:1;transform:scale(1.08) rotate(-14deg)}100%{opacity:0;transform:scale(0) rotate(-24deg)}}
+@keyframes rrspin{from{transform:rotate(-16deg) scaleY(.4) rotate(0)}to{transform:rotate(-16deg) scaleY(.4) rotate(-360deg)}}
+@media (prefers-reduced-motion:reduce){.rr.go,.rr.go::before{animation:none}}`;
 
 /** Robo lives here: a fixed layer over the whole site, mounted once in the root layout so he travels between pages. */
 export function RoboLayer() {
@@ -67,7 +72,7 @@ export function RoboLayer() {
   return (
     <>
       {active && (
-        <div ref={r.layer} className="pointer-events-none fixed inset-0 z-[60] overflow-hidden">
+        <div ref={r.layer} className="robo-ui pointer-events-none fixed inset-0 z-[60] overflow-hidden">
           <style>{css}</style>
           <div ref={r.robo} className="absolute left-0 top-0">
             <div ref={r.puppet} className="relative h-full w-full" style={{ transformOrigin: "50% 93.7%" }}>
@@ -99,7 +104,7 @@ export function RoboLayer() {
           )}
         </div>
       )}
-      <div className="fixed bottom-3 right-3 z-[61] flex border-2 border-border bg-card text-xs font-bold shadow-hard">
+      <div className="robo-ui fixed bottom-3 right-3 z-[61] flex border-2 border-border bg-card text-xs font-bold shadow-hard">
         {pref === "hidden" ? (
           <button type="button" className="px-3 py-2" onClick={() => choose("on")}>Show Robo</button>
         ) : (
