@@ -1,9 +1,12 @@
 // Robo's life on the page. He lives in a fixed layer over the whole site: he wakes up, walks along the bottom of the
 // screen, hops onto headings and cards, wanders, goes to whatever you are reading, can be picked up and dropped, and
-// when you click a link he runs to it, jumps in and pops out on the new page. No React in here, so it can be tested.
+// when you click a link he runs to it, a black hole opens, he gets pulled in, and another one spits him out on the new
+// page. While you read, he looks at the section you stopped on, tilts his head at it and says something about it.
+// No React in here, so it can be tested.
 import { POSES, opacities, transforms, type Pose } from "./robo-rig";
 import { WALK_FALL, WALK_IDLE, WALK_JUMP, walkCycle, walkTransforms, type WalkPose } from "./robo-walk";
 import { heart } from "./heart";
+import { GREET, sectionLine } from "./robo-talk";
 
 export type RoamDom = {
   layer: HTMLElement; robo: HTMLElement; puppet: HTMLElement; front: HTMLElement; side: HTMLElement; hit: HTMLElement;
@@ -29,20 +32,15 @@ const wrapA = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const RATES: Partial<Record<keyof Pose, number>> = { rx: 4, ry: 4.5, rr: 3.6, spine: 4.5, hr: 7, eye: 16, mouth: 10, lx: 12, ly: 12 };
 const beatAt = (ph: number) => Math.exp(-(((ph % 1) / 0.07) ** 2)) + 0.6 * Math.exp(-((((ph % 1) - 0.22) / 0.07) ** 2));
 
-export const GREET: Record<string, string> = {
-  "/": "Home sweet home.", "/about": "About us. Good page.", "/events": "Events! Bot Forge is the big one.",
-  "/events/bot-forge": "Bot Forge. Five parts. I will be watching.", "/team": "The team! 35 humans. I counted.",
-  "/workshops": "Workshops. I love learning.", "/projects": "Projects. Mine is not listed. Yet.", "/gallery": "Pictures! I hope I am in one.",
-  "/blog": "Words. I like words.", "/contact": "Want to talk? Instagram is the quickest.", "/faq": "Questions? I have a few too.",
-  "/privacy": "Privacy. This site keeps almost nothing. I checked.", "/terms": "The small print. Short and fair, I hope.",
-  "/accessibility": "Everyone should be able to use this site. Tell us if you cannot.",
-};
+export { GREET };
 const IDLE = [
   "Do you hear a heartbeat? It is in the header. Scroll fast and it races.",
   "Click me for a menu. There is an X-ray.",
+  "Stop scrolling for a second and I will read along with you.",
+  "Click any link and watch me. I travel by black hole.",
   "On the home page there is a robot arm. It solves inverse kinematics.",
   "Further down the home page there is a Robo Sumo game. The CPU is tough.",
-  "Bot Forge is on 28 Oct. I am very excited.",
+  "Bot Forge moved to 6 Nov. More time to tune my motors.",
   "Pick me up and put me somewhere. I dare you.",
 ];
 const POKES = ["Hi, human!", "Fun fact: your heart beats about 100,000 times a day.", "A prosthetic hand can read the electrical signals of your muscles. That is called EMG.", "Careful. I am sensitive."];
@@ -73,11 +71,13 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   let turn: { to: "front" | "side"; t0: number } | null = null;
   let squash = -1, sx = 1, sy = 1, rot = 0, puppetOp = 1, fly = false;
   let px = -1, py = -1, movedAt = -1e9, scrollAt = -1e9, headC: V = { x: 0, y: 0 }, headAt = -1e9;
+  // where he is looking: a section on the page, or just a curious head tilt at you (el null)
+  let gaze: { el: Element | null; until: number; cock: 1 | -1 } | null = null, lastGlance = -1e9;
   let beatPh = 0, blinkAt = 3, waveUntil = 0, nextIdle = 8000, lastGuide = 0, lastCursorTalk = 0, avoidAt = -1e9;
   const lastVisit = new WeakMap<Element, number>(), hovered = new Map<string, number>();
   type Msg = { text: string; kind: Kind; hold: number };
   const mq: Msg[] = []; let msg: Msg | null = null, msgAt = 0, msgDone = 0, mkind: Kind = "plain";
-  let travel: { st: "leap" | "in" | "wait" | "out" | "drop"; P: V | null; t0: number; from: V; Q?: V; el?: Element | null; routeAt: number; path: string } | null = null;
+  let travel: { st: "leap" | "in" | "wait" | "out" | "drop"; P: V | null; t0: number; from: V; Q?: V; el?: Element | null; routeAt: number; path: string; hole?: boolean } | null = null;
   let carry: { sx: number; sy: number; down: boolean; moved: boolean; t0: number; lx: number; vx: number } | null = null;
   let currentPath = location.pathname;
   const shown = new Map<string, string>();
@@ -89,7 +89,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   const perchList = () => {
     const av = avoids();
     return [...document.querySelectorAll(PERCH)].map((el) => ({ el, r: el.getBoundingClientRect() }))
-      .filter(({ r }) => r.width >= 90 && r.height > 8 && r.top >= 78 && r.top <= innerHeight - 70 && !av.some((a) => overlap(r, a)));
+      .filter(({ r }) => r.width >= 90 && r.height > 8 && r.top >= 78 + H * 0.9 && r.top <= innerHeight - 70 && !av.some((a) => overlap(r, a))); // room for all of him below the header
   };
   const limits = (): [number, number] => {
     if (perch) { const r = perch.getBoundingClientRect(); return [r.left + 16, Math.max(r.left + 17, r.right - 16)]; }
@@ -98,15 +98,18 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   const startTurn = (to: "front" | "side") => { if (!turn && view !== to) turn = { to, t0: ms }; };
   const needFront = () => { if (view !== "front") { startTurn("front"); return false; } return !turn; };
   const needSide = () => { if (view !== "side") { startTurn("side"); return false; } return !turn; };
-  const ring = (el: HTMLElement, p: V) => { el.style.left = `${p.x}px`; el.style.top = `${p.y}px`; el.classList.remove("go"); void el.offsetWidth; el.classList.add("go"); };
+  const ring = (el: HTMLElement, p: V, out = false) => { el.style.left = `${p.x}px`; el.style.top = `${p.y}px`; el.classList.remove("go", "out"); void el.offsetWidth; el.classList.add("go"); if (out) el.classList.add("out"); };
   const land = (el: Element | null) => { perch = el; squash = ms; fly = false; if (el) lastVisit.set(el, ms); };
   const headingText = (el: Element) => (el.textContent ?? "").replace(/\s+/g, " ").trim().slice(0, 36);
-  const reactTo = (el: Element) => {
-    const t = el.getAttribute("data-thought");
-    if (t) return t;
-    const h = /^H[1-3]$/.test(el.tagName) ? headingText(el) : "";
-    const pool = h ? [`${h}. Interesting.`, `Let me read this: ${h}.`, `${h}. I like this part.`] : ["What is this? Let me look.", "Nice spot."];
-    return pool[Math.floor(Math.random() * pool.length)]!;
+  const reactTo = (el: Element) => el.getAttribute("data-thought") ?? sectionLine(headingText(el));
+  const lookAt = (el: Element | null, secs: number) => { gaze = { el, until: ms + secs * 1000, cock: Math.random() < 0.5 ? 1 : -1 }; };
+  // The thing nearest the middle of the screen that is worth a comment: a heading, a card, or anything with a thought.
+  const readingTarget = () => {
+    const mid = innerHeight * 0.45;
+    return [...document.querySelectorAll("main h1, main h2, main h3, [data-robo-perch], [data-thought]")]
+      .map((el) => ({ el, r: el.getBoundingClientRect() }))
+      .filter(({ el, r }) => r.width > 40 && r.bottom > 80 && r.top < innerHeight - 60 && ms - (lastVisit.get(el) ?? -1e9) > 60000)
+      .sort((a, b) => Math.abs(a.r.top + a.r.height / 2 - mid) - Math.abs(b.r.top + b.r.height / 2 - mid))[0]?.el ?? null;
   };
 
   // ---- actions
@@ -121,7 +124,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     const tx = clamp(r.left + Math.min(r.width * 0.3, 140), r.left + 24, r.right - 24);
     if (!perch && Math.abs(x - tx) > 70) enqueue(walkTo(clamp(tx - 40 * Math.sign(tx - x), 28, innerWidth - 28), 92));
     enqueue(jumpTo(el, tx));
-    if (react) { enqueue({ k: "wait", t: 0.2, pose: "look", t0: 0 }); queue.push({ k: "wait", t: 3.2, pose: Math.random() < 0.5 ? "think" : "look", t0: 0 }); say(reactTo(el), "think", 2200, true); }
+    if (react) { enqueue({ k: "wait", t: 0.2, pose: "look", t0: 0 }); queue.push({ k: "wait", t: 3.2, pose: Math.random() < 0.5 ? "think" : "look", t0: 0 }); say(reactTo(el), "think", 2200, true); lookAt(el, 4.5); }
   };
 
   const decide = () => {
@@ -130,7 +133,9 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     if (reading) {
       const c = perchList().filter(({ el }) => ms - (lastVisit.get(el) ?? -1e9) > 90000 && el !== perch);
       c.sort((a, b) => Math.abs(a.r.top + a.r.height / 2 - innerHeight * 0.45) - Math.abs(b.r.top + b.r.height / 2 - innerHeight * 0.45));
-      if (c[0]) { lastGuide = ms; goPerch(c[0].el, true); return; }
+      if (c[0] && Math.random() < 0.45) { lastGuide = ms; goPerch(c[0].el, true); return; }
+      const t = ms - lastGlance > 7000 ? readingTarget() : null;
+      if (t) { lastGuide = lastGlance = ms; lastVisit.set(t, ms); lookAt(t, 4.2); enqueue(wait(4.2, Math.random() < 0.4 ? "think" : "look")); say(reactTo(t), "think", 2400, true); return; }
     }
     if (px >= 0 && ms - movedAt > 3500 && ms - movedAt < 12000 && ms - lastCursorTalk > 40000 && Math.random() < 0.3) {
       lastCursorTalk = ms; const [lo, hi] = limits();
@@ -138,7 +143,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     }
     const r = Math.random(), [lo, hi] = limits();
     if (r < 0.4) { let tx = lo + Math.random() * (hi - lo); if (Math.abs(tx - x) < 60) tx = clamp(x + (Math.random() < 0.5 ? -1 : 1) * 140, lo, hi); enqueue(walkTo(tx)); }
-    else if (r < 0.6) { enqueue(wait(2 + Math.random() * 2.5, "look")); if (Math.random() < 0.3) say(IDLE[Math.floor(Math.random() * IDLE.length)]!, "think", 2600); }
+    else if (r < 0.6) { const t = 2 + Math.random() * 2.5; enqueue(wait(t, "look")); if (Math.random() < 0.45) lookAt(null, t); if (Math.random() < 0.3) say(IDLE[Math.floor(Math.random() * IDLE.length)]!, "think", 2600); }
     else if (r < 0.7) enqueue(wait(2.3, "yawn"));
     else if (r < 0.78) enqueue(wait(1.7, "wave"));
     else if (r < 0.85) enqueue(wait(3 + Math.random() * 3, "sit"));
@@ -151,7 +156,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   const detachIfGone = () => {
     if (!perch) return;
     const r = perch.getBoundingClientRect();
-    if (!perch.isConnected || r.width === 0 || r.top < 70 || r.top > innerHeight - 30) { perch = null; queue.length = 0; cur = { k: "jump", el: null, tx: x, T: 0.5, arc: 0, fall: true, t0: ms, from: { x, y } }; }
+    if (!perch.isConnected || r.width === 0 || r.top < 70 + H * 0.6 || r.top > innerHeight - 30) { perch = null; queue.length = 0; cur = { k: "jump", el: null, tx: x, T: 0.5, arc: 0, fall: true, t0: ms, from: { x, y } }; }
   };
 
   const runAct = (dt: number) => {
@@ -232,10 +237,19 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     if (poseName === "stand" || poseName === "look" || poseName === "think" || poseName === "wave") Object.assign(ftgt, { aLs: 8 + 1.6 * Math.sin(tAll * 1.3), aRs: 8 + 1.6 * Math.sin(tAll * 1.1 + 1) });
     if ((poseName === "think") || (msg && mkind === "think" && poseName !== "yawn" && poseName !== "sit" && poseName !== "held")) Object.assign(ftgt, { aRs: POSES.think.aRs, aRe: POSES.think.aRe });
     if (poseName === "wave" || tAll < waveUntil) Object.assign(ftgt, { aRs: 118, aRe: -8 + 22 * Math.sin(tAll * 14), mouth: 0.35 });
-    if (poseName !== "yawn" && poseName !== "sit" && poseName !== "held" && px >= 0) {
-      const dx = clamp((px - headC.x) / 320, -1, 1), dy = clamp((py - headC.y) / 320, -1, 1);
-      ftgt.hr = (msg && mkind === "think" ? 7 : 0) + dx * 22; ftgt.lx = dx * 2.9; ftgt.ly = dy * 2.3; ftgt.spine = dx * 2.5;
-    }
+    if (poseName === "yawn" || poseName === "sit" || poseName === "held") return;
+    if (gaze && (ms > gaze.until || (gaze.el && !gaze.el.isConnected))) gaze = null;
+    // Look at the section he is thinking about, else at the cursor. Looking at something means a proper head tilt.
+    let tx = px, ty = py;
+    if (gaze?.el) { const r = gaze.el.getBoundingClientRect(); tx = clamp(r.left + r.width / 2, r.left, r.right); ty = r.top + Math.min(r.height / 2, 40); }
+    else if (gaze) { tx = headC.x; ty = headC.y; }
+    if (tx < 0 && !gaze) return;
+    const dx = clamp((tx - headC.x) / 320, -1, 1), dy = clamp((ty - headC.y) / 320, -1, 1);
+    const cock = gaze ? (gaze.el ? Math.sign(dx || gaze.cock) : gaze.cock) * 11 : 0;
+    const hr = (msg && mkind === "think" ? 7 : 0) + dx * 22 + cock, lean = clamp(hr / 33, -1, 1);
+    // The shoulder on the side he tilts towards lifts a little, the other drops: a light, human shrug.
+    Object.assign(ftgt, { hr, lx: dx * 2.9, ly: dy * 2.3, spine: dx * 2.5 + lean * 1.5, shR: 2.6 * lean, shL: -2.6 * lean });
+    if (poseName !== "wave" && tAll >= waveUntil) { ftgt.aLs += Math.max(0, -lean) * 4; ftgt.aRs += Math.max(0, lean) * 4; }
   };
 
   // ---- travel between pages
@@ -253,21 +267,26 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
       const T = clamp(500 + Math.hypot(t.P!.x - t.from.x, t.P!.y - t.from.y) / 1.4, 500, 950), u = clamp(el / T, 0, 1), dxx = t.P!.x - t.from.x;
       if (Math.abs(dxx) > 2) face = dxx > 0 ? 1 : -1;
       x = t.from.x + dxx * ease(u); y = t.from.y + (t.P!.y - t.from.y) * ease(u) - 4 * 70 * u * (1 - u); fly = Math.abs(t.P!.y - t.from.y) > 120;
-      if (u >= 1) { t.st = "in"; t.t0 = ms; ring(d.ringA, t.P!); }
+      if (u >= 0.55 && !t.hole) { t.hole = true; ring(d.ringA, t.P!); } // the black hole opens before he gets there
+      if (u >= 1) { t.st = "in"; t.t0 = ms; say("Uh oh.", "plain", 500, true); }
     } else if (t.st === "in") {
-      const u = clamp(el / 320, 0, 1); x = t.P!.x; y = t.P!.y; sx = sy = 1 - 0.95 * ease(u); rot = 540 * ease(u); fly = false;
+      // Pulled in: he spirals round the hole, shrinks to a point and gets stretched on the way down.
+      const u = clamp(el / 560, 0, 1), e = ease(u), a = e * Math.PI * 2.4, rad = 34 * (1 - e);
+      x = t.P!.x + Math.cos(a) * rad; y = t.P!.y + Math.sin(a) * rad * 0.5; fly = false;
+      sx = (1 - 0.97 * e) * (1 - 0.25 * Math.sin(Math.PI * u)); sy = (1 - 0.97 * e) * (1 + 0.6 * Math.sin(Math.PI * u)); rot = 720 * e;
       if (u >= 1) { puppetOp = 0; t.st = "wait"; t.t0 = ms; }
     } else if (t.st === "wait") {
       puppetOp = 0;
       if ((t.routeAt > 0 && ms - t.routeAt > 320) || el > 2200) {
         const h1 = document.querySelector("main h1"), r = h1?.getBoundingClientRect();
-        if (h1 && r && r.top >= 78 && r.top <= innerHeight - 140 && ms - t.routeAt >= 0) t.Q = { x: clamp(r.left + 80, 40, innerWidth - 40), y: r.top - 70 }, t.el = h1;
+        if (h1 && r && r.top >= 78 + H * 0.9 && r.top <= innerHeight - 140 && ms - t.routeAt >= 0) t.Q = { x: clamp(r.left + 80, 40, innerWidth - 40), y: r.top - 70 }, t.el = h1;
         else t.Q = { x: innerWidth * 0.5, y: innerHeight * 0.4 }, t.el = null;
-        t.st = "out"; t.t0 = ms; x = t.Q.x; y = t.Q.y; view = "front"; poseName = "stand"; ring(d.ringB, t.Q);
+        t.st = "out"; t.t0 = ms; x = t.Q.x; y = t.Q.y; view = "front"; poseName = "stand"; ring(d.ringB, t.Q, true);
       }
     } else if (t.st === "out") {
-      const u = clamp(el / 380, 0, 1); puppetOp = 1; x = t.Q!.x; y = t.Q!.y;
-      sx = sy = u < 0.7 ? (u / 0.7) * 1.15 : 1.15 - 0.15 * ((u - 0.7) / 0.3); rot = -540 * (1 - ease(u));
+      // The new hole opens first, then spits him out spinning.
+      const u = clamp((el - 200) / 420, 0, 1); puppetOp = el < 200 ? 0 : 1; x = t.Q!.x; y = t.Q!.y;
+      sx = sy = Math.max(0.03, u < 0.7 ? (u / 0.7) * 1.15 : 1.15 - 0.15 * ((u - 0.7) / 0.3)); rot = -540 * (1 - ease(u));
       if (u >= 1) { sx = sy = 1; rot = 0; t.st = "drop"; t.t0 = ms; t.from = { x, y }; view = "side"; }
     } else if (t.st === "drop") {
       view = "side"; wmoving = false;
@@ -278,7 +297,8 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   };
   const startAfterTravel = () => {
     const path = currentPath; travel = null; mode = "free"; view = "side"; startTurn("front");
-    say(GREET[path] ?? "New page. Let us look around.", "plain", 2200, true);
+    say("Made it. Still in one piece.", "plain", 1100, true);
+    say(GREET[path] ?? "New page. Let us look around.", "plain", 2200);
     enqueue(wait(2.4, "look"));
   };
 
@@ -387,6 +407,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
       if (tAll > blinkAt + 0.14) blinkAt = tAll + 2.5 + Math.random() * 3.5;
       const blink = mode !== "wake" && tAll > blinkAt && tAll < blinkAt + 0.14 ? 0 : 1;
       const out: Pose = { ...fcur, eye: fcur.eye * blink, breath: reduced ? 0 : (Math.sin(tAll * (mode === "wake" && wake === "sleep" ? 1.3 : 2)) + 1) / 2, beat: beatAt(beatPh) };
+      fsvg.setAttribute("data-air", mode === "carried" || mode === "travel" ? "1" : "0");
       for (const m of [transforms(out), opacities(out)]) for (const [id, v] of Object.entries(m)) if (shown.get("f" + id) !== v) { shown.set("f" + id, v); parts.get(id)?.setAttribute(id.startsWith("closed") ? "opacity" : "transform", v); }
     } else {
       const want: WalkPose = mode === "travel" || (cur && cur.k === "jump")
@@ -400,6 +421,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
       wcur.eye = tAll > blinkAt && tAll < blinkAt + 0.14 ? 0 : 1;
       for (const [id, v] of Object.entries(walkTransforms(wcur, !(mode === "travel" || (cur && cur.k === "jump"))))) if (shown.get("w" + id) !== v) { shown.set("w" + id, v); wparts.get(id)?.setAttribute("transform", v); }
       wsvg.setAttribute("data-fly", fly ? "1" : "0");
+      wsvg.setAttribute("data-air", mode === "travel" || (cur && cur.k === "jump") ? "1" : "0");
     }
     d.front.style.display = view === "front" ? "" : "none"; d.side.style.display = view === "side" ? "" : "none";
     d.side.style.transform = face < 0 ? "scaleX(-1)" : "";
