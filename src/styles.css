@@ -9,10 +9,10 @@
   --radius-md: var(--radius);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 2px);
-  --font-display: "Exo 2", system-ui, sans-serif;
+  --font-display: "Tektur", system-ui, sans-serif; /* angular, like machined parts */
   --font-pixel: "Silkscreen", ui-monospace, monospace;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-sans: "Lexend", system-ui, sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next", system-ui, sans-serif; /* drawn by the Braille Institute for low vision readers */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -198,13 +198,16 @@
   }
 }
 
-/* Boot screen, first visit only. Everything is timed in CSS, so it always hides itself: about 1.7s in total.
-   Pink to blue: the heartbeat (bio) turns into a circuit trace (robotics). */
+/* Intro, first visit only: Robo is assembled, X-rayed and switched on (about 6s). Timed in CSS so it always ends,
+   even without JavaScript. Tapping him (JavaScript) holds it open until you choose to enter. */
 .boot {
+  --bpm: 72;
+  --beat: calc(60s / var(--bpm));
   position: fixed;
   inset: 0;
   z-index: 100;
-  animation: boot-off 0s linear 1.75s forwards;
+  color: var(--paper);
+  animation: boot-off 0s linear 6.5s forwards;
 }
 .boot-door {
   position: absolute;
@@ -215,7 +218,7 @@
     linear-gradient(color-mix(in oklab, var(--lilac) 10%, transparent) 1px, transparent 1px),
     linear-gradient(90deg, color-mix(in oklab, var(--lilac) 10%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
-  animation: 0.42s cubic-bezier(0.7, 0, 0.3, 1) 1.32s forwards;
+  animation: 0.45s cubic-bezier(0.7, 0, 0.3, 1) 6s forwards;
 }
 .boot-door-top {
   top: 0;
@@ -239,108 +242,243 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: 12px;
   padding: 16px;
-  color: var(--paper);
-  animation: boot-stage-in 0.18s ease-out both, boot-stage-out 0.16s ease-in 1.2s forwards;
+  animation: boot-fade-in 0.25s ease-out both, boot-stage-out 0.2s ease-in 5.85s forwards;
 }
-.boot-dial {
-  position: relative;
-  width: 172px;
-  height: 172px;
-  display: grid;
-  place-items: center;
+/* Once you start tapping, the exit waits. Leaving restarts the exit right away. */
+.boot-held,
+.boot-held .boot-door,
+.boot-held .boot-stage {
+  animation-play-state: paused;
 }
-.boot-ring {
+/* New animation names, so they start from now instead of from when the intro first appeared. */
+.boot-leave {
+  animation: boot-off-now 0s linear 0.6s forwards;
+}
+.boot-leave .boot-door-top {
+  animation: boot-up-now 0.45s cubic-bezier(0.7, 0, 0.3, 1) 0.1s forwards;
+}
+.boot-leave .boot-door-bottom {
+  animation: boot-down-now 0.45s cubic-bezier(0.7, 0, 0.3, 1) 0.1s forwards;
+}
+.boot-leave .boot-stage {
+  animation: boot-stage-out-now 0.15s ease-in forwards;
+}
+.boot-skip {
   position: absolute;
-  inset: 0;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  border: 2px solid color-mix(in oklab, var(--paper) 50%, transparent);
+  padding: 6px 10px;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--paper);
+  background: transparent;
+  cursor: pointer;
+  animation: boot-fade-in 0.3s ease-out 0.4s both;
+}
+.boot-skip:hover {
+  border-color: var(--paper);
+}
+.boot-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: 26px;
+  letter-spacing: 0.02em;
+}
+.boot-title span {
+  font-family: var(--font-pixel);
+  font-style: normal;
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--lilac);
+}
+.boot-bench {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+.boot-robo-hit {
+  position: relative;
+  display: block;
+  width: min(300px, 62vw, 38vh);
+  aspect-ratio: 260 / 284;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 12px;
+}
+.boot-robo,
+.boot-robo .rb {
+  display: block;
   width: 100%;
   height: 100%;
-  stroke: var(--lilac);
-  stroke-width: 2;
-  animation: boot-turn 1.4s cubic-bezier(0.5, 0, 0.2, 1) both;
 }
-.boot-arc {
-  fill: none;
-  stroke: var(--lens);
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-dasharray: 296;
-  stroke-dashoffset: 296;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  filter: drop-shadow(0 0 4px var(--lens));
-  animation: boot-draw 1s cubic-bezier(0.6, 0, 0.3, 1) 0.1s forwards;
+/* Assembly: every part arrives from somewhere and snaps into place. */
+.boot-robo #bt-legL,
+.boot-robo #bt-legR,
+.boot-robo .bt-pelvis,
+.boot-robo #bt-torso,
+.boot-robo #bt-head {
+  animation: boot-drop 0.42s cubic-bezier(0.3, 1.5, 0.5, 1) both;
 }
-.boot-logo {
-  position: relative;
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  border: 2px solid var(--paper);
-  background: var(--paper);
-  object-fit: cover;
-  box-shadow: 4px 4px 0 0 var(--violet);
-  animation: boot-pop 0.36s cubic-bezier(0.3, 1.6, 0.5, 1) 0.05s both;
+.boot-robo #bt-legL { animation-delay: 0.2s; }
+.boot-robo #bt-legR { animation-delay: 0.32s; }
+.boot-robo .bt-pelvis { animation-delay: 0.5s; }
+.boot-robo #bt-torso { animation-delay: 0.72s; }
+.boot-robo #bt-head { animation-delay: 1.45s; animation-duration: 0.5s; }
+.boot-robo #bt-armL {
+  animation: boot-slide-l 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) 1.05s both;
 }
-.boot-trace {
-  width: min(420px, 86vw);
-  height: auto;
-  overflow: visible;
+.boot-robo #bt-armR {
+  animation: boot-slide-r 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) 1.2s both;
 }
-.boot-trace path {
-  fill: none;
-  stroke-width: 3;
-  stroke-linejoin: round;
-  stroke-linecap: round;
+/* Eyes shut until he is whole, then a blink and they open. */
+.boot-robo #bt-pupilL,
+.boot-robo #bt-pupilR {
+  animation: boot-eyes-on 0.08s linear 2.05s both;
 }
-.boot-trace-dim {
-  stroke: color-mix(in oklab, var(--lilac) 22%, transparent);
+.boot-robo #bt-closedL,
+.boot-robo #bt-closedR {
+  animation: boot-eyes-shut 0.08s linear 2.05s both;
 }
-.boot-trace-live {
-  stroke: url(#boot-grad);
-  stroke-dasharray: 560;
-  stroke-dashoffset: 560;
-  filter: drop-shadow(0 0 3px var(--lens));
-  animation: boot-draw 0.95s cubic-bezier(0.45, 0, 0.3, 1) 0.1s forwards;
+/* The X-ray: the shell fades, the skeleton, lungs and heart show through. */
+.boot-robo .rb .shell {
+  animation: boot-xray-shell 1.5s ease-in-out 2.55s both;
 }
-.boot-pad {
-  fill: var(--lens);
-  stroke: var(--paper);
-  stroke-width: 2;
+.boot-robo .rb .bones {
+  animation: boot-xray-bones 1.5s ease-in-out 2.55s both;
+}
+.boot-robo #bt-heart {
   transform-box: fill-box;
   transform-origin: center;
-  animation: boot-pop 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) 1s both;
+  animation: boot-heart var(--beat) ease-out 2.2s infinite;
+}
+/* A little hop of joy when he is switched on, and a squash each time you tap him. */
+.boot-robo #bt-root {
+  animation: boot-hop 0.5s cubic-bezier(0.3, 0, 0.3, 1) 4.25s both;
+}
+.boot-scan {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 4%;
+  height: 3px;
+  background: var(--lens);
+  box-shadow: 0 0 12px 2px var(--lens);
+  opacity: 0;
+  animation: boot-scan 1.5s ease-in-out 2.55s forwards; /* not "both": hidden until the X-ray starts */
+}
+.boot-spark {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  background:
+    linear-gradient(var(--paper), var(--paper)) center / 3px 100% no-repeat,
+    linear-gradient(var(--paper), var(--paper)) center / 100% 3px no-repeat;
+  filter: drop-shadow(0 0 4px var(--lens));
+  opacity: 0;
+  animation: boot-spark 0.3s ease-out both;
+  pointer-events: none;
+}
+.boot-say {
+  position: absolute;
+  left: 50%;
+  top: 2%;
+  margin: 0;
+  translate: 12% 0;
+  width: max-content;
+  max-width: 190px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 6px 10px;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  line-height: 15px;
+  box-shadow: 3px 3px 0 0 var(--violet);
+  opacity: 0;
+  pointer-events: none;
+}
+.boot-say-hi {
+  animation: boot-pop-in 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 2.15s both, boot-fade-out 0.2s ease-in 3.6s forwards;
+}
+.boot-say-tap {
+  animation: boot-pop-in 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 4s both;
+}
+.boot-say-live {
+  animation: none;
+  opacity: 1;
+}
+.boot-xray-note {
+  position: absolute;
+  bottom: -4px;
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: #f3a9c0;
+  opacity: 0;
+  animation: boot-pop-in 0.2s ease-out 2.8s both, boot-fade-out 0.25s ease-in 3.9s forwards;
+}
+.boot-xray-note em {
+  font-style: normal;
+  color: var(--lens);
+}
+.boot-ecg {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  width: min(420px, 88vw);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  animation: boot-fade-in 0.3s ease-out 2.2s both;
+}
+.boot-ecg svg {
+  width: 100%;
+  height: 34px;
+  overflow: hidden;
+}
+.boot-ecg-run {
+  fill: none;
+  stroke: #f3a9c0;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px #f3a9c0);
+  animation: boot-ecg calc(var(--beat) * 2) linear infinite;
+}
+.boot-bpm b {
+  display: inline-block;
+  color: #f3a9c0;
+  animation: boot-heart var(--beat) ease-out infinite;
+}
+.boot-servo {
+  color: var(--lens);
 }
 .boot-log {
   margin: 0;
   padding: 0;
   list-style: none;
-  width: min(420px, 86vw);
+  width: min(420px, 88vw);
+  min-height: 108px;
   font-family: var(--font-pixel);
   font-size: 11px;
   line-height: 18px;
   color: color-mix(in oklab, var(--paper) 80%, transparent);
 }
-.boot-label {
-  font-family: var(--font-pixel);
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-anchor: middle;
-  opacity: 0;
-  animation: boot-line 0.3s ease-out forwards;
-}
-.boot-label-bio {
-  fill: #f3a9c0;
-  animation-delay: 0.35s;
-}
-.boot-label-robo {
-  fill: var(--lens);
-  animation-delay: 0.85s;
-}
+/* A short linear fade, not steps(1): Chrome can land a finished steps(1) animation at 0.99999 and show the first step. */
 .boot-log li {
   opacity: 0;
-  animation: boot-line 0.01s steps(1) forwards;
+  animation: boot-line 0.12s linear forwards;
 }
 .boot-log li span {
   color: var(--lens);
@@ -349,7 +487,7 @@
   color: var(--lilac);
 }
 .boot-bar {
-  width: min(420px, 86vw);
+  width: min(420px, 88vw);
   height: 14px;
   border: 2px solid var(--paper);
   padding: 2px;
@@ -358,17 +496,37 @@
   height: 100%;
   width: 0;
   background: repeating-linear-gradient(-45deg, var(--lilac) 0 6px, var(--violet) 6px 12px);
-  animation: boot-fill 1.1s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  animation: boot-fill 4.4s cubic-bezier(0.4, 0, 0.3, 1) forwards;
 }
-.boot-tag {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in oklab, var(--paper) 55%, transparent);
+.boot-enter {
+  border: 2px solid var(--paper);
+  background: var(--violet);
+  color: var(--paper);
+  padding: 10px 22px;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 4px 4px 0 0 var(--lens);
+  cursor: pointer;
+  opacity: 0;
+  animation: boot-pop-in 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) 4.45s both, boot-nudge 1.2s ease-in-out 5s infinite;
+}
+.boot-enter:hover {
+  background: var(--violet-deep);
+}
+.boot-skip:focus-visible,
+.boot-enter:focus-visible,
+.boot-robo-hit:focus-visible {
+  outline: 3px solid var(--lens);
+  outline-offset: 3px;
 }
 @keyframes boot-off {
+  to {
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+@keyframes boot-off-now {
   to {
     visibility: hidden;
     pointer-events: none;
@@ -379,13 +537,28 @@
     transform: translateY(-101%);
   }
 }
+@keyframes boot-up-now {
+  to {
+    transform: translateY(-101%);
+  }
+}
 @keyframes boot-down {
   to {
     transform: translateY(101%);
   }
 }
-@keyframes boot-stage-in {
+@keyframes boot-down-now {
+  to {
+    transform: translateY(101%);
+  }
+}
+@keyframes boot-fade-in {
   from {
+    opacity: 0;
+  }
+}
+@keyframes boot-fade-out {
+  to {
     opacity: 0;
   }
 }
@@ -395,19 +568,137 @@
     transform: scale(0.96);
   }
 }
-@keyframes boot-turn {
-  from {
-    transform: rotate(-120deg);
-  }
-}
-@keyframes boot-draw {
+@keyframes boot-stage-out-now {
   to {
-    stroke-dashoffset: 0;
+    opacity: 0;
+    transform: scale(0.96);
   }
 }
-@keyframes boot-pop {
+@keyframes boot-drop {
   from {
-    transform: scale(0);
+    translate: 0 -340px;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+@keyframes boot-slide-l {
+  from {
+    translate: -160px -40px;
+    opacity: 0;
+  }
+}
+@keyframes boot-slide-r {
+  from {
+    translate: 160px -40px;
+    opacity: 0;
+  }
+}
+@keyframes boot-eyes-on {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes boot-eyes-shut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+/* Only the X-rayed values are given, so before and after each part keeps its own opacity (glows and cheeks are see-through). */
+@keyframes boot-xray-shell {
+  20%,
+  78% {
+    opacity: 0.12;
+  }
+}
+@keyframes boot-xray-bones {
+  20%,
+  78% {
+    opacity: 1;
+  }
+}
+@keyframes boot-scan {
+  0% {
+    top: 4%;
+    opacity: 1;
+  }
+  20% {
+    top: 92%;
+    opacity: 1;
+  }
+  21%,
+  77% {
+    opacity: 0;
+  }
+  78% {
+    top: 92%;
+    opacity: 1;
+  }
+  98% {
+    top: 4%;
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes boot-heart {
+  0% {
+    scale: 1;
+  }
+  15% {
+    scale: 1.35;
+  }
+  40% {
+    scale: 1;
+  }
+}
+@keyframes boot-hop {
+  40% {
+    translate: 0 -28px;
+  }
+  70% {
+    translate: 0 0;
+  }
+  82% {
+    translate: 0 -6px;
+  }
+}
+@keyframes boot-spark {
+  0% {
+    opacity: 1;
+    transform: scale(0.3) rotate(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4) rotate(45deg);
+  }
+}
+@keyframes boot-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes boot-nudge {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes boot-ecg {
+  to {
+    translate: -300px 0;
   }
 }
 @keyframes boot-line {
