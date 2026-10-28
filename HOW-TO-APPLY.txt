@@ -1,0 +1,15 @@
+RO-BIO update, 28 Oct 2026
+
+1. Unzip this. You get a folder structure that matches your repo.
+2. Copy everything inside it into your local Ro-Bio folder (the one GitHub Desktop uses).
+   Say "Replace" when it asks about existing files.
+3. DELETE these two old files from your Ro-Bio folder (nothing uses them any more):
+     src/components/site/RoboCompanion.tsx
+     src/lib/robo-brain.ts
+4. Open GitHub Desktop. You should see the changed files. Make sure package-lock.json
+   and the docs/screenshots folder are included.
+5. Commit with a message like "Bot Forge 6 Nov, team update, Robo upgrades, loader, security headers"
+   and Push to main. Cloudflare builds and deploys by itself in a minute or two.
+
+After it is live: paste https://ro-bio.robiohub2026.workers.dev into a WhatsApp chat once
+to check the link preview shows the logo.
