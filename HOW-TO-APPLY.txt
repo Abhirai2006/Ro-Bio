@@ -1,25 +1,23 @@
-RO-BIO update, round 3 (29 Oct 2026)
+RO-BIO website update (round 4, includes every earlier round)
 
-This zip has EVERYTHING changed since your current main, including rounds 1 and 2.
-So it works whether or not you already applied the earlier zips.
+1. Unzip this file. Copy everything inside it (except this text file) into
+   your local Ro-Bio folder, the one GitHub Desktop uses. Choose "Replace"
+   when Windows or macOS asks.
 
-1. Unzip this. The folders inside match your repo.
-2. Copy everything inside into your local Ro-Bio folder (the one GitHub Desktop uses).
-   Say "Replace" when it asks about existing files.
-3. DELETE these files from your Ro-Bio folder (nothing uses them any more).
-   Skip any that are already gone:
+2. DELETE these files from your Ro-Bio folder if they are still there
+   (they were replaced by the new Robo files):
      src/components/site/RoboCompanion.tsx
      src/lib/robo-brain.ts
-4. Open GitHub Desktop and check the changed list includes:
-     package-lock.json   (very important: Cloudflare needs it to build)
-     docs/screenshots/   (the README images)
-     src/components/site/VenueMap.tsx and src/components/site/NotFound.tsx
-5. Commit with a message like "Bot Forge update, venue map, new 404" and Push to main.
-   Cloudflare builds and deploys by itself in a minute or two.
 
-After it is live:
-- Open the site in a private window to see the intro (it only plays once per visit).
-- Click a link and watch Robo upload himself.
-- Paste the link into a WhatsApp chat once to check the preview shows the logo.
-- Open the Contact page and press "Show the map".
-- Visit a wrong address like /tem to see the new 404 page.
+3. Open GitHub Desktop. In the Changes list, check that you can see:
+     package-lock.json
+     src/lib/site.ts
+     src/components/site/RobotArm.tsx
+     docs/screenshots/ (new and updated images)
+
+4. Write a short summary, for example:
+     Add LinkedIn, core team 32, arm fix
+   then click "Commit to main" and "Push origin".
+
+5. Cloudflare deploys it by itself in a minute or two. Open
+   https://ro-bio.robiohub2026.workers.dev and press Ctrl+F5 once.
