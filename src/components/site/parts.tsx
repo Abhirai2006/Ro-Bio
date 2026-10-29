@@ -17,6 +17,7 @@ const nav = [
   { to: "/gallery", label: "Gallery", hint: "Photos and drawings" },
   { to: "/blog", label: "Blog", hint: "Lab notes" },
   { to: "/contact", label: "Contact", hint: "Call us or DM us" },
+  { to: "/join", label: "Join", hint: "How to get in, plus a QR code" },
 ] as const;
 
 /** Today's date in India, available only after hydration to keep SSR stable. */
@@ -71,16 +72,16 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5">
         <Link to="/" className="flex items-center gap-2" aria-label="RO-BIO home" onClick={() => close()}>
           <img src={logoUrl} alt="" className="h-10 w-10 rounded-sm border-2 border-border bg-paper object-cover" />
-          <span className="font-display text-lg font-black italic max-[420px]:hidden">RO-BIO</span>
+          <span className="whitespace-nowrap font-display text-lg font-black italic max-[420px]:hidden">RO-BIO</span>
         </Link>
         <nav aria-label="Main" className="hidden lg:block">
-          <ul className="flex gap-1">
+          <ul className="flex gap-0.5 xl:gap-1">
             {nav.map((n) => (
               <li key={n.to}>
                 <Link
                   to={n.to}
-                  className="px-2.5 py-2 text-sm font-bold hover:text-primary"
-                  activeProps={{ className: "px-2.5 py-2 text-sm font-bold text-primary underline decoration-2 underline-offset-4" }}
+                  className="px-2 py-2 text-sm font-bold hover:text-primary xl:px-2.5"
+                  activeProps={{ className: "px-2 py-2 text-sm font-bold text-primary underline decoration-2 underline-offset-4 xl:px-2.5" }}
                 >
                   {n.label}
                 </Link>
