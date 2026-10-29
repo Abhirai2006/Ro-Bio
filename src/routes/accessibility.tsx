@@ -26,7 +26,9 @@ function Page() {
         <li>A skip link lets keyboard users jump past the header to the main content.</li>
         <li>Pages use headings, landmarks and text alternatives for images and graphics.</li>
         <li>There is a light and a dark theme.</li>
-        <li>If your device asks for reduced motion, the typed text, the robot companion, the shaking in Robo Sumo and the decorative animations stop or are cut back.</li>
+        <li>If your device asks for reduced motion, the intro is skipped, Robo stops roaming and travelling between pages, and the typed text, the shaking in Robo Sumo and the decorative animations stop or are cut back.</li>
+        <li>The intro on the first visit has a "Skip intro" button and also closes with Esc or Enter. It never traps you.</li>
+        <li>The venue map only loads when you press "Show the map", and the address is always written out as text next to it.</li>
         <li>Robo Sumo can be played with the arrow keys or W, A, S and D, or with the on-screen buttons on a touch screen. Its messages are announced to screen readers.</li>
         <li>Robo, the robot that roams the site, announces what it says to screen readers. A "Rest Robo" button is always on screen at the bottom right and stops Robo moving. "Hide" removes Robo completely, and the choice is remembered. Robo can be opened with the keyboard: it is a button at the end of each page.</li>
         <li>Robo never blocks the games. It cannot be clicked while it stands in front of one.</li>
