@@ -49,14 +49,14 @@ The quickest way is a message on Instagram @ro_bio_hub. The Contact page lists t
 BMRE is short for Biomedical and Robotic Engineering. Most of the core team is from this branch, with some students from CS&D and AIML.
 
 ### What can I try on this website?
-The home page has a robot arm that solves inverse kinematics, a Robo Sumo game against a CPU, and a live ECG in the header. A small robot called Robo lives on the whole site: it walks around, jumps onto things, reads along with you, and travels from page to page as a stream of pixels. On your first visit you can watch him being built, and tap him to speed up his heart.
+The home page has a 3D robot arm that picks things up and puts them in a tray, which you can also drive yourself, a Robo Sumo game against a CPU, and a live ECG in the header. A small robot called Robo lives on the whole site: it walks around, jumps onto things, reads along with you, and travels from page to page as a stream of pixels. On your first visit you can watch him being built, and tap him to speed up his heart.
 
 ### Does this website collect my personal data?
-No. There are no accounts, forms or analytics, and the site sets no cookies. The Privacy Policy lists the little that is stored in your browser.
+No. There are no accounts, forms or analytics, and the site itself sets no cookies. The Google map on the Contact and Bot Forge pages comes from Google, under its own policy. The Privacy Policy lists the little that is stored in your browser.
 
 ## Pages
-- [Home](https://ro-bio.robiohub2026.workers.dev/): Meet the club. An interactive robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site.
-- [About](https://ro-bio.robiohub2026.workers.dev/about): What RO-BIO is and why robots and bodies belong together.
+- [Home](https://ro-bio.robiohub2026.workers.dev/): Meet the club. A 3D pick-and-place robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site.
+- [About](https://ro-bio.robiohub2026.workers.dev/about): What RO-BIO is, its vision and mission, what it works on, and why robots and bodies belong together.
 - [Events](https://ro-bio.robiohub2026.workers.dev/events): Events run by RO-BIO.
 - [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge): Bot Forge, Fri, 6 Nov 2026: Robo Sumo, Robot Race.
 - [Team](https://ro-bio.robiohub2026.workers.dev/team): The 32 students on the core team.
@@ -65,6 +65,7 @@ No. There are no accounts, forms or analytics, and the site sets no cookies. The
 - [Gallery](https://ro-bio.robiohub2026.workers.dev/gallery): Photos from the club.
 - [Blog](https://ro-bio.robiohub2026.workers.dev/blog): Posts from the club (content coming soon).
 - [Contact](https://ro-bio.robiohub2026.workers.dev/contact): Instagram, event coordinators and the college address.
+- [Join](https://ro-bio.robiohub2026.workers.dev/join): Why students join, who to talk to, and a QR code that opens the site.
 - [FAQ](https://ro-bio.robiohub2026.workers.dev/faq): Short factual answers about the club and Bot Forge.
 - [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy): No accounts, forms, analytics or cookies.
 - [Terms of Use](https://ro-bio.robiohub2026.workers.dev/terms): Rules for using the site.
