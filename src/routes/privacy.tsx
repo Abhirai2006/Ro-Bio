@@ -22,7 +22,7 @@ function Page() {
       <p>This policy covers the RO-BIO website, the site of the {site.branch} student club at {site.college}, Mysuru. It is written in plain language on purpose.</p>
 
       <h2>The short version</h2>
-      <p>We do not ask you for personal information on this site. There are no accounts, forms, comments or newsletters. We do not use analytics or advertising trackers, and the site does not set cookies. The only exception is a Google map, and only if you choose to load it.</p>
+      <p>We do not ask you for personal information on this site. There are no accounts, forms, comments or newsletters. We do not use analytics or advertising trackers, and the site does not set cookies. The only exception is the Google map on the Contact and Bot Forge pages, which comes from Google.</p>
 
       <h2>What our hosting provider sees</h2>
       <p>The site is served by Cloudflare. When you open a page, Cloudflare processes technical details such as your IP address, browser type, the page you asked for and the time, so it can deliver the site and protect it from abuse. RO-BIO does not use this to identify or profile visitors.</p>
@@ -40,7 +40,7 @@ function Page() {
       <ul>
         <li><strong>Google Fonts.</strong> The site's fonts load from Google (fonts.googleapis.com and fonts.gstatic.com). Google receives your IP address and browser details when they load, under Google's own privacy policy.</li>
         <li><strong>Instagram and LinkedIn.</strong> Links to them leave this site. Their policies apply from the moment you click.</li>
-        <li><strong>Google Maps.</strong> The Contact and Bot Forge pages show a drawn map. The real Google map only loads when you press "Show the map", and from then on Google can set cookies and see your IP address under its own privacy policy. "Open in Google Maps" takes you to Google directly.</li>
+        <li><strong>Google Maps.</strong> The Contact and Bot Forge pages show a Google map of the venue. When it loads, Google can set cookies and see your IP address under its own privacy policy. "Open in Google Maps" takes you to Google directly.</li>
         <li><strong>Phone links.</strong> A phone number on the site opens your phone's dialler. Nothing is sent until you place the call.</li>
       </ul>
       <p>The Robo Sumo game can vibrate your device using your browser's vibration feature. Nothing about it is collected.</p>
