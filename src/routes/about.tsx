@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Pending, Uptime } from "@/components/site/parts";
-import { site } from "@/lib/site";
+import { coreTeamSize, site } from "@/lib/site";
 import { FeedbackLoops, type Loop } from "@/components/site/FeedbackLoop";
 
 export const Route = createFileRoute("/about")({
@@ -42,8 +42,8 @@ function About() {
   return (
     <>
       <PageIntro label="ABOUT / WHO WE ARE" title="One branch. Two kinds of machine.">
-        RO-BIO is the club of the {site.branch} branch at {site.college}. We started on 20 May 2026 and we're about{" "}
-        {site.memberCount} people right now.
+        RO-BIO is the club of the {site.branch} branch at {site.college}. We started on 20 May 2026 and we're {coreTeamSize} people
+        right now.
       </PageIntro>
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-black md:text-3xl">Sense, decide, act, feed back.</h2>
