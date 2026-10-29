@@ -112,3 +112,34 @@ export const coreTeam: Squad[] = [
 
 /** How many people are on the core team, counted from the list above. */
 export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
+
+/** What the QR codes open. To land people on the Join page instead, change this to `${site.url}/join`. */
+export const qrLink = site.url;
+
+/** What the club works on. From the club's own website brief, kept short. */
+export const focusAreas: { tag: string; title: string; text: string }[] = [
+  { tag: "ROBOTICS", title: "Robotics and automation", text: "Mobile robots, sensors, motor drivers and the control code that ties them together." },
+  { tag: "ELECTRONICS", title: "Embedded systems and electronics", text: "Microcontrollers, circuits, PCBs, and getting hardware and software to talk to each other." },
+  { tag: "BIOMEDICAL", title: "Biomedical engineering", text: "Medical instruments, assistive devices and sensors that read the body, like heart rate and muscle signals." },
+  { tag: "COMPETE", title: "Competitions and events", text: "Robotics challenges and technical events where you test what you built against other people's." },
+  { tag: "BUILD", title: "Projects", text: "Small teams taking an idea to a working prototype, and writing down what worked and what didn't." },
+];
+
+export const vision =
+  "A place on campus where students build real things in robotics and biomedical engineering, and use them to solve real problems.";
+
+export const mission = [
+  "Make hands-on work the normal way to learn.",
+  "Work on robotics, automation, embedded systems and biomedical technology.",
+  "Run workshops, competitions and demos for students.",
+  "Help members get better at teamwork, leading and solving problems.",
+  "Bring in engineers from industry to teach and mentor.",
+];
+
+export const whyJoin: { title: string; text: string }[] = [
+  { title: "Learn by building", text: "Lectures tell you how a motor driver works. Here you wire one up, and find out what the textbook left out." },
+  { title: "Find your people", text: "Work next to students from BMRE, CS&D and AIML who like the same things you do." },
+  { title: "Compete", text: `Enter robotics events, starting with ${events[0]!.title}: ${events[0]!.activities.map((a) => a.name).join(" and ")}.` },
+  { title: "Build your idea", text: "Got an idea for a gadget, a sensor or a medical device? Bring it, and get help taking it off paper." },
+  { title: "Practise the other half of engineering", text: "Running an event, presenting a project, writing it up. The parts exams skip." },
+];
