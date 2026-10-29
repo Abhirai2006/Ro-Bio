@@ -14,8 +14,7 @@
     "test:watch": "vitest",
     "deploy": "vite build && wrangler deploy",
     "seo": "node scripts/build-seo.mjs",
-    "qr": "node scripts/build-qr.mjs",
-    "prebuild": "node scripts/build-seo.mjs && node scripts/build-qr.mjs"
+    "prebuild": "node scripts/build-seo.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1"
@@ -61,7 +60,6 @@
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
     "matter-js": "^0.20.0",
-    "qrcode-generator": "^2.0.4",
     "react": "^19.2.0",
     "react-day-picker": "^9.14.0",
     "react-dom": "^19.2.0",
