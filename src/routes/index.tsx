@@ -117,9 +117,6 @@ function Index() {
               {next.title}
             </h2>
             <p className="mt-4 font-display text-2xl font-bold text-primary">{formatDate(next.date)}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Moved again. It was set for 25 Jun, then 28 Oct. The new date is 6 Nov 2026.
-            </p>
             <p className="mt-4 text-muted-foreground">{next.venue}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
