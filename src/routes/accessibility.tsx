@@ -29,7 +29,7 @@ function Page() {
         <li>If your device asks for reduced motion, the intro is skipped, Robo stops roaming and travelling between pages, and the typed text, the shaking in Robo Sumo and the decorative animations stop or are cut back.</li>
         <li>The intro on the first visit has a "Skip intro" button and also closes with Esc or Enter. It never traps you.</li>
         <li>The address is always written out as text under the venue map, with a link that opens it in Google Maps.</li>
-        <li>The robot arm on the home page can be driven without a mouse. In Auto mode the buttons under it pick each sample up. In Manual mode the arrow keys move the gripper and Space grips and lets go. Its key moments, like a grip or a drop, are announced to screen readers.</li>
+        <li>The robot arm on the home page works without a mouse. The buttons under it put each sample in the tray. While the arm holds something, the arrow keys move it and Enter puts it down. Its key moments, like a grip or a placement, are announced to screen readers.</li>
         <li>Robo Sumo can be played with the arrow keys or W, A, S and D, or with the on-screen buttons on a touch screen. Its messages are announced to screen readers.</li>
         <li>Robo, the robot that roams the site, announces what it says to screen readers. A "Rest Robo" button is always on screen at the bottom right and stops Robo moving. "Hide" removes Robo completely, and the choice is remembered. Robo can be opened with the keyboard: it is a button at the end of each page.</li>
         <li>Robo never blocks the games. It cannot be clicked while it stands in front of one.</li>
