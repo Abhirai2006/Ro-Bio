@@ -52,6 +52,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data:",
+  "frame-src https://www.google.com https://maps.google.com", // the venue map, only after a click
   "connect-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
