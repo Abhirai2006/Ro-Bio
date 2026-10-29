@@ -3,6 +3,10 @@
 - [x] Mechanical sumo robots, tactical CPU and collision feedback.
 - [x] Mobile navigation and restrained site-wide interaction polish.
 - [x] WhatsApp sharing metadata. Still to do: paste the live link into a WhatsApp chat once to confirm the preview.
+- [x] 3D pick-and-place arm with human-like motion, auto and manual modes.
+- [x] Venue map shown straight away on Contact and Bot Forge.
+- [x] Join page with a QR code and a printable poster.
+- [x] What we work on, vision and mission, from the club's website brief.
 
 ## Next
 - [ ] Real content from the club: our story (About), workshop speakers, project write-ups, photos for Gallery and Team.
