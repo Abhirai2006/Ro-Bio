@@ -16,6 +16,7 @@ import appCss from "../styles.css?url";
 import { SiteFooter, SiteHeader } from "@/components/site/parts";
 import { RoboLayer } from "@/components/site/RoboLayer";
 import { BootScreen } from "@/components/site/BootScreen";
+import { NotFound } from "@/components/site/NotFound";
 import { site } from "@/lib/site";
 
 const orgLd = {
@@ -34,19 +35,7 @@ const orgLd = {
 
 
 function NotFoundComponent() {
-  return (
-    <div className="mx-auto max-w-3xl px-4 py-24 text-center">
-      <svg viewBox="0 0 600 60" className="h-14 w-full text-primary" aria-hidden="true">
-        <path d="M0 30 H600" stroke="currentColor" strokeWidth="3" />
-      </svg>
-      <p className="mt-6 font-pixel text-xs text-primary">ERROR 404 / FLATLINE</p>
-      <h1 className="mt-3 text-4xl font-black">No signal on this page.</h1>
-      <p className="mt-3 text-muted-foreground">Here is a way back.</p>
-      <Link to="/" className="mt-8 inline-block border-2 border-border bg-primary px-5 py-3 font-bold text-primary-foreground shadow-hard">
-        Back to home
-      </Link>
-    </div>
-  );
+  return <NotFound />;
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
