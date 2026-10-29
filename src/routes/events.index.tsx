@@ -26,18 +26,7 @@ function Events() {
             <li key={e.slug}>
               <Window tag={e.kind.toUpperCase()}>
                 <h2 className="text-3xl font-black italic">{e.title}</h2>
-                <p className="mt-2 font-display text-lg font-bold text-primary">Now {formatDate(e.date)}</p>
-                {e.previousDates?.length ? (
-                  <p className="text-sm text-muted-foreground">
-                    Was{" "}
-                    {e.previousDates.map((d, i) => (
-                      <span key={d}>
-                        {i > 0 && ", then "}
-                        <s>{formatDate(d)}</s>
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
+                <p className="mt-2 font-display text-lg font-bold text-primary">{formatDate(e.date)}</p>
                 <p className="mt-3 text-sm">{e.activities.map((a) => a.name).join(" · ")}</p>
                 <Link
                   to="/events/$slug"
