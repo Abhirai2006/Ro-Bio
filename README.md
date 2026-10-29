@@ -38,7 +38,7 @@ _Unauthorised innovation in progress!_
 
 RO-BIO started on 20 May 2026 at Mysore University School of Engineering. It brings together students of Biomedical and Robotic Engineering, the branch that studies both kinds of machine: robots and the human body. Most Saturdays, engineers from companies like L&T come to campus to teach practical skills.
 
-The club's first event is **Bot Forge**, with Line Follower, Robot Race, Bot Expo, Robo Sumo and Shark Tank. The date and registration news are on the [Bot Forge page](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) and on Instagram.
+The club's first event is **Bot Forge**, a robotics competition. Its events, date and registration news are on the [Bot Forge page](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) and on Instagram.
 
 <br />
 
@@ -70,11 +70,21 @@ The club's first event is **Bot Forge**, with Line Follower, Robot Race, Bot Exp
   <tr>
     <td align="center">
       <img src="docs/screenshots/bot-forge.jpg" alt="The Bot Forge event page" /><br />
-      <sub><b>Bot Forge.</b> Date, activities, venue and coordinators.</sub>
+      <sub><b>Bot Forge.</b> Date, events, venue map and coordinators.</sub>
     </td>
     <td align="center">
       <img src="docs/screenshots/team.jpg" alt="The team page" /><br />
       <sub><b>Team.</b> Coordinators and every squad of the core team.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/404.jpg" alt="The 404 page with a puzzled Robo and a did-you-mean suggestion" /><br />
+      <sub><b>404.</b> Robo guesses the page you meant, and the flatline revives.</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/contact-map.jpg" alt="Contact page with coordinators and the click-to-load venue map" /><br />
+      <sub><b>Contact.</b> Coordinators, Instagram and a venue map that loads only when asked.</sub>
     </td>
   </tr>
 </table>
@@ -97,12 +107,12 @@ The club's first event is **Bot Forge**, with Line Follower, Robot Race, Bot Exp
 | --- | --- |
 | [Home](https://ro-bio.robiohub2026.workers.dev/) | A robot arm that solves inverse kinematics live, a line follower, the Bot Forge countdown, Robo Sumo and the coordinators |
 | [About](https://ro-bio.robiohub2026.workers.dev/about) | Who the club is, with a live feedback loop for a robot and a body |
-| [Events](https://ro-bio.robiohub2026.workers.dev/events) and [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) | Dates (including the earlier ones), activities, venue and who to call |
+| [Events](https://ro-bio.robiohub2026.workers.dev/events) and [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) | Date, events, a venue map and who to call |
 | [Workshops](https://ro-bio.robiohub2026.workers.dev/workshops) | The Saturday sessions. Speaker list coming soon |
 | [Projects](https://ro-bio.robiohub2026.workers.dev/projects) | What members are building. Write-ups coming soon |
 | [Team](https://ro-bio.robiohub2026.workers.dev/team) | President, Vice President and every squad, with flip cards |
 | [Gallery](https://ro-bio.robiohub2026.workers.dev/gallery) and [Blog](https://ro-bio.robiohub2026.workers.dev/blog) | Photos, art and write-ups. Coming soon |
-| [Contact](https://ro-bio.robiohub2026.workers.dev/contact) | Phone numbers, address, map and Instagram |
+| [Contact](https://ro-bio.robiohub2026.workers.dev/contact) | Phone numbers, a venue map and Instagram |
 | [FAQ](https://ro-bio.robiohub2026.workers.dev/faq), Privacy, Terms, Accessibility | Short and plain |
 
 Pages that are waiting for the club's own content say so honestly. Nothing on the site is made up.
@@ -116,6 +126,7 @@ Pages that are waiting for the club's own content say so honestly. Nothing on th
 - **Robo Sumo** (`src/lib/sumo.ts`, `components/site/SumoGame.tsx`). Physics, wheel grip and a CPU with tactics. `node --experimental-strip-types scripts/sumo-sim.mjs` plays hundreds of seeded matches and prints win rates.
 - **Live heartbeat** (`components/site/HeaderEcg.tsx`). The ECG in the header speeds up when you are active.
 - **Feedback loop** (`components/site/FeedbackLoop.tsx`). Sense, decide, act, feed back, for a robot and a body at the same time.
+- **404 page** (`components/site/NotFound.tsx`). Robo, puzzled, tells you what you asked for, guesses the page you probably meant (`/tem` becomes `/team`), and the flatline comes back to life when you reach for the way home.
 - **Intro** (`components/site/BootScreen.tsx`). On the first visit, Robo is assembled part by part, X-rayed (robot outside, biology inside) and switched on, in about 6 seconds. Tap him and his heart races, and the intro waits while you play. Skip it any time, or press Esc. It is never shown to people who turn on reduced motion, and its timing is pure CSS, so it ends by itself even if JavaScript fails.
 
 Everything respects `prefers-reduced-motion`, works with a keyboard, and has a light and a dark theme.
@@ -130,7 +141,9 @@ All the facts live in one file: **`src/lib/site.ts`**. Change them there and eve
 
 | To change | Edit this in `src/lib/site.ts` |
 | --- | --- |
-| Event date | `date` inside `events` (written `YYYY-MM-DD`). Move the old date into `previousDates` |
+| Event date | `date` inside `events` (written `YYYY-MM-DD`) |
+| Events at Bot Forge | `activities` inside `events` |
+| Map | `mapUrl` (the "Open in Google Maps" link) and `mapEmbed` (Google Maps, Share, "Embed a map", copy the `src` link) |
 | Registration | `registration: "coming-soon"` (or `"open"` / `"closed"`) |
 | Coordinators and phone numbers | `contacts` |
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")`. `sem` is the semester at the time of the announcement |
@@ -178,6 +191,7 @@ The repository is connected to Cloudflare Workers. Every push to `main` builds a
 - No accounts, no forms, no analytics, no cookies, and no third-party scripts. The [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy) lists the few settings kept in your own browser.
 - Every page is sent with a strict Content Security Policy and security headers (`src/server.ts`). Static files get the same headers from `public/_headers`. Clickjacking, MIME sniffing and camera, microphone and location access are all blocked.
 - External links open with `rel="noreferrer"`, and structured data is escaped before it goes into the page.
+- The venue map is click-to-load: Google Maps is only contacted after a visitor presses "Show the map".
 
 <br />
 
