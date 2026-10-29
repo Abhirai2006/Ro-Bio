@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
+import { VenueMap } from "@/components/site/VenueMap";
 import { contacts, site } from "@/lib/site";
 
 export const Route = createFileRoute("/contact")({
@@ -35,13 +36,7 @@ function Contact() {
           ))}
         </ul>
         <div className="space-y-6">
-          <div className="border-2 border-border p-5">
-            <p className="font-pixel text-[11px] text-primary">ADDRESS</p>
-            <p className="mt-2">{site.address}</p>
-            <a href={site.mapUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block font-bold text-primary underline">
-              Open in Maps
-            </a>
-          </div>
+          <VenueMap />
           <div className="border-2 border-border bg-lilac p-5 text-ink">
             <p className="font-pixel text-[11px]">INSTAGRAM</p>
             <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-2 block font-display text-2xl font-bold underline">
