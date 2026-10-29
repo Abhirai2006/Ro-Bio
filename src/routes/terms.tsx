@@ -22,7 +22,7 @@ function Page() {
       <p>By using the RO-BIO website you agree to these terms. If you do not agree, please do not use the site.</p>
 
       <h2>Event information can change</h2>
-      <p>Dates, venues, rules and registration details are our best current information and can change. Bot Forge has already moved once. Check the event page and our Instagram, <a href={site.instagram}>{site.instagramHandle}</a>, for the latest. Events have their own rules, announced on the event page. Please follow the instructions of the coordinators and the college.</p>
+      <p>Dates, venues, rules and registration details are our best current information and can change. Check the event page and our Instagram, <a href={site.instagram}>{site.instagramHandle}</a>, for the latest. Events have their own rules, announced on the event page. Please follow the instructions of the coordinators and the college.</p>
 
       <h2>Demos and games</h2>
       <p>The robot arm, the Robo Sumo game, Robo the roaming robot and other interactive parts of the site are for fun and learning. They are provided as they are, without promises that they will always work or work the same way on every device.</p>
@@ -41,7 +41,7 @@ function Page() {
       <p>The text, design, logo and artwork on this site belong to RO-BIO and its creators. You may quote short parts with a clear credit and a link back. Please do not reuse the logo or branding without asking us first.</p>
 
       <h2>Other websites</h2>
-      <p>We link to other sites, such as Instagram and Google Maps. We do not control them and are not responsible for what they do.</p>
+      <p>We link to other sites, such as Instagram, LinkedIn and Google Maps. We do not control them and are not responsible for what they do.</p>
 
       <h2>Limits on our responsibility</h2>
       <p>The site is run by students for a college community. To the extent the law allows, RO-BIO is not liable for losses that come from using the site or relying on what it says.</p>
