@@ -5,8 +5,7 @@ import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
 import { FocusAreas } from "@/components/site/FocusAreas";
-import { QrCode } from "@/components/site/QrCode";
-import { contacts, coreTeamSize, daysBetween, events, formatDate, qrLink, shortDate, site } from "@/lib/site";
+import { contacts, coreTeamSize, daysBetween, eventDate, events, site } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,7 +15,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          `RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. ${events[0]!.title} is on ${shortDate(events[0]!.date)}.`,
+          `RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. ${events[0]!.title}, a robotics competition, is coming up.`,
       },
       { property: "og:title", content: "RO-BIO | Unauthorised innovation in progress!" },
       {
@@ -31,7 +30,7 @@ export const Route = createFileRoute("/")({
 function Hero() {
   const today = useToday();
   const next = events[0]!;
-  const daysLeft = today ? daysBetween(today, next.date) : null;
+  const daysLeft = today && next.date ? daysBetween(today, next.date) : null;
   return (
     <section className="blueprint relative overflow-hidden border-b-2 border-border" aria-label="Intro">
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 md:grid-cols-[1.05fr_1fr] md:py-20">
@@ -58,10 +57,7 @@ function Hero() {
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link to="/events/$slug" params={{ slug: next.slug }} className="rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5">
-              {next.title}, {formatDate(next.date)}
-            </Link>
-            <Link to="/join" className="rounded-full border-2 border-border bg-card px-6 py-3 font-bold transition-transform hover:-translate-y-0.5">
-              Join RO-BIO
+              {next.date ? `${next.title}, ${eventDate(next)}` : `${next.title}: coming soon`}
             </Link>
             <Link to="/team" className="rounded-full border-2 border-border bg-card px-6 py-3 font-bold transition-transform hover:-translate-y-0.5">
               Meet the core team
@@ -70,7 +66,7 @@ function Hero() {
           <dl className="mt-8 grid max-w-md grid-cols-3 gap-2 font-mono text-[12px]">
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">T MINUS</dt>
-              <dd className="text-lg font-bold">{daysLeft === null || daysLeft < 0 ? "..." : daysLeft === 0 ? "TODAY" : `${daysLeft}d`}</dd>
+              <dd className="text-lg font-bold">{!next.date ? "SOON" : daysLeft === null || daysLeft < 0 ? "..." : daysLeft === 0 ? "TODAY" : `${daysLeft}d`}</dd>
             </div>
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">MEMBERS</dt>
@@ -83,11 +79,11 @@ function Hero() {
           </dl>
         </div>
         <div className="grid gap-6">
-          <div data-robo-avoid data-thought="That arm solves inverse kinematics for five joints, live.">
+          <div data-robo-avoid data-thought="That arm works out five joint angles, live, every time it moves.">
             <RobotArm />
             <p className="mt-3 text-sm text-muted-foreground">
-              Tap the vial, the block or the ball, and the arm puts it in the tray. Or switch to Manual and drive it yourself: hold to
-              grip, let go to drop. Careful with the glass, it only survives a drop onto the foam.
+              Tap the vial, the block or the ball, then tap where it should go. The arm reaches over, grips it, carries it and puts it
+              down gently, moving the way your own arm does.
             </p>
           </div>
         </div>
@@ -103,7 +99,7 @@ function Index() {
     <>
       <Hero />
 
-      <section id="below" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20">
+      <section id="below" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-14 pt-16">
         <div className="grid gap-10 md:grid-cols-[1.3fr_1fr] md:items-end">
           <h2 className="text-3xl font-black leading-tight md:text-5xl">
             We're the students of {site.branch}, and this is our club.
@@ -124,7 +120,7 @@ function Index() {
             <h2 id="next-event" className="text-5xl font-black italic md:text-6xl">
               {next.title}
             </h2>
-            <p className="mt-4 font-display text-2xl font-bold text-primary">{formatDate(next.date)}</p>
+            <p className="mt-4 font-display text-2xl font-bold text-primary">{eventDate(next)}</p>
             <p className="mt-4 text-muted-foreground">{next.venue}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
@@ -174,24 +170,6 @@ function Index() {
           <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-5 inline-block border-2 border-ink bg-paper px-4 py-2 font-bold">
             Open Instagram
           </a>
-        </div>
-      </section>
-
-      <section className="mx-auto mt-20 max-w-6xl px-4" aria-labelledby="join-strip">
-        <div className="grid items-center gap-6 border-2 border-border bg-ink p-6 text-paper shadow-hard-violet sm:grid-cols-[auto_1fr] md:p-8">
-          <div className="w-36 bg-white p-1.5 md:w-44">
-            <QrCode text={qrLink} label="QR code that opens the RO-BIO website" className="block h-auto w-full" />
-          </div>
-          <div>
-            <p className="font-pixel text-xs text-lilac">WANT IN?</p>
-            <h2 id="join-strip" className="mt-2 text-3xl font-black">Come build with us.</h2>
-            <p className="mt-3 max-w-xl opacity-90">
-              Point a friend's phone at this to open the site, or read how to join. The Join page has a poster you can print.
-            </p>
-            <Link to="/join" className="mt-5 inline-block border-2 border-paper bg-paper px-4 py-2 font-bold text-ink">
-              How to join
-            </Link>
-          </div>
         </div>
       </section>
 
