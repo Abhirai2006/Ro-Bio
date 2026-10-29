@@ -7,7 +7,7 @@ import { POSES, opacities, rigMarkup, transforms, type Pose } from "./robo-rig";
 import { pixelStream, sampleSvg, type Cell } from "./robo-pixels";
 import { WALK_FALL, WALK_IDLE, WALK_JUMP, walkCycle, walkTransforms, type WalkPose } from "./robo-walk";
 import { heart } from "./heart";
-import { FORGE_IDLE, GREET, sectionLine } from "./robo-talk";
+import { FORGE_IDLE, GREET, LOST, sectionLine } from "./robo-talk";
 
 export type RoamDom = {
   layer: HTMLElement; robo: HTMLElement; puppet: HTMLElement; front: HTMLElement; side: HTMLElement; hit: HTMLElement;
@@ -328,7 +328,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
   const startAfterTravel = () => {
     const path = currentPath; travel = null; mode = "free"; view = "side"; startTurn("front");
     say("Download complete. All parts accounted for.", "plain", 1300, true);
-    say(GREET[path] ?? "New page. Let us look around.", "plain", 2200);
+    say(document.querySelector("[data-page-404]") ? LOST : GREET[path] ?? "New page. Let us look around.", "plain", 2200);
     enqueue(wait(2.4, "look"));
   };
 
