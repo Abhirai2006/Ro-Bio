@@ -16,7 +16,6 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GalleryRouteImport } from './routes/gallery'
-import { Route as JoinRouteImport } from './routes/join'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as TeamRouteImport } from './routes/team'
@@ -58,11 +57,6 @@ const FaqRoute = FaqRouteImport.update({
 const GalleryRoute = GalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JoinRoute = JoinRouteImport.update({
-  id: '/join',
-  path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -109,7 +103,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
-  '/join': typeof JoinRoute
   '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/team': typeof TeamRoute
@@ -126,7 +119,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
-  '/join': typeof JoinRoute
   '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/team': typeof TeamRoute
@@ -144,7 +136,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
-  '/join': typeof JoinRoute
   '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/team': typeof TeamRoute
@@ -163,7 +154,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/gallery'
-    | '/join'
     | '/privacy'
     | '/projects'
     | '/team'
@@ -180,7 +170,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/gallery'
-    | '/join'
     | '/privacy'
     | '/projects'
     | '/team'
@@ -197,7 +186,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/gallery'
-    | '/join'
     | '/privacy'
     | '/projects'
     | '/team'
@@ -215,7 +203,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   GalleryRoute: typeof GalleryRoute
-  JoinRoute: typeof JoinRoute
   PrivacyRoute: typeof PrivacyRoute
   ProjectsRoute: typeof ProjectsRoute
   TeamRoute: typeof TeamRoute
@@ -274,13 +261,6 @@ declare module '@tanstack/react-router' {
       path: '/gallery'
       fullPath: '/gallery'
       preLoaderRoute: typeof GalleryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/join': {
-      id: '/join'
-      path: '/join'
-      fullPath: '/join'
-      preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -343,7 +323,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   GalleryRoute: GalleryRoute,
-  JoinRoute: JoinRoute,
   PrivacyRoute: PrivacyRoute,
   ProjectsRoute: ProjectsRoute,
   TeamRoute: TeamRoute,
