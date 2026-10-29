@@ -746,6 +746,44 @@ html[data-menu="open"] .robo-ui {
   }
 }
 
+/* 404: a flatline that comes back to life when you reach for the way home. */
+.nf-beat {
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  transition: stroke-dashoffset 0.7s cubic-bezier(0.6, 0, 0.3, 1);
+}
+.nf-flat {
+  transition: opacity 0.3s;
+}
+.nf-revive:hover .nf-beat,
+.nf-revive:focus-within .nf-beat {
+  stroke-dashoffset: 0;
+}
+.nf-revive:hover .nf-flat,
+.nf-revive:focus-within .nf-flat {
+  opacity: 0;
+}
+
+/* The pin on the venue map sends out a slow radar ping. */
+.vm-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vm-ping 2.4s ease-out infinite;
+}
+.vm-ping-late {
+  animation-delay: 1.2s;
+}
+@keyframes vm-ping {
+  from {
+    transform: scale(0.3);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
 /* The dashed ring under your sumo robot turns slowly so it reads as "this one is you". */
 .sumo-halo {
   animation: sumo-halo 6s linear infinite;
