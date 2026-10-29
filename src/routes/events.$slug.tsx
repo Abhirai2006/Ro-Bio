@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/site/JsonLd";
 import { address, canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
 import { VenueMap } from "@/components/site/VenueMap";
-import { contacts, events, formatDate, site } from "@/lib/site";
+import { contacts, eventDate, events, site } from "@/lib/site";
 
 export const Route = createFileRoute("/events/$slug")({
   loader: ({ params }) => {
@@ -14,11 +14,11 @@ export const Route = createFileRoute("/events/$slug")({
   head: ({ loaderData }) => {
     const e = loaderData?.event;
     if (!e) return { meta: [{ title: "Event not found | RO-BIO" }, { name: "robots", content: "noindex" }] };
-    const desc = `${e.title} by RO-BIO on ${formatDate(e.date)} at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`;
+    const desc = `${e.title} by RO-BIO at ${site.college}. ${eventDate(e)}. ${e.activities.map((a) => a.name).join(", ")}.`;
     return {
       links: [canonical(`/events/${e.slug}`)],
       meta: [
-        { title: `${e.title}, ${formatDate(e.date)} | RO-BIO` },
+        { title: e.date ? `${e.title}, ${eventDate(e)} | RO-BIO` : `${e.title} | RO-BIO` },
         { name: "description", content: desc },
         { property: "og:title", content: `${e.title} | RO-BIO` },
         { property: "og:description", content: desc },
@@ -32,7 +32,8 @@ function EventPage() {
   const { event: e } = Route.useLoaderData();
   return (
     <>
-      <JsonLd
+      {/* Google only accepts Event data with a date, so it waits until the date is fixed. */}
+      {e.date && <JsonLd
         data={{
           "@context": "https://schema.org", "@type": "Event", name: e.title,
           description: `${e.title} by RO-BIO at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`,
@@ -44,25 +45,26 @@ function EventPage() {
           url: `${site.url}/events/${e.slug}`, image: `${site.url}/og-image.png`,
           subEvent: e.activities.map((a) => ({ "@type": "Event", name: a.name, startDate: e.date })),
         }}
-      />
+      />}
       <PageIntro label={`${e.kind.toUpperCase()} / RO-BIO HUB PRESENTS`} title={e.title}>
-        <span className="font-display text-2xl font-bold text-primary">{formatDate(e.date)}</span>
-        <span className="mt-1 block text-base">Start time to be announced.</span>
+        <span className="font-display text-2xl font-bold text-primary">{eventDate(e)}</span>
+        {e.date && <span className="mt-1 block text-base">Start time to be announced.</span>}
       </PageIntro>
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.4fr_1fr]">
-        <div>
-          <h2 className="text-2xl font-black">Activities</h2>
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2">
-            {e.activities.map((a) => (
-              <li key={a.name}>
-                <Window tag={a.tag} title={a.name}>
-                  <p className="mt-1 text-sm text-muted-foreground">Rules and details coming soon.</p>
-                </Window>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <aside className="space-y-6">
+      <section className="mx-auto max-w-6xl px-4 pt-14">
+        <h2 className="text-2xl font-black">Activities</h2>
+        <ul className="mt-5 grid gap-4 sm:grid-cols-2">
+          {e.activities.map((a) => (
+            <li key={a.name}>
+              <Window tag={a.tag} title={a.name} className="h-full">
+                <p className="mt-1 text-sm text-muted-foreground">Rules and details coming soon.</p>
+              </Window>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="mx-auto grid max-w-6xl items-start gap-6 px-4 py-10 md:grid-cols-[1.4fr_1fr]">
+        <VenueMap />
+        <aside className="grid gap-6">
           <div className="border-2 border-border bg-ink p-5 text-paper shadow-hard-violet">
             <p className="font-pixel text-[11px] text-lilac">REGISTRATION</p>
             <p className="mt-2 font-display text-xl font-bold">Coming soon</p>
@@ -74,14 +76,14 @@ function EventPage() {
               .
             </p>
           </div>
-          <VenueMap compact />
-          <div className="border-2 border-border p-5">
+          <div className="border-2 border-border bg-card p-5 shadow-hard">
             <p className="font-pixel text-[11px] text-primary">COORDINATORS</p>
-            <ul className="mt-2 space-y-2">
+            <ul className="mt-3 space-y-3">
               {contacts.map((c) => (
-                <li key={c.name}>
-                  <span className="font-bold">{c.name}</span> <span className="text-sm text-muted-foreground">({c.role})</span>
-                  <br />
+                <li key={c.name} className="flex flex-wrap items-baseline justify-between gap-x-3">
+                  <span>
+                    <span className="font-bold">{c.name}</span> <span className="text-sm text-muted-foreground">({c.role})</span>
+                  </span>
                   <a href={`tel:+91${c.phone}`} className="font-mono text-primary underline">
                     {c.phone}
                   </a>
