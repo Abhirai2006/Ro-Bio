@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { JsonLd } from "@/components/site/JsonLd";
 import { address, canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
+import { VenueMap } from "@/components/site/VenueMap";
 import { contacts, events, formatDate, site } from "@/lib/site";
 
 export const Route = createFileRoute("/events/$slug")({
@@ -36,7 +37,7 @@ function EventPage() {
           "@context": "https://schema.org", "@type": "Event", name: e.title,
           description: `${e.title} by RO-BIO at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`,
           startDate: e.date,
-          ...(e.previousDates?.length ? { previousStartDate: e.previousDates, eventStatus: "https://schema.org/EventRescheduled" } : { eventStatus: "https://schema.org/EventScheduled" }),
+          eventStatus: "https://schema.org/EventScheduled",
           eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
           location: { "@type": "Place", name: site.college, address },
           organizer: { "@type": "Organization", name: "RO-BIO", url: site.url },
@@ -46,11 +47,7 @@ function EventPage() {
       />
       <PageIntro label={`${e.kind.toUpperCase()} / ROBIO HUB PRESENTS`} title={e.title}>
         <span className="font-display text-2xl font-bold text-primary">{formatDate(e.date)}</span>
-        {e.previousDates?.length ? (
-          <span className="mt-1 block text-base">
-            Rescheduled. It was set for {e.previousDates.map(formatDate).join(", then ")}. Start time to be announced.
-          </span>
-        ) : null}
+        <span className="mt-1 block text-base">Start time to be announced.</span>
       </PageIntro>
       <section className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-[1.4fr_1fr]">
         <div>
@@ -77,13 +74,7 @@ function EventPage() {
               .
             </p>
           </div>
-          <div className="border-2 border-border p-5">
-            <p className="font-pixel text-[11px] text-primary">VENUE</p>
-            <p className="mt-2">{e.venue}</p>
-            <a href={site.mapUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block font-bold text-primary underline">
-              Open in Maps
-            </a>
-          </div>
+          <VenueMap compact />
           <div className="border-2 border-border p-5">
             <p className="font-pixel text-[11px] text-primary">COORDINATORS</p>
             <ul className="mt-2 space-y-2">
