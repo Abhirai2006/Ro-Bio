@@ -26,7 +26,7 @@ const orgLd = {
       "@type": "Organization", "@id": `${site.url}/#org`, name: "RO-BIO", alternateName: "Ro-Bio Hub", url: site.url,
       logo: `${site.url}/favicon.png`, image: `${site.url}/og-image.png`,
       description: `RO-BIO is the student club for ${site.branch} at ${site.college}, Mysuru, India.`,
-      foundingDate: site.startedOn, sameAs: [site.instagram], address,
+      foundingDate: site.startedOn, sameAs: [site.instagram, site.linkedin], address,
       parentOrganization: { "@type": "CollegeOrUniversity", name: site.college, address },
     },
     { "@type": "WebSite", "@id": `${site.url}/#website`, url: site.url, name: "RO-BIO", inLanguage: "en-IN", publisher: { "@id": `${site.url}/#org` } },
