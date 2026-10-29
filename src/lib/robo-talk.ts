@@ -41,7 +41,7 @@ const SECTIONS: [RegExp, string[]][] = [
   [/core team|keeping it running/i, [`Scanning faces... ${coreTeamSize} humans found. Photos not loaded yet.`, "The core team. They keep the lights on. And me."]],
   [/sense, decide|feed ?back/i, ["Sense, decide, act, feed back. That is literally how I work.", "A loop. I run about sixty of these every second. Feels normal."]],
   [/two kinds of machine|one branch/i, ["Robots and bodies. I am a bit of both. Try the X-ray from my menu.", "One branch, two machines. Wires and nerves. Same idea."]],
-  [/students of|this is our club/i, [`Around ${site.memberCount} humans and one robot. Me.`, `A club that started on ${plain(site.startedOn)}. I joined on day one. I think.`]],
+  [/students of|this is our club/i, [`${coreTeamSize} humans and one robot. Me.`, `A club that started on ${plain(site.startedOn)}. I joined on day one. I think.`]],
   [/real engineers|saturdays|visitor badge/i, ["Saturday workshops. People from real companies. I sit at the back.", "The badge wall is empty. Waiting for the first speaker."]],
   [/stuff we.re building|build reel/i, ["Projects loading... the builders are still writing them up.", "Videos coming soon. I hope one of them is about me."]],
   [/photos and drawings|field notebook/i, ["Empty frames. Ready for my close-up.", "Hand-drawn art, coming soon. I can pose."]],
