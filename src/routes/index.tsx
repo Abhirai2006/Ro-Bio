@@ -4,7 +4,7 @@ import { SumoGame } from "@/components/site/SumoGame";
 import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
-import { contacts, daysBetween, events, formatDate, site } from "@/lib/site";
+import { contacts, coreTeamSize, daysBetween, events, formatDate, shortDate, site } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. Bot Forge is on 6 Nov 2026.",
+          `RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. ${events[0]!.title} is on ${shortDate(events[0]!.date)}.`,
       },
       { property: "og:title", content: "RO-BIO | Unauthorised innovation in progress!" },
       {
@@ -69,7 +69,7 @@ function Hero() {
             </div>
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">MEMBERS</dt>
-              <dd className="text-lg font-bold">{site.memberCount}</dd>
+              <dd className="text-lg font-bold">{coreTeamSize}</dd>
             </div>
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">UPTIME</dt>
@@ -103,7 +103,7 @@ function Index() {
             We're the students of {site.branch}, and this is our club.
           </h2>
           <p className="text-lg text-muted-foreground">
-            RO-BIO started on 20 May 2026 at {site.college}. Around {site.memberCount} of us so far. Most Saturdays, people
+            RO-BIO started on 20 May 2026 at {site.college}. {coreTeamSize} of us so far. Most Saturdays, people
             from real companies come to campus and teach us things you don't get from a textbook.
           </p>
         </div>
