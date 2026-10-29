@@ -8,15 +8,23 @@ const BASE = { x: 200, y: 300 };
 const L1 = 130;
 const L2 = 110;
 
-/** Two-link planar inverse kinematics, elbow-up solution. Angles in radians. */
-export function solveIK(tx: number, ty: number) {
+/**
+ * Two-link planar inverse kinematics. Angles in radians, screen coordinates (y points down).
+ * There are two elbow solutions. Keep the one used last time, so the arm never flips mid-move,
+ * unless it would put the elbow under the floor; then take the other one.
+ */
+export function solveIK(tx: number, ty: number, prefer: 1 | -1 = -1) {
   const dx = tx - BASE.x;
   const dy = ty - BASE.y;
   const d = Math.min(Math.max(Math.hypot(dx, dy), Math.abs(L1 - L2) + 1), L1 + L2 - 0.5);
   const c2 = (d * d - L1 * L1 - L2 * L2) / (2 * L1 * L2);
-  const t2 = -Math.acos(Math.max(-1, Math.min(1, c2)));
-  const t1 = Math.atan2(dy, dx) - Math.atan2(L2 * Math.sin(t2), L1 + L2 * Math.cos(t2));
-  return { t1, t2 };
+  const solve = (sign: 1 | -1) => {
+    const t2 = sign * Math.acos(Math.max(-1, Math.min(1, c2)));
+    const t1 = Math.atan2(dy, dx) - Math.atan2(L2 * Math.sin(t2), L1 + L2 * Math.cos(t2));
+    return { t1, t2, sign, elbowY: BASE.y + L1 * Math.sin(t1) };
+  };
+  const a = solve(prefer);
+  return a.elbowY <= BASE.y - 4 ? a : solve(prefer === 1 ? -1 : 1);
 }
 
 const deg = (r: number) => Math.round((r * 180) / Math.PI);
@@ -38,6 +46,7 @@ export function RobotArm() {
   const world = useRef<ReturnType<typeof Engine.create> | null>(null);
   const sample = useRef<Matter.Body | null>(null);
   const held = useRef(false);
+  const elbow = useRef<1 | -1>(-1); // which elbow solution the arm is using
   const fragments = useRef<Matter.Body[]>([]);
   const activeMaterial = useRef<Material>("glass");
   const [, force] = useState(0);
@@ -136,7 +145,8 @@ export function RobotArm() {
     setStatus("RELEASED");
   };
 
-  const { t1, t2 } = solveIK(pos.current.x, pos.current.y);
+  const { t1, t2, sign } = solveIK(pos.current.x, pos.current.y, elbow.current);
+  elbow.current = sign;
   const ex = BASE.x + L1 * Math.cos(t1);
   const ey = BASE.y + L1 * Math.sin(t1);
   const hx = ex + L2 * Math.cos(t1 + t2);
