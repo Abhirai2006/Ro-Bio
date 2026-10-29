@@ -45,7 +45,7 @@ function EventPage() {
           subEvent: e.activities.map((a) => ({ "@type": "Event", name: a.name, startDate: e.date })),
         }}
       />
-      <PageIntro label={`${e.kind.toUpperCase()} / ROBIO HUB PRESENTS`} title={e.title}>
+      <PageIntro label={`${e.kind.toUpperCase()} / RO-BIO HUB PRESENTS`} title={e.title}>
         <span className="font-display text-2xl font-bold text-primary">{formatDate(e.date)}</span>
         <span className="mt-1 block text-base">Start time to be announced.</span>
       </PageIntro>
