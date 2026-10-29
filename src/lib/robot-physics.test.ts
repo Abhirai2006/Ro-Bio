@@ -53,3 +53,18 @@ describe("sumo CPU", () => {
     expect(cpuIntent(cpu, player, 1600, false).tactic).toBe("FLANK");
   });
 });
+describe("robot arm inverse kinematics", () => {
+  it("reaches the target and never puts the elbow under the floor", async () => {
+    const { solveIK } = await import("@/components/site/RobotArm");
+    const BASE = { x: 200, y: 300 }, L1 = 130, L2 = 110;
+    let prefer: 1 | -1 = -1;
+    // sweep from the vial on the left, over the top, to the drop zone on the right, close to the floor
+    for (const [x, y] of [[90, 286], [150, 200], [200, 120], [260, 200], [330, 240], [330, 262], [380, 290]] as const) {
+      const r = solveIK(x, y, prefer); prefer = r.sign;
+      const ex = BASE.x + L1 * Math.cos(r.t1), ey = BASE.y + L1 * Math.sin(r.t1);
+      const hx = ex + L2 * Math.cos(r.t1 + r.t2), hy = ey + L2 * Math.sin(r.t1 + r.t2);
+      expect(Math.hypot(hx - x, hy - y)).toBeLessThan(1);
+      expect(ey).toBeLessThan(BASE.y);
+    }
+  });
+});
