@@ -18,7 +18,7 @@ describe("robo talk", () => {
   it("takes dates and registration from site.ts", () => {
     const bf = events[0]!;
     const lines = Array.from({ length: 40 }, () => sectionLine("Bot Forge")).join(" ");
-    expect(lines).toContain(formatDate(bf.date).replace(/^[A-Za-z]{3},\s*/, "").replace(/\s\d{4}$/, ""));
+    expect(lines).toContain(bf.date ? formatDate(bf.date).replace(/^[A-Za-z]{3},\s*/, "").replace(/\s\d{4}$/, "") : "Date coming soon");
     if (bf.registration === "coming-soon") expect(lines).toMatch(/not open yet/);
     expect(FORGE_IDLE).toContain(bf.title);
   });
