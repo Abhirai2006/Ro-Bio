@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
-import { ArmSim, SAMPLE, type Kind, type Mode } from "@/lib/arm-sim";
+import { ArmSim, SAMPLE, type Kind } from "@/lib/arm-sim";
 import type { ArmScene } from "./arm-scene";
 
 const KINDS: Kind[] = ["glass", "rubber", "ball"];
@@ -15,8 +15,18 @@ const HUD = [
   ["GRIP", (s: ArmSim) => `${Math.round(s.grip * 2000)} mm`],
 ] as const;
 
+/** One line under the arm that always says what to do next. */
+function hint(sim: ArmSim) {
+  const k = sim.heldKind;
+  if (k && sim.holding) return `Now tap where the ${SAMPLE[k].label.toLowerCase()} should go. The tray works too.`;
+  if (k) return ["CARRY", "PLACING", "RELEASE"].includes(sim.status) ? "Putting it down." : "Picking it up.";
+  if (sim.busy && sim.samples.some((s) => s.queued)) return "Picking it up.";
+  return "Tap a sample to pick it up.";
+}
+
 /**
  * Pick-and-place cell: a five-joint arm with a parallel gripper, drawn in 3D.
+ * Tap a sample to pick it up, tap a spot to put it down. With a mouse the sample follows the cursor, and dragging works too.
  * The motion and physics live in ArmSim (src/lib/arm-sim.ts). three.js loads after the page, in its own file.
  */
 export function RobotArm() {
@@ -26,12 +36,11 @@ export function RobotArm() {
   const sim = simRef.current;
   const scene = useRef<ArmScene | null>(null);
   const hud = useRef<(HTMLSpanElement | null)[]>([]);
-  const down = useRef<{ x: number; y: number } | null>(null);
+  const press = useRef<{ x: number; y: number; grabbed: boolean; moved: boolean } | null>(null);
   const [phase, setPhase] = useState<"loading" | "ready" | "nogl">("loading");
-  const [mode, setMode] = useState<Mode>("auto");
   const [status, setStatus] = useState(sim.status);
-  const [busy, setBusy] = useState(false);
-  const [glassGone, setGlassGone] = useState(false);
+  const [tip, setTip] = useState(hint(sim));
+  const [holding, setHolding] = useState(false);
   const [said, setSaid] = useState("");
 
   useEffect(() => {
@@ -42,8 +51,8 @@ export function RobotArm() {
         if (el) el.textContent = read(sim);
       });
       setStatus(sim.status);
-      setBusy(sim.busy);
-      setGlassGone(sim.sample("glass").broken);
+      setTip(hint(sim));
+      setHolding(!!sim.heldKind);
       if (sim.said.length) setSaid(sim.said.splice(0).pop()!);
     };
     const start = () =>
@@ -70,85 +79,90 @@ export function RobotArm() {
     };
   }, [sim]);
 
-  const aimFrom = (e: React.PointerEvent) => {
-    const p = scene.current?.hit(e.clientX, e.clientY).point;
-    if (!p) return;
-    sim.aim(p.x, p.z);
-    scene.current?.aimAt(sim.manual);
+  const hitAt = (e: React.PointerEvent) => {
+    const hit = scene.current?.hit(e.clientX, e.clientY) ?? {};
+    if (hit.kind || !hit.point) return hit;
+    // Fingers are big and the samples are small: a tap close to one counts as a tap on it.
+    const pt = hit.point;
+    const near = sim.samples
+      .filter((s) => !s.held)
+      .map((s) => ({ kind: s.kind, d: Math.hypot(s.p.x - pt.x, s.p.z - pt.z) }))
+      .sort((a, b) => a.d - b.d)[0];
+    return near && near.d < 0.06 ? { ...hit, kind: near.kind } : hit;
+  };
+
+  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!scene.current || e.button > 0) return;
+    const hit = hitAt(e);
+    let grabbed = false;
+    if (!sim.heldKind && hit.kind) grabbed = sim.grab(hit.kind);
+    if (grabbed || sim.heldKind) e.currentTarget.setPointerCapture(e.pointerId);
+    press.current = { x: e.clientX, y: e.clientY, grabbed, moved: false };
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!scene.current) return;
-    if (mode === "manual") return aimFrom(e);
-    if (e.pointerType !== "mouse") return;
-    const kind = scene.current.hit(e.clientX, e.clientY).kind ?? null;
-    scene.current.hover(kind);
-    e.currentTarget.style.cursor = kind ? "pointer" : "crosshair";
-  };
-  const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    down.current = { x: e.clientX, y: e.clientY };
-    if (mode !== "manual" || !scene.current) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    aimFrom(e);
-    sim.press(true);
+    const p = press.current;
+    if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 8) p.moved = true;
+    const hit = hitAt(e);
+    // While something is held it glides after the pointer: a mouse just moves, a finger drags.
+    if (sim.heldKind && hit.point && (e.pointerType === "mouse" || p)) sim.carry(hit.point.x, hit.point.z);
+    if (e.pointerType === "mouse") {
+      scene.current.hover(hit.kind ?? null);
+      e.currentTarget.style.cursor = hit.kind && !sim.heldKind ? "grab" : sim.heldKind ? "copy" : "default";
+    }
   };
   const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    const start = down.current;
-    down.current = null;
-    if (mode === "manual") return sim.press(false);
-    if (!start || !scene.current || Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) return;
-    const hit = scene.current.hit(e.clientX, e.clientY);
-    if (hit.kind) sim.pick(hit.kind);
-    else if (hit.point) sim.point(hit.point.x, hit.point.z);
+    const p = press.current;
+    press.current = null;
+    if (!p || !scene.current) return;
+    const hit = hitAt(e);
+    if (p.grabbed) {
+      // Dragged straight away: put it down where the pointer let go. A plain tap keeps holding it.
+      if (p.moved && hit.point) sim.place(hit.point.x, hit.point.z);
+      return;
+    }
+    if (sim.heldKind) {
+      if (hit.kind === sim.heldKind && !p.moved) sim.place(); // tapped the sample itself: straight down
+      else if (hit.point) sim.place(hit.point.x, hit.point.z);
+      return;
+    }
+    if (!p.moved && hit.point && !hit.kind) sim.point(hit.point.x, hit.point.z);
   };
   const onKey = (e: React.KeyboardEvent) => {
-    if (mode !== "manual") return;
-    const step = 0.015, m = sim.manual;
+    if (!sim.heldKind) return;
+    const step = 0.02;
     const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
     const mv = moves[e.key];
     if (mv) {
       e.preventDefault();
-      sim.aim(m.x + mv[0], m.z + mv[1]);
-      scene.current?.aimAt(sim.manual);
+      sim.carry(sim.aim.x + mv[0], sim.aim.z + mv[1]);
     } else if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      if (!e.repeat) sim.press(!m.pressed);
+      sim.place();
     }
-  };
-  const switchMode = (next: Mode) => {
-    sim.setMode(next);
-    setMode(sim.mode);
-    scene.current?.hover(null);
-    scene.current?.aimAt(sim.mode === "manual" ? sim.manual : null);
-    if (sim.mode === "manual") host.current?.focus({ preventScroll: true }); // so the arrow keys work straight away
   };
 
   return (
     <figure className="overflow-hidden border-2 border-border bg-ink text-paper shadow-hard-violet">
       <div className="flex items-center justify-between border-b border-paper/20 px-3 py-2 font-mono text-[11px]">
         <span className="text-lens">RB-01 / PICK AND PLACE</span>
-        <span className="flex items-center gap-3">
-          <span className="text-lilac">{mode === "auto" ? "AUTO" : "MANUAL"}</span>
-          <span className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-lens blink" />
-            {status}
-          </span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-lens blink" />
+          {status}
         </span>
       </div>
       <div
         ref={host}
-        tabIndex={phase === "ready" && mode === "manual" ? 0 : -1}
-        role={mode === "manual" ? "application" : "img"}
+        tabIndex={phase === "ready" ? 0 : -1}
+        role="application"
         aria-roledescription="robot arm"
-        aria-label={
-          mode === "auto"
-            ? "3D robot arm. Use the buttons below to choose what it picks up."
-            : "3D robot arm in manual mode. Arrow keys move the gripper over the bench, Space grips and lets go."
-        }
-        className={`relative aspect-[5/4] w-full select-none outline-none focus-visible:ring-2 focus-visible:ring-lens ${mode === "manual" ? "touch-none cursor-crosshair" : "touch-pan-y cursor-crosshair"}`}
-        onPointerMove={onMove}
+        aria-label="3D robot arm. Use the buttons below to put a sample in the tray. While the arm holds something, the arrow keys move it and Enter puts it down."
+        // A finger only locks the page scroll while the arm is holding something; otherwise swiping scrolls as usual.
+        className={`relative aspect-[5/4] w-full select-none outline-none focus-visible:ring-2 focus-visible:ring-lens ${holding ? "touch-none" : "touch-pan-y"}`}
         onPointerDown={onDown}
+        onPointerMove={onMove}
         onPointerUp={onUp}
-        onPointerCancel={() => ((down.current = null), sim.press(false))}
+        onPointerCancel={() => (press.current = null)}
         onPointerLeave={() => scene.current?.hover(null)}
         onKeyDown={onKey}
       >
@@ -158,6 +172,11 @@ export function RobotArm() {
               {phase === "loading" ? <span className="blink">LOADING THE ARM</span> : "This browser could not start 3D graphics, so the arm cannot be shown here."}
             </p>
           </div>
+        )}
+        {phase === "ready" && (
+          <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent px-3 pb-2 pt-6 text-center text-sm font-semibold text-paper" aria-hidden="true">
+            {tip}
+          </p>
         )}
       </div>
       <p className="sr-only" aria-live="polite">{said}</p>
@@ -172,38 +191,21 @@ export function RobotArm() {
         ))}
       </figcaption>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-paper/20 px-3 py-2">
-        <div className="flex border border-paper/30" role="group" aria-label="Control mode">
-          {(["auto", "manual"] as const).map((m) => (
-            <Button
-              key={m}
-              variant="ghost"
-              size="sm"
-              aria-pressed={mode === m}
-              disabled={busy && mode !== m}
-              onClick={() => switchMode(m)}
-              className={`rounded-none hover:bg-paper/10 hover:text-lens ${mode === m ? "bg-paper/15 text-lens" : "text-paper/60"}`}
-            >
-              {m === "auto" ? "Auto" : "Manual"}
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Put in the tray">
+          <span className="mr-1 font-pixel text-[10px] text-paper/60">TO THE TRAY</span>
+          {KINDS.map((k) => (
+            <Button key={k} variant="ghost" size="sm" disabled={phase !== "ready" || holding} onClick={() => sim.pick(k)} className="text-paper/80 hover:bg-paper/10 hover:text-lens">
+              {SAMPLE[k].label}
             </Button>
           ))}
         </div>
-        {mode === "auto" ? (
-          <div className="flex flex-wrap gap-1" role="group" aria-label="Pick up">
-            {KINDS.map((k) => (
-              <Button key={k} variant="ghost" size="sm" disabled={phase !== "ready" || (k === "glass" && glassGone)} onClick={() => sim.pick(k)} className="text-paper/80 hover:bg-paper/10 hover:text-lens">
-                {SAMPLE[k].label}
-              </Button>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-paper/70">Hold to grip, let go to drop.</p>
-        )}
         <Button
           variant="ghost"
           size="icon"
           className="text-paper hover:bg-paper/10 hover:text-lens"
           aria-label="Reset the bench"
           title="Reset the bench"
+          disabled={phase !== "ready"}
           onClick={() => {
             sim.reset();
             setSaid("Bench reset.");
