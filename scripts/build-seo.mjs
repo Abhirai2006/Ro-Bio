@@ -10,8 +10,8 @@ try {
   const plain = (iso) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, "");
   const soon = (file) => { try { return readFileSync(`src/routes/${file}.tsx`, "utf8").includes("<Pending") ? " (content coming soon)" : ""; } catch { return ""; } };
   const pages = [
-    ["/", "Home", "Meet the club. An interactive robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site."],
-    ["/about", "About", "What RO-BIO is and why robots and bodies belong together."],
+    ["/", "Home", "Meet the club. A 3D pick-and-place robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site."],
+    ["/about", "About", "What RO-BIO is, its vision and mission, what it works on, and why robots and bodies belong together."],
     ["/events", "Events", "Events run by RO-BIO."],
     [`/events/${bf.slug}`, bf.title, `${bf.title}, ${formatDate(bf.date)}: ${bf.activities.map((a) => a.name).join(", ")}.`],
     ["/team", "Team", `The ${coreTeamSize} students on the core team.`],
@@ -20,6 +20,7 @@ try {
     ["/gallery", "Gallery", `Photos from the club${soon("gallery")}.`],
     ["/blog", "Blog", `Posts from the club${soon("blog")}.`],
     ["/contact", "Contact", "Instagram, event coordinators and the college address."],
+    ["/join", "Join", "Why students join, who to talk to, and a QR code that opens the site."],
     ["/faq", "FAQ", "Short factual answers about the club and Bot Forge."],
     ["/privacy", "Privacy Policy", "No accounts, forms, analytics or cookies."],
     ["/terms", "Terms of Use", "Rules for using the site."],
