@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
-import { events, formatDate } from "@/lib/site";
+import { events, formatDate, shortDate } from "@/lib/site";
 
 export const Route = createFileRoute("/events/")({
   head: () => ({
     links: [canonical("/events")],
     meta: [
       { title: "Events | RO-BIO" },
-      { name: "description", content: "RO-BIO events at Mysore University School of Engineering. Bot Forge is on 6 Nov 2026." },
+      { name: "description", content: `RO-BIO events at Mysore University School of Engineering. ${events[0]!.title} is on ${shortDate(events[0]!.date)}.` },
       { property: "og:title", content: "Events | RO-BIO" },
       { property: "og:description", content: "Bot Forge and other RO-BIO events." },
     ],
