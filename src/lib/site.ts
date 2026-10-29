@@ -6,8 +6,9 @@ export const site = {
   branch: "Biomedical and Robotic Engineering",
   college: "Mysore University School of Engineering",
   address: "Mysore University School of Engineering, Manasa Gangotri Campus, Mysore-570006",
-  mapUrl:
-    "https://www.google.com/maps/search/?api=1&query=Mysore+University+School+of+Engineering+Manasa+Gangotri",
+  mapUrl: "https://maps.app.goo.gl/8douKdj7mEiE7aDKA", // the club's own pin
+  // What the embedded map shows. To use the exact pin: Google Maps, Share, "Embed a map", copy the src="..." link here.
+  mapEmbed: "https://www.google.com/maps?q=Mysore+University+School+of+Engineering,+Manasa+Gangotri,+Mysuru&output=embed",
   instagram: "https://www.instagram.com/ro_bio_hub/",
   instagramHandle: "@ro_bio_hub",
   startedOn: "2026-05-20",
@@ -29,8 +30,6 @@ export type ClubEvent = {
   title: string;
   kind: string;
   date: string; // YYYY-MM-DD, India time
-  /** Earlier dates this event was set for, oldest first. */
-  previousDates?: string[];
   venue: string;
   activities: Activity[];
   registration: "coming-soon" | "open" | "closed";
@@ -42,14 +41,10 @@ export const events: ClubEvent[] = [
     title: "Bot Forge",
     kind: "Competition",
     date: "2026-11-06",
-    previousDates: ["2026-06-25", "2026-10-28"],
     venue: site.address,
     activities: [
-      { name: "Line Follower", tag: "EVENT" },
-      { name: "Robot Race", tag: "EVENT" },
-      { name: "Bot Expo", tag: "EXPO" },
       { name: "Robo Sumo", tag: "EVENT" },
-      { name: "Shark Tank", tag: "EVENT" },
+      { name: "Robot Race", tag: "EVENT" },
     ],
     registration: "coming-soon",
   },
