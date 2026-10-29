@@ -4,7 +4,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { ARM, SAMPLE, TABLE, TRAY, type ArmSim, type Kind } from "@/lib/arm-sim";
+import { ARM, SAMPLE, TABLE, TRAY, inTray, type ArmSim, type Kind } from "@/lib/arm-sim";
 
 const C = { ink: 0x201e2d, paper: 0xfffffa, lens: 0x6294ff, lilac: 0xa979fa, violet: 0x725dff };
 
@@ -12,7 +12,6 @@ export type Hit = { kind?: Kind | undefined; point?: { x: number; z: number } | 
 export type ArmScene = {
   hit: (clientX: number, clientY: number) => Hit;
   hover: (kind: Kind | null) => void;
-  aimAt: (p: { x: number; z: number } | null) => void;
   dispose: () => void;
 };
 
@@ -346,27 +345,23 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     meshes.set(s.kind, g);
   }
 
-  // Broken glass and the spill
-  const shardMesh = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(1), new THREE.MeshPhysicalMaterial({ color: 0xe6eeff, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.85 }), 16);
-  shardMesh.castShadow = true;
-  shardMesh.count = 0;
-  scene.add(shardMesh);
-  const puddle = new THREE.Mesh(new THREE.CircleGeometry(1, 48), new THREE.MeshStandardMaterial({ color: C.lens, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.6 }));
-  puddle.rotation.x = -Math.PI / 2;
-  puddle.visible = false;
-  scene.add(puddle);
-
-  // Hover ring (auto mode) and aim marker (manual mode)
+  // A ring under a sample the mouse is over, and a landing mark under whatever is being carried
   const hoverRing = new THREE.Mesh(new THREE.RingGeometry(0.036, 0.041, 48), new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.9, depthWrite: false }));
   hoverRing.rotation.x = -Math.PI / 2;
   hoverRing.visible = false;
   scene.add(hoverRing);
-  const aim = new THREE.Group();
-  const aimRing = new THREE.Mesh(new THREE.RingGeometry(0.012, 0.015, 40), new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.85, depthWrite: false }));
-  aimRing.rotation.x = -Math.PI / 2;
-  aim.add(aimRing);
-  aim.visible = false;
-  scene.add(aim);
+  const landing = new THREE.Group();
+  const landMat = new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.85, depthWrite: false });
+  const landRing = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), landMat);
+  landRing.rotation.x = -Math.PI / 2;
+  const landDot = new THREE.Mesh(new THREE.CircleGeometry(0.18, 24), landMat);
+  landDot.rotation.x = -Math.PI / 2;
+  landing.add(landRing, landDot);
+  landing.visible = false;
+  scene.add(landing);
+  const guide = new THREE.Mesh(new THREE.CylinderGeometry(0.0008, 0.0008, 1, 6), new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.4, depthWrite: false }));
+  guide.visible = false;
+  scene.add(guide);
   let hovered: Kind | null = null;
 
   // Resizing
@@ -386,7 +381,7 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   size();
 
   // Copy the simulation onto the models
-  const q = new THREE.Quaternion(), m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
+  const q = new THREE.Quaternion();
   const axis = new THREE.Vector3();
   const ballPrev = { x: 0, z: 0, yaw: 0, ready: false };
   const sync = () => {
@@ -398,7 +393,6 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     for (const { f, side } of fingers) f.position.x = side * sim.grip;
     for (const s of sim.samples) {
       const g = meshes.get(s.kind)!;
-      g.visible = !s.broken;
       g.position.set(s.p.x, s.p.y, s.p.z);
       if (s.kind === "ball") {
         // Roll the ball by the distance it travelled, and turn it with the gripper while it is held.
@@ -413,22 +407,19 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
         Object.assign(ballPrev, { x: s.p.x, z: s.p.z, yaw: s.yaw, ready: true });
       } else g.rotation.y = s.yaw;
     }
-    shardMesh.count = Math.min(16, sim.shards.length);
-    sim.shards.slice(0, 16).forEach((sh, i) => {
-      axis.set(sh.axis.x, sh.axis.y, sh.axis.z).normalize();
-      q.setFromAxisAngle(axis, sh.ang);
-      m4.compose(pos.set(sh.p.x, sh.p.y, sh.p.z), q, scl.set(sh.size, sh.size * 0.5, sh.size));
-      shardMesh.setMatrixAt(i, m4);
-    });
-    shardMesh.instanceMatrix.needsUpdate = true;
-    puddle.visible = !!sim.puddle;
-    if (sim.puddle) {
-      puddle.position.set(sim.puddle.x, 0.0009, sim.puddle.z);
-      puddle.scale.setScalar(Math.max(0.001, sim.puddle.r));
+    const floorAt = (p: { x: number; z: number }) => (inTray(p) ? TRAY.foam : 0) + 0.0012;
+    const hs = hovered && !sim.heldKind && !sim.busy ? sim.sample(hovered) : null;
+    hoverRing.visible = !!hs;
+    if (hs) hoverRing.position.set(hs.p.x, floorAt(hs.p), hs.p.z);
+    const held = sim.heldKind ? sim.sample(sim.heldKind) : null;
+    landing.visible = guide.visible = !!held;
+    if (held) {
+      landing.position.set(sim.aim.x, floorAt(sim.aim), sim.aim.z);
+      landing.scale.setScalar(SAMPLE[held.kind].foot + 0.008);
+      const bottom = held.p.y - SAMPLE[held.kind].h;
+      guide.position.set(held.p.x, bottom / 2, held.p.z);
+      guide.scale.set(1, Math.max(0.001, bottom), 1);
     }
-    const hs = hovered && sim.mode === "auto" ? sim.sample(hovered) : null;
-    hoverRing.visible = !!hs && !hs.broken && !hs.held;
-    if (hs) hoverRing.position.set(hs.p.x, (Math.abs(hs.p.x - TRAY.x) < TRAY.w / 2 && Math.abs(hs.p.z - TRAY.z) < TRAY.d / 2 ? TRAY.foam : 0) + 0.0012, hs.p.z);
   };
 
   // Main loop: the simulation always runs while the arm is on screen; drawing only happens when something changed.
@@ -461,8 +452,7 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
       const r = canvas.getBoundingClientRect();
       ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      const live = hitboxes.filter((b) => !sim.sample(b.userData["kind"] as Kind).broken);
-      const found = ray.intersectObjects(live, false)[0];
+      const found = ray.intersectObjects(hitboxes, false)[0];
       const t = -ray.ray.origin.y / ray.ray.direction.y;
       const point = t > 0 ? { x: ray.ray.origin.x + ray.ray.direction.x * t, z: ray.ray.origin.z + ray.ray.direction.z * t } : undefined;
       return found ? { kind: found.object.userData["kind"] as Kind, point } : { point };
@@ -472,11 +462,6 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
         hovered = kind;
         dirty = true;
       }
-    },
-    aimAt(p) {
-      aim.visible = !!p;
-      if (p) aim.position.set(p.x, (Math.abs(p.x - TRAY.x) < TRAY.w / 2 && Math.abs(p.z - TRAY.z) < TRAY.d / 2 ? TRAY.foam : 0) + 0.0012, p.z);
-      dirty = true;
     },
     dispose() {
       cancelAnimationFrame(raf);
