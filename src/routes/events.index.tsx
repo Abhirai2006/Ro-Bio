@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
-import { events, formatDate, shortDate } from "@/lib/site";
+import { eventDate, events } from "@/lib/site";
 
 export const Route = createFileRoute("/events/")({
   head: () => ({
     links: [canonical("/events")],
     meta: [
       { title: "Events | RO-BIO" },
-      { name: "description", content: `RO-BIO events at Mysore University School of Engineering. ${events[0]!.title} is on ${shortDate(events[0]!.date)}.` },
+      { name: "description", content: `RO-BIO events at Mysore University School of Engineering. ${events[0]!.title}: ${eventDate(events[0]!).toLowerCase()}.` },
       { property: "og:title", content: "Events | RO-BIO" },
       { property: "og:description", content: "Bot Forge and other RO-BIO events." },
     ],
@@ -21,12 +21,12 @@ function Events() {
     <>
       <PageIntro label="EVENTS / UPCOMING" title="What's coming up." />
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <ul className="grid gap-6 md:grid-cols-2">
+        <ul className="grid gap-6 md:grid-cols-3">
           {events.map((e) => (
-            <li key={e.slug}>
-              <Window tag={e.kind.toUpperCase()}>
+            <li key={e.slug} className="md:col-span-2">
+              <Window tag={e.kind.toUpperCase()} className="h-full">
                 <h2 className="text-3xl font-black italic">{e.title}</h2>
-                <p className="mt-2 font-display text-lg font-bold text-primary">{formatDate(e.date)}</p>
+                <p className="mt-2 font-display text-lg font-bold text-primary">{eventDate(e)}</p>
                 <p className="mt-3 text-sm">{e.activities.map((a) => a.name).join(" · ")}</p>
                 <Link
                   to="/events/$slug"
@@ -38,9 +38,11 @@ function Events() {
               </Window>
             </li>
           ))}
+          <li className="border-2 border-dashed border-border bg-muted p-5">
+            <h2 className="text-2xl font-black">Past events</h2>
+            <p className="mt-2 text-muted-foreground">Nothing in the archive yet. Recaps and photos land here after each event.</p>
+          </li>
         </ul>
-        <h2 className="mt-16 text-2xl font-black">Past events</h2>
-        <p className="mt-2 text-muted-foreground">Nothing in the archive yet. Recaps and photos land here after each event.</p>
       </section>
     </>
   );
