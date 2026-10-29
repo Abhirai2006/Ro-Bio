@@ -1,21 +1,6 @@
 import Matter from "matter-js";
 
 export const { Engine, Bodies, Body, Composite, Events } = Matter;
-export type Material = "glass" | "rubber" | "ball";
-export const materialProperties = {
-  glass: { restitution: 0.03, friction: 0.7, frictionAir: 0.002 },
-  rubber: { restitution: 0.55, friction: 0.65, frictionAir: 0.002 },
-  ball: { restitution: 0.35, friction: 0.015, frictionAir: 0.001 },
-};
-export const BREAK_SPEED = 4.5;
-export function shouldBreak(material: Material, speed: number) {
-  return material === "glass" && speed > BREAK_SPEED;
-}
-export function makeSample(material: Material, x = 90, y = 304) {
-  const options = { ...materialProperties[material], label: "sample" };
-  return material === "ball" ? Bodies.circle(x, y, 12, options) : Bodies.rectangle(x, y, 14, 28, options);
-}
-
 export const RING = { center: 160, radius: 130, botRadius: 18 };
 export type CpuTactic = "RECOVER" | "FLANK" | "DRIVE" | "REVERSE";
 export function cpuIntent(cpu: Matter.Body, player: Matter.Body, time: number, contact: boolean) {
