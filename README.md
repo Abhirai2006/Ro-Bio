@@ -29,7 +29,7 @@ _Unauthorised innovation in progress!_
 
 <br /><br />
 
-<img src="docs/screenshots/home.jpg" alt="The RO-BIO home page with the interactive robot arm" width="100%" />
+<img src="docs/screenshots/home.jpg" alt="The RO-BIO home page with the 3D pick-and-place robot arm" width="100%" />
 
 </div>
 
@@ -84,13 +84,19 @@ The club's first event is **Bot Forge**, a robotics competition. Its events, dat
       <sub><b>404.</b> Robo guesses the page you meant, and the flatline revives.</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/contact-map.jpg" alt="Contact page with coordinators and the click-to-load venue map" /><br />
-      <sub><b>Contact.</b> Coordinators, Instagram and a venue map that loads only when asked.</sub>
+      <img src="docs/screenshots/contact-map.jpg" alt="Contact page with coordinators and the venue map" /><br />
+      <sub><b>Contact.</b> Coordinators, Instagram and the venue map.</sub>
     </td>
   </tr>
 </table>
 
 <br />
+
+<img src="docs/screenshots/join.jpg" alt="The Join page with reasons to join and a QR code" width="100%" />
+
+<sub><b>Join.</b> Why people join, who to talk to, and a QR code with a printable poster.</sub>
+
+<br /><br />
 
 <img src="docs/screenshots/phone-home.jpg" alt="Home page on a phone" width="260" />
 &nbsp;&nbsp;
@@ -106,14 +112,15 @@ The club's first event is **Bot Forge**, a robotics competition. Its events, dat
 
 | Page | What it has |
 | --- | --- |
-| [Home](https://ro-bio.robiohub2026.workers.dev/) | A robot arm that solves inverse kinematics live, a line follower, the Bot Forge countdown, Robo Sumo and the coordinators |
-| [About](https://ro-bio.robiohub2026.workers.dev/about) | Who the club is, with a live feedback loop for a robot and a body |
+| [Home](https://ro-bio.robiohub2026.workers.dev/) | A 3D pick-and-place robot arm, what we work on, the Bot Forge countdown, Robo Sumo, a QR code and the coordinators |
+| [About](https://ro-bio.robiohub2026.workers.dev/about) | Who the club is, our vision and mission, what we work on, and a live feedback loop for a robot and a body |
 | [Events](https://ro-bio.robiohub2026.workers.dev/events) and [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) | Date, events, a venue map and who to call |
 | [Workshops](https://ro-bio.robiohub2026.workers.dev/workshops) | The Saturday sessions. Speaker list coming soon |
 | [Projects](https://ro-bio.robiohub2026.workers.dev/projects) | What members are building. Write-ups coming soon |
 | [Team](https://ro-bio.robiohub2026.workers.dev/team) | President, Vice President and every squad, with flip cards |
 | [Gallery](https://ro-bio.robiohub2026.workers.dev/gallery) and [Blog](https://ro-bio.robiohub2026.workers.dev/blog) | Photos, art and write-ups. Coming soon |
 | [Contact](https://ro-bio.robiohub2026.workers.dev/contact) | Phone numbers, a venue map and Instagram |
+| [Join](https://ro-bio.robiohub2026.workers.dev/join) | Why people join, how to get in, and a QR code with a printable poster |
 | [FAQ](https://ro-bio.robiohub2026.workers.dev/faq), Privacy, Terms, Accessibility | Short and plain |
 
 Pages that are waiting for the club's own content say so honestly. Nothing on the site is made up.
@@ -123,7 +130,7 @@ Pages that are waiting for the club's own content say so honestly. Nothing on th
 ## The interactive parts
 
 - **Robo** (`src/lib/robo-roam.ts`, `robo-rig.ts`, `robo-walk.ts`, `robo-talk.ts`, `components/site/RoboLayer.tsx`). A robot with a skeleton inside (try the X-ray from his menu). He wakes up, walks along the bottom of the screen, hops onto headings and cards, and can be picked up and dropped. When you stop scrolling he looks at the section you are reading, tilts his head at it and says something about it. Click a link and he uploads himself into it as a stream of pixels (`robo-pixels.ts`), then gets rebuilt pixel by pixel on the next page. Everything he says comes from the club facts, so it never goes out of date.
-- **Robot arm** (`components/site/RobotArm.tsx`). Two-joint inverse kinematics with real physics. Pick up the sample vial and drop it in the tray.
+- **Robot arm** (`src/lib/arm-sim.ts`, `components/site/RobotArm.tsx`, `components/site/arm-scene.ts`). A five-joint collaborative arm with a parallel gripper, drawn in 3D with three.js. Tap a sample and it plans the whole move: reach over, go straight down, close the fingers until they touch, lift, carry, place, let go. Every move follows a minimum-jerk curve, the same smooth start and stop that human reaching follows, with the shoulder leading and the wrist following a moment later. In Manual mode you steer the gripper and hold to grip; the joints chase your finger like tuned servos. The glass vial breaks if you drop it on the bare bench, the ball rolls and the rubber block bounces. three.js only loads after the rest of the page, in its own file.
 - **Robo Sumo** (`src/lib/sumo.ts`, `components/site/SumoGame.tsx`). Physics, wheel grip and a CPU with tactics. `node --experimental-strip-types scripts/sumo-sim.mjs` plays hundreds of seeded matches and prints win rates.
 - **Live heartbeat** (`components/site/HeaderEcg.tsx`). The ECG in the header speeds up when you are active.
 - **Feedback loop** (`components/site/FeedbackLoop.tsx`). Sense, decide, act, feed back, for a robot and a body at the same time.
@@ -145,6 +152,10 @@ All the facts live in one file: **`src/lib/site.ts`**. Change them there and eve
 | Event date | `date` inside `events` (written `YYYY-MM-DD`) |
 | Events at Bot Forge | `activities` inside `events` |
 | Map | `mapUrl` (the "Open in Google Maps" link) and `mapEmbed` (Google Maps, Share, "Embed a map", copy the `src` link) |
+| What we work on | `focusAreas` |
+| Vision and mission | `vision` and `mission` |
+| Reasons to join | `whyJoin` |
+| Where the QR codes go | `qrLink` (the home page now; set it to `` `${site.url}/join` `` for the Join page) |
 | Registration | `registration: "coming-soon"` (or `"open"` / `"closed"`) |
 | Coordinators and phone numbers | `contacts` |
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")`. `sem` is the semester at the time of the announcement |
@@ -169,8 +180,9 @@ Then open http://localhost:5173.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | Local site with hot reload |
-| `npm test` | Unit tests (club facts, FAQ, team, Robo's walk and talk, sumo physics, ECG) |
-| `npm run build` | Production build. Also regenerates `sitemap.xml`, `robots.txt`, `llms.txt` and `llms-full.txt` |
+| `npm test` | Unit tests (club facts, FAQ, team, Robo's walk and talk, sumo physics, the robot arm's kinematics, motion and physics, ECG) |
+| `npm run build` | Production build. Also regenerates `sitemap.xml`, `robots.txt`, `llms.txt`, `llms-full.txt` and the QR codes in `public/qr/` |
+| `npm run qr` | Regenerates only the QR codes: `robio-qr.svg`, `robio-qr.png` and the poster `robio-qr-card.svg` |
 | `npm run preview` | Runs the production build locally on the Cloudflare Workers runtime |
 | `npm run deploy` | Builds and deploys by hand with Wrangler |
 
@@ -192,7 +204,7 @@ The repository is connected to Cloudflare Workers. Every push to `main` builds a
 - No accounts, no forms, no analytics, no cookies, and no third-party scripts. The [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy) lists the few settings kept in your own browser.
 - Every page is sent with a strict Content Security Policy and security headers (`src/server.ts`). Static files get the same headers from `public/_headers`. Clickjacking, MIME sniffing and camera, microphone and location access are all blocked.
 - External links open with `rel="noreferrer"`, and structured data is escaped before it goes into the page.
-- The venue map is click-to-load: Google Maps is only contacted after a visitor presses "Show the map".
+- The venue map on the Contact and Bot Forge pages is a Google Maps embed. It is the only part of the site served by another company, and the Privacy Policy says so.
 
 <br />
 
@@ -212,10 +224,12 @@ src/
   lib/site.ts        all club facts, edit here
   lib/robo-*.ts      Robo's body, walk, brain, lines and pixel teleport
   lib/sumo.ts        Robo Sumo physics and CPU
+  lib/arm-sim.ts     the robot arm: kinematics, motion planning and bench physics
+  lib/qr.ts          QR code generator used by the site and scripts/build-qr.mjs
   server.ts          Cloudflare Worker entry and security headers
   styles.css         colours, fonts and animations
-public/              favicon, share image, robots.txt, sitemap.xml, llms.txt, _headers
-scripts/             SEO file generator, Robo preview renders, sumo simulator, Robo browser checks
+public/              favicon, share image, robots.txt, sitemap.xml, llms.txt, _headers, qr/ (printable QR codes)
+scripts/             SEO and QR file generators, Robo preview renders, sumo simulator, Robo browser checks
 docs/screenshots/    the images in this README
 ```
 
