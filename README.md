@@ -13,6 +13,7 @@ _Unauthorised innovation in progress!_
 
 <a href="https://ro-bio.robiohub2026.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.robiohub2026.workers.dev-725DFF?style=for-the-badge" /></a>
 <a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=for-the-badge" /></a>
+<a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=for-the-badge" /></a>
 
 <img alt="TanStack Start" src="https://img.shields.io/badge/TanStack_Start-React_19-201E2D?style=flat-square" />
 <img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind_CSS-4-6294FF?style=flat-square" />
@@ -147,7 +148,7 @@ All the facts live in one file: **`src/lib/site.ts`**. Change them there and eve
 | Registration | `registration: "coming-soon"` (or `"open"` / `"closed"`) |
 | Coordinators and phone numbers | `contacts` |
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")`. `sem` is the semester at the time of the announcement |
-| Member count | `memberCount` |
+| Member count | Counted from `coreTeam` automatically |
 | Live web address | `url` (change it when a custom domain is connected) |
 
 After you push, Cloudflare rebuilds and deploys the site in a minute or two.
@@ -226,7 +227,7 @@ docs/screenshots/    the images in this README
 
 **RO-BIO** · Biomedical and Robotic Engineering · Mysore University School of Engineering
 
-[Website](https://ro-bio.robiohub2026.workers.dev) · [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) · [Contact](https://ro-bio.robiohub2026.workers.dev/contact)
+[Website](https://ro-bio.robiohub2026.workers.dev) · [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) · [LinkedIn](https://www.linkedin.com/in/ro-bio-hub-606b5840b/) · [Contact](https://ro-bio.robiohub2026.workers.dev/contact)
 
 <sub>Built by students. The text, design, logo and artwork belong to RO-BIO and its creators.</sub>
 
