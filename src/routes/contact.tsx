@@ -9,9 +9,9 @@ export const Route = createFileRoute("/contact")({
     links: [canonical("/contact")],
     meta: [
       { title: "Contact | RO-BIO" },
-      { name: "description", content: "Phone numbers, Instagram and address for RO-BIO at Mysore University School of Engineering, Manasa Gangotri." },
+      { name: "description", content: "Phone numbers, a venue map, Instagram and LinkedIn for RO-BIO at Mysore University School of Engineering, Manasa Gangotri." },
       { property: "og:title", content: "Contact RO-BIO" },
-      { property: "og:description", content: "Call a coordinator or find us on Instagram." },
+      { property: "og:description", content: "Call a coordinator, find us on the map, or follow us on Instagram and LinkedIn." },
     ],
   }),
   component: Contact,
@@ -41,6 +41,12 @@ function Contact() {
             <p className="font-pixel text-[11px]">INSTAGRAM</p>
             <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-2 block font-display text-2xl font-bold underline">
               {site.instagramHandle}
+            </a>
+          </div>
+          <div className="border-2 border-border bg-card p-5">
+            <p className="font-pixel text-[11px] text-primary">LINKEDIN</p>
+            <a href={site.linkedin} target="_blank" rel="noreferrer" className="mt-2 block font-display text-2xl font-bold underline">
+              RO-BIO Hub
             </a>
           </div>
         </div>
