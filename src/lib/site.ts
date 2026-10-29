@@ -11,15 +11,15 @@ export const site = {
   mapEmbed: "https://www.google.com/maps?q=Mysore+University+School+of+Engineering,+Manasa+Gangotri,+Mysuru&output=embed",
   instagram: "https://www.instagram.com/ro_bio_hub/",
   instagramHandle: "@ro_bio_hub",
+  linkedin: "https://www.linkedin.com/in/ro-bio-hub-606b5840b/",
   startedOn: "2026-05-20",
-  memberCount: 35,
 };
 
 export type Contact = { name: string; role: string; phone: string };
 
 export const contacts: Contact[] = [
   { name: "Archana G", role: "Faculty coordinator", phone: "9481832235" },
-  { name: "Thushar KL", role: "Student coordinator", phone: "8217674366" },
+  { name: "Thushar K L", role: "Student coordinator", phone: "8217674366" },
   { name: "Shloka D Raj", role: "Student coordinator", phone: "9148020699" },
 ];
 
@@ -60,6 +60,11 @@ export function formatDate(iso: string) {
     year: "numeric",
     timeZone: "Asia/Kolkata",
   });
+}
+
+/** The date without the weekday, like "6 Nov 2026". */
+export function shortDate(iso: string) {
+  return formatDate(iso).replace(/^[A-Za-z]{3},\s*/, "");
 }
 
 /** Whole days between two YYYY-MM-DD dates, using India calendar dates. */
