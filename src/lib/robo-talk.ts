@@ -4,7 +4,8 @@ import { coreTeamSize, events, formatDate, site } from "./site";
 
 const bf = events[0]!;
 const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026"
-const bfDay = plain(bf.date).replace(/\s\d{4}$/, ""); // "6 Nov"
+const bfDay = bf.date ? plain(bf.date).replace(/\s\d{4}$/, "") : null; // "6 Nov", or null while the date is not fixed
+const when = bfDay ? `is on ${bfDay}` : "is coming soon";
 const n = bf.activities.length, all = n === 2 ? "both" : "all of them";
 const regLine = bf.registration === "open" ? "Registration is open. Go, go, go!" : bf.registration === "closed" ? "Registration is closed. See you there." : "Registration is not open yet. I am refreshing constantly.";
 
@@ -12,12 +13,12 @@ const regLine = bf.registration === "open" ? "Registration is open. Go, go, go!"
 export const LOST = "Uh oh. Nothing here. I checked twice.";
 
 /** Said now and then while he idles. */
-export const FORGE_IDLE = `${bf.title} is on ${bfDay}. Still tuning my motors.`;
+export const FORGE_IDLE = `${bf.title} ${when}. Still tuning my motors.`;
 
 export const GREET: Record<string, string> = {
   "/": "Home page loaded. Arm, sumo ring, heartbeat. Everything I love.",
   "/about": "About page. This is where they explain me. Sort of.",
-  "/events": `Events. Bot Forge is on ${bfDay}. I have it on my calendar chip.`,
+  "/events": bfDay ? `Events. ${bf.title} is on ${bfDay}. I have it on my calendar chip.` : `Events. ${bf.title} is coming soon. My calendar chip is waiting.`,
   [`/events/${bf.slug}`]: `${bf.title}. ${bf.activities.map((a) => a.name).join(" and ")}. I want to enter ${all}.`,
   "/team": `Team page. ${coreTeamSize} humans on the core team. I counted twice.`,
   "/workshops": "Workshops. Humans teaching humans. I take notes.",
@@ -25,7 +26,6 @@ export const GREET: Record<string, string> = {
   "/gallery": "Gallery. Empty frames. Ready for my close-up.",
   "/blog": "Blog. No posts yet. I checked.",
   "/contact": "Contact page. Instagram is the quickest way to reach the humans.",
-  "/join": "Join page. Scan the square. It is a QR code, not a tiny maze.",
   "/faq": "FAQ. I have read every answer. Twice.",
   "/privacy": "Privacy. This site keeps almost nothing. I checked.",
   "/terms": "The small print. Short and fair, I hope.",
@@ -37,7 +37,7 @@ const SECTIONS: [RegExp, string[]][] = [
   [/line follower/i, ["Line Follower. IR sensors, a black line and a lot of tiny corrections. My kind of sport.", "Line Follower. Sense, steer, repeat. Very relaxing to watch."]],
   [/robot race/i, ["Robot Race. Fastest bot wins. My top speed is a brisk walk.", "Robot Race. I would need new motors. And courage."]],
   [/robo sumo/i, ["Robo Sumo. Two bots, one ring. You can practise on the home page.", "Robo Sumo. Push, do not get pushed. Simple. Not easy."]],
-  [/bot forge/i, [`${bf.title}, ${bfDay}. Mark your calendar.`, `${bf.title}. ${regLine}`]],
+  [/bot forge/i, [bfDay ? `${bf.title}, ${bfDay}. Mark your calendar.` : `${bf.title}. Date coming soon. I keep checking.`, `${bf.title}. ${regLine}`]],
   [/activities/i, [`${n} events. I would enter ${all}. Probably lose ${all}.`]],
   [/core team|keeping it running/i, [`Scanning faces... ${coreTeamSize} humans found. Photos not loaded yet.`, "The core team. They keep the lights on. And me."]],
   [/sense, decide|feed ?back/i, ["Sense, decide, act, feed back. That is literally how I work.", "A loop. I run about sixty of these every second. Feels normal."]],
@@ -50,9 +50,8 @@ const SECTIONS: [RegExp, string[]][] = [
   [/our story/i, ["The humans are writing their story. No spoilers."]],
   [/what we work on/i, ["Robots, circuits and bodies. Five things. I am mostly the first one.", "Five areas. I have a sensor in every one of them."]],
   [/vision|mission/i, ["The plan: build real things. I approve. I am a real thing.", "Mission loaded. Step one: build. Step two: build better."]],
-  [/why people join|want in|how to get in/i, ["Want in? DM them on Instagram. I already joined. Nobody asked me.", "Joining is easy. Talking to a human is step one."]],
   [/past events/i, [`Archive: empty. ${bf.title} will be the first entry.`]],
-  [/what.s coming up|upcoming/i, [`Next up: ${bf.title}, ${bfDay}. Counting down.`]],
+  [/what.s coming up|upcoming/i, [bfDay ? `Next up: ${bf.title}, ${bfDay}. Counting down.` : `Next up: ${bf.title}. Date coming soon.`]],
   [/get in touch|open channel|people to call/i, ["Want to reach the humans? Call a coordinator or try Instagram.", `Instagram ${site.instagramHandle}. Faster than my Wi-Fi.`]],
   [/questions, answered|faq/i, ["Questions. I have a few too. Mostly about snacks."]],
   [/privacy/i, ["No cookies, no tracking. Only my memory. Which is short."]],
