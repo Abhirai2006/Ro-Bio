@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Pending, Uptime } from "@/components/site/parts";
-import { coreTeamSize, site } from "@/lib/site";
+import { coreTeamSize, mission, site, vision } from "@/lib/site";
+import { FocusAreas } from "@/components/site/FocusAreas";
 import { FeedbackLoops, type Loop } from "@/components/site/FeedbackLoop";
 
 export const Route = createFileRoute("/about")({
@@ -45,6 +46,26 @@ function About() {
         RO-BIO is the club of the {site.branch} branch at {site.college}. We started on 20 May 2026 and we're {coreTeamSize} people
         right now.
       </PageIntro>
+      <section className="mx-auto grid max-w-6xl gap-6 px-4 pt-16 md:grid-cols-[1fr_1.3fr]" aria-label="Vision and mission">
+        <div className="border-2 border-border bg-ink p-6 text-paper shadow-hard-violet">
+          <p className="font-pixel text-[11px] text-lilac">OUR VISION</p>
+          <p className="mt-3 font-display text-2xl font-bold leading-snug">{vision}</p>
+        </div>
+        <div className="border-2 border-border bg-card p-6 shadow-hard">
+          <p className="font-pixel text-[11px] text-primary">OUR MISSION</p>
+          <ul className="mt-3 space-y-2">
+            {mission.map((m) => (
+              <li key={m} className="flex gap-3">
+                <span aria-hidden="true" className="mt-2 h-2 w-2 shrink-0 bg-primary" />
+                <span>{m}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+      <div className="mt-16">
+        <FocusAreas />
+      </div>
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-black md:text-3xl">Sense, decide, act, feed back.</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
