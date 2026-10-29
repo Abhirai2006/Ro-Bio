@@ -4,7 +4,9 @@ import { SumoGame } from "@/components/site/SumoGame";
 import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
-import { contacts, coreTeamSize, daysBetween, events, formatDate, shortDate, site } from "@/lib/site";
+import { FocusAreas } from "@/components/site/FocusAreas";
+import { QrCode } from "@/components/site/QrCode";
+import { contacts, coreTeamSize, daysBetween, events, formatDate, qrLink, shortDate, site } from "@/lib/site";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -58,6 +60,9 @@ function Hero() {
             <Link to="/events/$slug" params={{ slug: next.slug }} className="rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5">
               {next.title}, {formatDate(next.date)}
             </Link>
+            <Link to="/join" className="rounded-full border-2 border-border bg-card px-6 py-3 font-bold transition-transform hover:-translate-y-0.5">
+              Join RO-BIO
+            </Link>
             <Link to="/team" className="rounded-full border-2 border-border bg-card px-6 py-3 font-bold transition-transform hover:-translate-y-0.5">
               Meet the core team
             </Link>
@@ -78,10 +83,11 @@ function Hero() {
           </dl>
         </div>
         <div className="grid gap-6">
-          <div data-robo-avoid data-thought="That arm solves inverse kinematics. Two joint angles, live.">
+          <div data-robo-avoid data-thought="That arm solves inverse kinematics for five joints, live.">
             <RobotArm />
             <p className="mt-3 text-sm text-muted-foreground">
-              Aim with your mouse or finger, press to grip. Grab the sample vial and drop it in the tray. Joint angles are solved live with inverse kinematics.
+              Tap the vial, the block or the ball, and the arm puts it in the tray. Or switch to Manual and drive it yourself: hold to
+              grip, let go to drop. Careful with the glass, it only survives a drop onto the foam.
             </p>
           </div>
         </div>
@@ -109,7 +115,9 @@ function Index() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4" aria-labelledby="next-event">
+      <FocusAreas />
+
+      <section className="mx-auto mt-20 max-w-6xl px-4" aria-labelledby="next-event">
         <p className="font-pixel text-xs text-primary">NEXT ON THE BENCH</p>
         <div className="mt-4 grid gap-8 border-2 border-border bg-card p-6 shadow-hard-violet md:grid-cols-[1fr_1.2fr] md:p-10">
           <div>
@@ -166,6 +174,24 @@ function Index() {
           <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-5 inline-block border-2 border-ink bg-paper px-4 py-2 font-bold">
             Open Instagram
           </a>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-20 max-w-6xl px-4" aria-labelledby="join-strip">
+        <div className="grid items-center gap-6 border-2 border-border bg-ink p-6 text-paper shadow-hard-violet sm:grid-cols-[auto_1fr] md:p-8">
+          <div className="w-36 bg-white p-1.5 md:w-44">
+            <QrCode text={qrLink} label="QR code that opens the RO-BIO website" className="block h-auto w-full" />
+          </div>
+          <div>
+            <p className="font-pixel text-xs text-lilac">WANT IN?</p>
+            <h2 id="join-strip" className="mt-2 text-3xl font-black">Come build with us.</h2>
+            <p className="mt-3 max-w-xl opacity-90">
+              Point a friend's phone at this to open the site, or read how to join. The Join page has a poster you can print.
+            </p>
+            <Link to="/join" className="mt-5 inline-block border-2 border-paper bg-paper px-4 py-2 font-bold text-ink">
+              How to join
+            </Link>
+          </div>
         </div>
       </section>
 
