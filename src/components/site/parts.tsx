@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { daysBetween, events, formatDate, site, todayInIndia } from "@/lib/site";
+import { daysBetween, eventDate, events, site, todayInIndia } from "@/lib/site";
 import logo from "@/assets/robio-logo.jpg";
 import { HeaderEcg } from "@/components/site/HeaderEcg";
 
@@ -17,7 +17,6 @@ const nav = [
   { to: "/gallery", label: "Gallery", hint: "Photos and drawings" },
   { to: "/blog", label: "Blog", hint: "Lab notes" },
   { to: "/contact", label: "Contact", hint: "Call us or DM us" },
-  { to: "/join", label: "Join", hint: "How to get in, plus a QR code" },
 ] as const;
 
 /** Today's date in India, available only after hydration to keep SSR stable. */
@@ -193,7 +192,7 @@ function MobileNav({ onClose, toggle }: { onClose: (refocus?: boolean) => void; 
         <Link to="/events/$slug" params={{ slug: next.slug }} onClick={() => onClose()} className="border-2 border-border bg-ink p-3 text-paper shadow-hard-violet">
           <span className="block font-pixel text-[9px] text-lilac">NEXT UP</span>
           <span className="mt-1 block font-display text-lg font-black italic leading-tight">{next.title}</span>
-          <span className="block font-mono text-[11px] opacity-80">{formatDate(next.date)}</span>
+          <span className="block font-mono text-[11px] opacity-80">{eventDate(next)}</span>
         </Link>
         <a href={site.instagram} target="_blank" rel="noreferrer" className="border-2 border-border bg-lilac p-3 text-ink shadow-hard">
           <span className="block font-pixel text-[9px]">SAY HI</span>
