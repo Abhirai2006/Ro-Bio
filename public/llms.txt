@@ -12,6 +12,7 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - Core team: 32 students
 - Website: https://ro-bio.robiohub2026.workers.dev
 - Instagram: https://www.instagram.com/ro_bio_hub/
+- LinkedIn: https://www.linkedin.com/in/ro-bio-hub-606b5840b/
 - Bot Forge: Fri, 6 Nov 2026. Parts: Robo Sumo, Robot Race. Registration: coming soon.
 
 ## Pages
