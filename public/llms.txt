@@ -16,8 +16,8 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - Bot Forge: Fri, 6 Nov 2026. Parts: Robo Sumo, Robot Race. Registration: coming soon.
 
 ## Pages
-- [Home](https://ro-bio.robiohub2026.workers.dev/): Meet the club. An interactive robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site.
-- [About](https://ro-bio.robiohub2026.workers.dev/about): What RO-BIO is and why robots and bodies belong together.
+- [Home](https://ro-bio.robiohub2026.workers.dev/): Meet the club. A 3D pick-and-place robot arm, a Robo Sumo game, a live heartbeat, and Robo, a robot that roams the whole site.
+- [About](https://ro-bio.robiohub2026.workers.dev/about): What RO-BIO is, its vision and mission, what it works on, and why robots and bodies belong together.
 - [Events](https://ro-bio.robiohub2026.workers.dev/events): Events run by RO-BIO.
 - [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge): Bot Forge, Fri, 6 Nov 2026: Robo Sumo, Robot Race.
 - [Team](https://ro-bio.robiohub2026.workers.dev/team): The 32 students on the core team.
@@ -26,6 +26,7 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - [Gallery](https://ro-bio.robiohub2026.workers.dev/gallery): Photos from the club.
 - [Blog](https://ro-bio.robiohub2026.workers.dev/blog): Posts from the club (content coming soon).
 - [Contact](https://ro-bio.robiohub2026.workers.dev/contact): Instagram, event coordinators and the college address.
+- [Join](https://ro-bio.robiohub2026.workers.dev/join): Why students join, who to talk to, and a QR code that opens the site.
 - [FAQ](https://ro-bio.robiohub2026.workers.dev/faq): Short factual answers about the club and Bot Forge.
 - [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy): No accounts, forms, analytics or cookies.
 - [Terms of Use](https://ro-bio.robiohub2026.workers.dev/terms): Rules for using the site.
