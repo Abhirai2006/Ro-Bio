@@ -5,9 +5,11 @@ import { coreTeamSize, events, formatDate, site } from "./site";
 const bf = events[0]!;
 const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026"
 const bfDay = plain(bf.date).replace(/\s\d{4}$/, ""); // "6 Nov"
-const moves = bf.previousDates?.length ?? 0;
-const movedLine = moves === 0 ? "Mark it down." : moves === 1 ? "It moved once. This date is the one." : moves === 2 ? "It moved twice. Third time lucky." : `It moved ${moves} times. Still excited.`;
+const n = bf.activities.length, all = n === 2 ? "both" : "all of them";
 const regLine = bf.registration === "open" ? "Registration is open. Go, go, go!" : bf.registration === "closed" ? "Registration is closed. See you there." : "Registration is not open yet. I am refreshing constantly.";
+
+/** Said when he lands on a page that does not exist. */
+export const LOST = "Uh oh. Nothing here. I checked twice.";
 
 /** Said now and then while he idles. */
 export const FORGE_IDLE = `${bf.title} is on ${bfDay}. Still tuning my motors.`;
@@ -16,7 +18,7 @@ export const GREET: Record<string, string> = {
   "/": "Home page loaded. Arm, sumo ring, heartbeat. Everything I love.",
   "/about": "About page. This is where they explain me. Sort of.",
   "/events": `Events. Bot Forge is on ${bfDay}. I have it on my calendar chip.`,
-  [`/events/${bf.slug}`]: `${bf.title}. ${bf.activities.length} activities. I want to enter all of them.`,
+  [`/events/${bf.slug}`]: `${bf.title}. ${bf.activities.map((a) => a.name).join(" and ")}. I want to enter ${all}.`,
   "/team": `Team page. ${coreTeamSize} humans on the core team. I counted twice.`,
   "/workshops": "Workshops. Humans teaching humans. I take notes.",
   "/projects": "Projects. Mine is not listed. Yet.",
@@ -33,11 +35,9 @@ export const GREET: Record<string, string> = {
 const SECTIONS: [RegExp, string[]][] = [
   [/line follower/i, ["Line Follower. IR sensors, a black line and a lot of tiny corrections. My kind of sport.", "Line Follower. Sense, steer, repeat. Very relaxing to watch."]],
   [/robot race/i, ["Robot Race. Fastest bot wins. My top speed is a brisk walk.", "Robot Race. I would need new motors. And courage."]],
-  [/bot expo/i, ["Bot Expo. Show and tell, but with motors.", "Bot Expo. I would stand very still and look impressive."]],
   [/robo sumo/i, ["Robo Sumo. Two bots, one ring. You can practise on the home page.", "Robo Sumo. Push, do not get pushed. Simple. Not easy."]],
-  [/shark tank/i, ["Shark Tank. Pitch an idea to the judges. I would pitch myself.", "Shark Tank. Ideas, nerves and a timer. Very human."]],
-  [/bot forge/i, [`${bf.title}, ${bfDay}. ${movedLine}`, `${bf.title}. ${regLine}`]],
-  [/activities/i, [`${bf.activities.length} activities. I would enter all of them. Probably lose all of them.`]],
+  [/bot forge/i, [`${bf.title}, ${bfDay}. Mark your calendar.`, `${bf.title}. ${regLine}`]],
+  [/activities/i, [`${n} events. I would enter ${all}. Probably lose ${all}.`]],
   [/core team|keeping it running/i, [`Scanning faces... ${coreTeamSize} humans found. Photos not loaded yet.`, "The core team. They keep the lights on. And me."]],
   [/sense, decide|feed ?back/i, ["Sense, decide, act, feed back. That is literally how I work.", "A loop. I run about sixty of these every second. Feels normal."]],
   [/two kinds of machine|one branch/i, ["Robots and bodies. I am a bit of both. Try the X-ray from my menu.", "One branch, two machines. Wires and nerves. Same idea."]],
