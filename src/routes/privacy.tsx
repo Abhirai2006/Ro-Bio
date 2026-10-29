@@ -30,8 +30,8 @@ function Page() {
       <h2>What is stored in your browser</h2>
       <ul>
         <li><strong>robio-theme</strong> (local storage): remembers whether you chose the light or dark theme. It stays until you clear your browser data.</li>
-        <li><strong>robo-woke</strong> (session storage): remembers that the robot on the home page has already woken up during this visit, so it does not repeat the whole routine. It disappears when you close the tab.</li>
-        <li><strong>robio-boot</strong> (session storage): remembers that you have already seen the start-up screen during this visit, so it only plays once. It disappears when you close the tab.</li>
+        <li><strong>robo-woke</strong> (session storage): remembers that Robo, the robot that roams the site, has already woken up during this visit, so it does not repeat the whole routine. It disappears when you close the tab.</li>
+        <li><strong>robio-boot</strong> (session storage): remembers that you have already seen the intro (Robo being built) during this visit, so it only plays once. It disappears when you close the tab.</li>
         <li><strong>robio-robo</strong> (local storage): remembers if you chose to rest or hide Robo, the robot that roams the site. It stays until you clear your browser data.</li>
       </ul>
       <p>None of these contains personal information, and none is sent to us.</p>
@@ -39,7 +39,7 @@ function Page() {
       <h2>Other companies involved</h2>
       <ul>
         <li><strong>Google Fonts.</strong> The site's fonts load from Google (fonts.googleapis.com and fonts.gstatic.com). Google receives your IP address and browser details when they load, under Google's own privacy policy.</li>
-        <li><strong>Instagram.</strong> Links to it leave this site. Instagram's policy applies from the moment you click.</li>
+        <li><strong>Instagram and LinkedIn.</strong> Links to them leave this site. Their policies apply from the moment you click.</li>
         <li><strong>Google Maps.</strong> The Contact and Bot Forge pages show a drawn map. The real Google map only loads when you press "Show the map", and from then on Google can set cookies and see your IP address under its own privacy policy. "Open in Google Maps" takes you to Google directly.</li>
         <li><strong>Phone links.</strong> A phone number on the site opens your phone's dialler. Nothing is sent until you place the call.</li>
       </ul>
