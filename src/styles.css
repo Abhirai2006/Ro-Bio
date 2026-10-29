@@ -770,9 +770,6 @@ html[data-menu="open"] .robo-ui {
   transform-origin: center;
   animation: vm-ping 2.4s ease-out infinite;
 }
-.vm-ping-late {
-  animation-delay: 1.2s;
-}
 @keyframes vm-ping {
   from {
     transform: scale(0.3);
