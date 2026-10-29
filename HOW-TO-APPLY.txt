@@ -1,42 +1,44 @@
-RO-BIO website update (round 5, includes every earlier round)
+RO-BIO website update (round 6)
 
 What's new
-  - The robot arm on the home page is now a real 3D arm with five joints
-    and a two-finger gripper. Tap the vial, the block or the ball (or use
-    the buttons under it) and it picks it up and puts it in the tray.
-    Manual mode lets you drive it yourself: hold to grip, let go to drop.
-  - The venue map shows straight away on Contact and Bot Forge. No more
-    "Show the map" button.
-  - New Join page (/join) with reasons to join, who to contact, and a QR
-    code. "Join" is in the menu and on the home page.
-  - Printable QR files: public/qr/robio-qr-card.svg (poster with logo),
-    robio-qr.png and robio-qr.svg. Scanning opens the website.
-  - From the club's Word file: "What we work on" (home and About), and
-    vision and mission (About).
+  - Robot arm: no more modes. Tap a sample to pick it up, then tap where
+    it should go. With a mouse the sample follows the cursor, and dragging
+    works too. The arm glides smoothly and always puts things down gently.
+    The buttons under it still send each sample to the tray.
+  - QR code removed from the whole site.
+  - Join page and Join button removed.
+  - Bot Forge shows "Date coming soon" everywhere.
+  - Tighter layouts on Home, Events, Bot Forge, Team, Contact and Blog.
 
-1. Unzip this file. Copy everything inside it (except this text file) into
+Steps
+1. FIRST, DELETE these files from your Ro-Bio folder. This step matters:
+   if src/routes/join.tsx is left behind, the website will not build.
+     src/routes/join.tsx
+     src/components/site/QrCode.tsx
+     src/lib/qr.ts
+     scripts/build-qr.mjs
+     docs/screenshots/join.jpg
+     public/qr   (the whole folder, with its 3 files)
+
+2. Unzip this file. Copy everything inside it (except this text file) into
    your local Ro-Bio folder, the one GitHub Desktop uses. Choose "Replace"
    when Windows or macOS asks.
 
-2. Nothing needs deleting this time.
-
-3. Open GitHub Desktop. In the Changes list, check that you can see:
+3. Open GitHub Desktop. In the Changes list you should see:
+     the 6 deleted files above, shown in red
+     src/lib/arm-sim.ts and src/components/site/RobotArm.tsx
+     src/lib/site.ts (Bot Forge date)
      package.json and package-lock.json
-     src/lib/arm-sim.ts (new)
-     src/components/site/arm-scene.ts (new)
-     src/routes/join.tsx (new)
-     public/qr/ (new, three files)
      docs/screenshots/ (updated images)
 
 4. Write a short summary, for example:
-     3D robot arm, map on by default, Join page and QR code
+     Easier robot arm, no QR or Join, Bot Forge date coming soon
    then click "Commit to main" and "Push origin".
 
 5. Cloudflare deploys it by itself in a minute or two. Open
    https://ro-bio.robiohub2026.workers.dev and press Ctrl+F5 once.
-   Check: the arm loads (it appears a moment after the page), the map
-   shows on /contact, and /join opens.
+   Check: tap the ball, then tap the tray. Check /events/bot-forge says
+   "Date coming soon".
 
-If the web address ever changes (a custom domain), update "url" in
-src/lib/site.ts. The QR files are rebuilt on every deploy, but reprint any
-posters you already made.
+When Bot Forge has a date: in src/lib/site.ts change  date: null,
+to the date in quotes, for example  date: "2026-12-04",
