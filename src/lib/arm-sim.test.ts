@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ARM, ArmSim, BREAK_SPEED, JOINTS, MAX_SPEED, SAMPLE, TRAY, forward, inTray, inverse, minJerk, type Joints, type Kind } from "./arm-sim";
+import { ARM, ArmSim, CARRY_Y, JOINTS, MAX_SPEED, SAMPLE, TRAY, forward, inTray, inverse, minJerk, type Joints, type Kind } from "./arm-sim";
 
 const run = (sim: ArmSim, seconds: number, each?: (sim: ArmSim) => void) => {
   for (let t = 0; t < seconds; t += 1 / 60) {
@@ -45,7 +45,7 @@ describe("arm kinematics", () => {
   });
 });
 
-describe("auto pick and place", () => {
+describe("tray buttons", () => {
   for (const kind of ["glass", "rubber", "ball"] as Kind[])
     it(`puts the ${kind} in the tray smoothly, without hitting anything`, () => {
       const sim = new ArmSim();
@@ -69,7 +69,6 @@ describe("auto pick and place", () => {
       }
       const s = sim.sample(kind);
       expect(gripped).toBe(true);
-      expect(s.broken).toBe(false);
       expect(inTray(s.p)).toBe(true);
       expect(s.p.y).toBeCloseTo(TRAY.foam + SAMPLE[kind].h, 3);
       expect(lowest).toBeGreaterThan(-0.001); // the fingers never go through the table
@@ -94,7 +93,7 @@ describe("auto pick and place", () => {
     (["glass", "rubber", "ball"] as Kind[]).forEach((k) => sim.pick(k));
     settle(sim, 60);
     const xs = sim.samples.map((s) => s.p.x).sort((a, b) => a - b);
-    expect(sim.samples.every((s) => inTray(s.p) && !s.broken)).toBe(true);
+    expect(sim.samples.every((s) => inTray(s.p))).toBe(true);
     expect(xs[1]! - xs[0]!).toBeGreaterThan(0.05);
     expect(xs[2]! - xs[1]!).toBeGreaterThan(0.05);
   });
@@ -112,98 +111,155 @@ describe("auto pick and place", () => {
   });
 });
 
-describe("manual mode", () => {
-  const grab = (sim: ArmSim, kind: Kind) => {
-    settle(sim);
-    sim.setMode("manual");
-    const s = sim.sample(kind);
-    sim.aim(s.p.x, s.p.z);
-    run(sim, 1.5);
-    sim.press(true);
-    run(sim, 2.5);
-  };
+/** Step the world while checking that every joint moves smoothly: no speed over the limit and no sudden jolts. */
+const smoothRun = (sim: ArmSim, seconds: number) => {
+  const dt = 1 / 240;
+  let prev: Joints = { ...sim.q }, prevV: Joints | null = null, maxAccel = 0, lowest = Infinity;
+  for (let t = 0; t < seconds; t += dt) {
+    sim.step(dt);
+    const v = {} as Joints;
+    for (const j of JOINTS) {
+      v[j] = (sim.q[j] - prev[j]) / dt;
+      expect(Math.abs(v[j])).toBeLessThan(MAX_SPEED[j] * 1.05);
+      if (prevV) maxAccel = Math.max(maxAccel, Math.abs(v[j] - prevV[j]) / dt);
+    }
+    lowest = Math.min(lowest, forward(sim.q).grip.y - ARM.fingerLen / 2);
+    prev = { ...sim.q };
+    prevV = v;
+  }
+  return { maxAccel, lowest };
+};
 
-  it("press and hold picks up the sample under the gripper and lifts it", () => {
+describe("tap to pick, tap to place", () => {
+  it("a tap picks the sample up and holds it above the bench", () => {
     const sim = new ArmSim();
-    grab(sim, "rubber");
-    expect(sim.status).toBe("GRIPPED");
-    expect(sim.sample("rubber").held).toBe(true);
+    settle(sim);
+    expect(sim.grab("rubber")).toBe(true);
+    settle(sim);
+    expect(sim.holding).toBe(true);
+    expect(sim.status).toBe("HOLDING");
     expect(sim.sample("rubber").p.y).toBeGreaterThan(0.1);
   });
 
-  it("a sample a little off centre still ends up in the middle of the jaws", () => {
+  it("a second tap puts it down gently at that spot", () => {
     const sim = new ArmSim();
     settle(sim);
-    sim.setMode("manual");
+    sim.grab("glass");
+    settle(sim);
+    sim.place(0.05, 0.32);
+    const { maxAccel, lowest } = smoothRun(sim, 8);
     const s = sim.sample("glass");
-    sim.aim(s.p.x + 0.015, s.p.z - 0.01);
-    run(sim, 1.5);
-    sim.press(true);
+    expect(s.held).toBe(false);
+    expect(Math.hypot(s.p.x - 0.05, s.p.z - 0.32)).toBeLessThan(0.004);
+    expect(s.p.y).toBeCloseTo(SAMPLE.glass.h, 3); // resting on the bench, not dropped from a height
+    expect(maxAccel).toBeLessThan(25);
+    expect(lowest).toBeGreaterThan(-0.001);
+    expect(sim.status).toBe("READY");
+  });
+
+  it("tapping the tray puts it on the foam, inside the walls", () => {
+    const sim = new ArmSim();
+    settle(sim);
+    sim.grab("ball");
+    settle(sim);
+    sim.place(TRAY.x + TRAY.w / 2 + 0.01, TRAY.z); // a little past the tray edge still counts
+    settle(sim);
+    const s = sim.sample("ball");
+    expect(inTray(s.p, SAMPLE.ball.foot)).toBe(true);
+    expect(s.p.y).toBeCloseTo(TRAY.foam + SAMPLE.ball.h, 3);
+  });
+
+  it("never puts one sample on top of another", () => {
+    const sim = new ArmSim();
+    settle(sim);
+    const glass = { ...sim.sample("glass").p };
+    sim.grab("ball");
+    settle(sim);
+    sim.place(glass.x, glass.z);
+    settle(sim);
+    const b = sim.sample("ball").p;
+    expect(Math.hypot(b.x - glass.x, b.z - glass.z)).toBeGreaterThan(SAMPLE.ball.foot + SAMPLE.glass.foot);
+    expect(b.y).toBeCloseTo(SAMPLE.ball.h, 3);
+  });
+
+  it("can be told where to put it before the pick-up has even finished", () => {
+    const sim = new ArmSim();
+    settle(sim);
+    sim.grab("rubber");
+    run(sim, 0.5);
+    expect(sim.place(0.1, 0.3)).toBe(true);
+    settle(sim);
+    const s = sim.sample("rubber").p;
+    expect(Math.hypot(s.x - 0.1, s.z - 0.3)).toBeLessThan(0.004);
+  });
+
+  it("the tray buttons wait while something is being held", () => {
+    const sim = new ArmSim();
+    settle(sim);
+    sim.grab("rubber");
+    expect(sim.pick("ball")).toBe(false);
+  });
+});
+
+describe("carrying", () => {
+  it("the held sample glides after the pointer, speeding up and slowing down smoothly", () => {
+    const sim = new ArmSim();
+    settle(sim);
+    sim.grab("ball");
+    settle(sim);
+    // a jumpy pointer: big jumps every few frames
+    let peak = 0;
+    for (const [x, z] of [[0.1, 0.32], [-0.2, 0.3], [0.2, 0.25], [0.3, 0.05], [0, 0.35]] as const) {
+      sim.carry(x, z);
+      const { maxAccel } = smoothRun(sim, 0.4);
+      peak = Math.max(peak, maxAccel);
+      const g = forward(sim.q).grip;
+      expect(Math.abs(g.y - CARRY_Y)).toBeLessThan(0.01); // stays at carrying height
+    }
+    expect(peak).toBeLessThan(25);
     run(sim, 2.5);
-    expect(sim.status).toBe("GRIPPED");
     const g = forward(sim.q).grip;
-    expect(Math.hypot(s.p.x - g.x, s.p.z - g.z)).toBeLessThan(0.001);
+    expect(Math.hypot(g.x - 0, g.z - 0.35)).toBeLessThan(0.003); // and settles exactly on the last spot
   });
 
-  it("stops above a sample it would land on, and does not snap shut", () => {
+  it("keeps the block facing the same way while the base turns", () => {
     const sim = new ArmSim();
     settle(sim);
-    sim.setMode("manual");
-    const s = sim.sample("rubber");
-    sim.aim(s.p.x + 0.045, s.p.z);
-    run(sim, 1.5);
-    sim.press(true);
-    run(sim, 2.5);
-    expect(sim.status).toBe("OFF CENTRE");
-    expect(sim.grip).toBeCloseTo(ARM.open, 6);
-    expect(forward(sim.q).grip.y - ARM.fingerLen / 2).toBeGreaterThan(s.p.y + SAMPLE.rubber.h);
-    sim.press(false);
-    run(sim, 1);
-    expect(sim.status).toBe("MANUAL");
+    sim.grab("rubber");
+    settle(sim);
+    const before = sim.sample("rubber").yaw;
+    sim.carry(0.25, 0.1);
+    run(sim, 3);
+    const turned = sim.sample("rubber").yaw - before;
+    expect(Math.abs(Math.sin(2 * turned))).toBeLessThan(0.02); // same, or a quarter turn, which looks the same on a square block
   });
 
-  it("glass dropped on the bare table breaks", () => {
+  it("pointing at a spot that is out of reach stops at the edge of reach", () => {
     const sim = new ArmSim();
-    grab(sim, "glass");
-    sim.aim(0, 0.32);
-    run(sim, 1.5);
-    sim.press(false);
-    run(sim, 1.5);
-    expect(sim.sample("glass").broken).toBe(true);
-    expect(sim.shards.length).toBeGreaterThan(0);
+    settle(sim);
+    sim.grab("ball");
+    settle(sim);
+    sim.carry(0.5, 0.5);
+    run(sim, 3);
+    const g = forward(sim.q).grip;
+    expect(Math.hypot(g.x, g.z)).toBeLessThanOrEqual(0.4201);
   });
+});
 
-  it("glass dropped onto the foam in the tray survives", () => {
+describe("responsiveness", () => {
+  it("is ready the moment it appears, with nothing to wait for", () => {
     const sim = new ArmSim();
-    grab(sim, "glass");
-    sim.aim(TRAY.x, TRAY.z);
-    run(sim, 2);
-    sim.press(false);
-    run(sim, 2);
-    const s = sim.sample("glass");
-    expect(s.broken).toBe(false);
-    expect(inTray(s.p)).toBe(true);
+    expect(sim.busy).toBe(false);
+    expect(sim.grab("ball")).toBe(true);
   });
-
-  it("a ball let go while moving keeps rolling", () => {
+  it("a tap during another move is not ignored: it runs straight after", () => {
     const sim = new ArmSim();
-    grab(sim, "ball");
-    sim.aim(0.05, 0.3);
-    run(sim, 0.35);
-    sim.press(false);
-    run(sim, 0.4);
-    const v = sim.sample("ball").v;
-    expect(Math.hypot(v.x, v.z)).toBeGreaterThan(0.03);
-  });
-
-  it("rubber does not break however it lands", () => {
-    expect(BREAK_SPEED).toBeGreaterThan(0.5);
-    const sim = new ArmSim();
-    grab(sim, "rubber");
-    sim.aim(0, 0.32);
-    run(sim, 1.5);
-    sim.press(false);
-    run(sim, 2);
-    expect(sim.sample("rubber").broken).toBe(false);
+    sim.pick("glass");
+    run(sim, 0.5);
+    expect(sim.grab("ball")).toBe(true);
+    settle(sim, 30);
+    expect(sim.holding).toBe(true);
+    expect(sim.heldKind).toBe("ball");
+    expect(inTray(sim.sample("glass").p)).toBe(true);
   });
 });
