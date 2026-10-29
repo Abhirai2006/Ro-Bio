@@ -288,6 +288,9 @@ export function SiteFooter() {
           <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-2 inline-block font-bold text-lens underline underline-offset-4">
             Instagram {site.instagramHandle}
           </a>
+          <a href={site.linkedin} target="_blank" rel="noreferrer" className="mt-1 block font-bold text-lens underline underline-offset-4">
+            LinkedIn RO-BIO Hub
+          </a>
         </div>
         <div className="text-sm">
           <p className="font-pixel text-[11px] text-lilac">UPTIME</p>
