@@ -17,6 +17,8 @@ export default defineConfig({
     }),
     viteReact(),
   ],
+  // three.js (the 3D robot arm) is one big file by nature. It loads on its own after the page, so the warning is noise.
+  build: { chunkSizeWarningLimit: 600 },
   resolve: {
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
