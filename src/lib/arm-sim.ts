@@ -87,6 +87,8 @@ const capture = (k: Kind) => ARM.open - SAMPLE[k].half - 0.002;
 export const TRAY = { x: 0.25, z: 0.2, w: 0.24, d: 0.1, wall: 0.008, rim: 0.035, foam: 0.012 };
 export const TABLE = { minX: -0.55, maxX: 0.55, minZ: -0.25, maxZ: 0.42 };
 const G = 9.81;
+/** Faster than this, falling glass breaks: about a 6 cm drop onto the bare bench. Foam in the tray always saves it. */
+export const BREAK_SPEED = 1.1;
 
 const HOMES: Record<Kind, Vec3> = {
   glass: { x: -0.3, y: 0, z: 0.1 },
@@ -100,11 +102,14 @@ export type Sample = {
   p: Vec3;
   v: Vec3;
   yaw: number;
+  broken: boolean;
   held: boolean;
   queued: boolean;
   off: Vec3; // offset from the grip point while held
   rel: number; // sample yaw minus gripper yaw while held
 };
+
+export type Shard = { p: Vec3; v: Vec3; axis: Vec3; ang: number; spin: number; size: number };
 
 export const inTray = (p: { x: number; z: number }, margin = 0) =>
   Math.abs(p.x - TRAY.x) <= TRAY.w / 2 - margin && Math.abs(p.z - TRAY.z) <= TRAY.d / 2 - margin;
@@ -144,6 +149,15 @@ export function reachable(x: number, z: number) {
   return { x: clamp(x * s, TABLE.minX + 0.03, TABLE.maxX - 0.03), z: clamp(z * s, TABLE.minZ + 0.03, TABLE.maxZ - 0.03) };
 }
 
+/** A tiny seeded random generator, so the glass breaks the same way in tests. */
+function rng(seed: number) {
+  return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+}
+
+export type Mode = "tap" | "manual";
+// Manual jogging: top speed across the bench and up or down, and how quickly it gets there.
+const JOG = { speed: 0.16, lift: 0.12, accel: 0.9, top: 0.26 };
+
 // How the arm glides while carrying: it speeds up gently, cruises, and brakes into the spot without overshooting.
 const CARRY = { speed: 0.55, accel: 2.2, brake: 1.6, settle: 7 };
 
@@ -159,6 +173,13 @@ export class ArmSim {
   said: string[] = [];
   /** Where the held sample is being carried to, on the bench. */
   aim = { x: READY.x, z: READY.z };
+  mode: Mode = "tap";
+  shards: Shard[] = [];
+  puddle: { x: number; z: number; r: number } | null = null;
+  private jogCmd: Vec3 = { x: 0, y: 0, z: 0 };
+  private jogBeta = 0; // in manual mode the fingers keep facing this way
+  private closing = false;
+  private random = rng(7);
   private picks: Step[][] = []; // queued moves, each a list of steps
   private current: Step[] | null = null;
   private seg: Seg | null = null;
@@ -184,6 +205,7 @@ export class ArmSim {
       p: { ...HOMES[kind], y: SAMPLE[kind].h },
       v: { x: 0, y: 0, z: 0 },
       yaw: kind === "rubber" ? 0.35 : 0,
+      broken: false,
       held: false,
       queued: false,
       off: { x: 0, y: 0, z: 0 },
@@ -195,10 +217,72 @@ export class ArmSim {
     this.squeeze = null;
     this.dropAt = null;
     this.grabbing = null;
+    this.shards = [];
+    this.puddle = null;
+    this.random = rng(7);
+    this.jogCmd = { x: 0, y: 0, z: 0 };
+    this.jogBeta = 0;
+    this.closing = false;
     this.gripTarget = ARM.open;
     this.seg = jointMove(this.q, inverse(READY, nearest(0, this.q.roll, Math.PI)).joints);
-    this.status = "READY";
+    this.status = this.mode === "manual" ? "MANUAL" : "READY";
     this.settled = 0;
+  }
+
+  /** Switch between tap to move and manual jogging. Only while the arm is not in the middle of a planned move. */
+  setMode(mode: Mode) {
+    if (mode === this.mode || this.busy) return false;
+    this.mode = mode;
+    this.jogCmd = { x: 0, y: 0, z: 0 };
+    this.carryP = forward(this.q).grip;
+    this.carryV = { x: 0, y: 0, z: 0 };
+    this.closing = false;
+    const h = this.held;
+    if (mode === "manual") {
+      this.jogBeta = h ? h.yaw : this.q.yaw - this.q.roll;
+      this.status = h ? "GRIPPED" : "MANUAL";
+    } else {
+      // Something still in the fingers: carry on holding it, waiting for a tap.
+      this.aim = { x: this.carryP.x, z: this.carryP.z };
+      if (h) this.carryBeta = h.yaw;
+      else this.gripTarget = ARM.open;
+      this.status = h ? "HOLDING" : "READY";
+    }
+    this.settled = 0;
+    return true;
+  }
+
+  /** Manual: which way to move, each from -1 to 1. x is left and right, y up and down, z towards and away from you. 0 stops. */
+  jog(x: number, y: number, z: number) {
+    if (this.mode !== "manual") return;
+    this.jogCmd = { x: clamp(x, -1, 1), y: clamp(y, -1, 1), z: clamp(z, -1, 1) };
+    this.settled = 0;
+  }
+
+  /** Manual: close the fingers on whatever is between them, or open them and let go. */
+  toggleGrip() {
+    if (this.mode !== "manual" || this.busy) return;
+    if (this.gripTarget < ARM.open) {
+      this.gripTarget = ARM.open;
+      this.closing = false;
+      this.status = this.held ? "RELEASED" : "MANUAL";
+    } else {
+      this.gripTarget = this.closeTarget();
+      this.closing = true;
+      this.status = "GRIPPING";
+    }
+    this.settled = 0;
+  }
+
+  /** Manual: the sample right under the open fingers, ready to be gripped. */
+  get overSample(): Kind | null {
+    if (this.mode !== "manual" || this.held) return null;
+    const g = this.gripPos;
+    return this.samples.find((o) => !o.broken && Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind))?.kind ?? null;
+  }
+
+  get gripClosed() {
+    return this.gripTarget < ARM.open;
   }
 
   /** The arm is running a planned move. */
@@ -227,7 +311,7 @@ export class ArmSim {
   /** Buttons: put this sample in the tray, or back where it started if it is in the tray already. */
   pick(kind: Kind) {
     const s = this.sample(kind);
-    if (this.held || this.grabbing || s.queued) return false;
+    if (this.mode !== "tap" || s.broken || this.held || this.grabbing || s.queued) return false;
     const back = inTray(s.p);
     s.queued = true;
     // The free slot is chosen when this pick starts, after the ones queued before it have landed.
@@ -244,7 +328,7 @@ export class ArmSim {
   /** Pick a sample up and hold it above the bench, waiting for `place` (or carrying it towards `carry`). Waits for any move already running. */
   grab(kind: Kind) {
     const s = this.sample(kind);
-    if (this.held || this.grabbing || s.queued) return false;
+    if (this.mode !== "tap" || s.broken || this.held || this.grabbing || s.queued) return false;
     s.queued = true;
     this.grabbing = s;
     this.aim = { x: s.p.x, z: s.p.z };
@@ -262,6 +346,7 @@ export class ArmSim {
 
   /** Put the held sample down at this spot (or right where it is). Gently: the arm lowers it all the way. */
   place(x = this.aim.x, z = this.aim.z) {
+    if (this.mode !== "tap") return false;
     const s = this.grabbing ?? (this.holding ? this.held : null);
     if (!s) return false;
     this.aim = this.freeSpot(s, reachable(x, z));
@@ -272,7 +357,7 @@ export class ArmSim {
 
   /** Bare bench tapped with nothing in hand: the arm swings over to look. */
   point(x: number, z: number) {
-    if (this.held || this.busy) return;
+    if (this.mode !== "tap" || this.held || this.busy) return;
     const p = { ...reachable(x, z), y: 0.16 };
     this.picks.push([() => ((this.status = "MOVING"), jointMove(this.q, inverse(p, nearest(Math.atan2(p.x, p.z), this.q.roll, Math.PI)).joints)), () => this.set("READY")]);
     this.settled = 0;
@@ -290,7 +375,7 @@ export class ArmSim {
     snap();
     for (let pass = 0; pass < 4; pass++) {
       for (const o of this.samples) {
-        if (o === s) continue;
+        if (o === s || o.broken) continue;
         const min = k.foot + SAMPLE[o.kind].foot + 0.006;
         const dx = p.x - o.p.x, dz = p.z - o.p.z, d = Math.hypot(dx, dz);
         if (d >= min) continue;
@@ -362,7 +447,7 @@ export class ArmSim {
         const d = where();
         const floor = inTray(d) ? TRAY.foam : this.topUnder(s, d);
         this.status = "PLACING";
-        return lineMove(forward(this.q).grip, { x: d.x, y: floor + k.h + gripAbove(s.kind) + 0.003, z: d.z }, this.q.roll, 0.26);
+        return lineMove(forward(this.q).grip, { x: d.x, y: floor + k.h - s.off.y + 0.003, z: d.z }, this.q.roll, 0.26);
       },
       () => ((this.status = "RELEASE"), { kind: "grip", close: false }),
       () => this.set(inTray(s.p) ? "PLACED IN TRAY" : "PLACED", true),
@@ -377,7 +462,7 @@ export class ArmSim {
   private topUnder(s: Sample, p: { x: number; z: number }) {
     let floor = 0;
     for (const o of this.samples)
-      if (o !== s && Math.hypot(o.p.x - p.x, o.p.z - p.z) < SAMPLE[o.kind].foot + SAMPLE[s.kind].foot) floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
+      if (o !== s && !o.broken && Math.hypot(o.p.x - p.x, o.p.z - p.z) < SAMPLE[o.kind].foot + SAMPLE[s.kind].foot) floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
     return floor;
   }
 
@@ -406,6 +491,7 @@ export class ArmSim {
   private tick(dt: number) {
     const before = { ...this.q };
     if (this.busy) this.runPlan(dt);
+    else if (this.mode === "manual") this.runJog(dt);
     else if (this.held) this.runCarry(dt);
     else this.seg = null;
     this.moveFingers(dt);
@@ -490,12 +576,90 @@ export class ArmSim {
     }
   }
 
+  /**
+   * Manual jogging. The buttons set a direction; the grip point speeds up and slows down at a limited rate, so it starts
+   * and stops smoothly. It will not go through the bench, the tray walls or another sample.
+   */
+  private runJog(dt: number) {
+    const P = this.carryP, V = this.carryV, c = this.jogCmd;
+    const want = { x: c.x * JOG.speed, y: c.y * JOG.lift, z: c.z * JOG.speed };
+    // Limit the change in velocity as a whole vector, so it always pushes the way you pressed, never off at an angle.
+    const dx = want.x - V.x, dy = want.y - V.y, dz = want.z - V.z, dv = Math.hypot(dx, dy, dz);
+    const k = dv > JOG.accel * dt ? (JOG.accel * dt) / dv : 1;
+    for (const [a, d] of [["x", dx], ["y", dy], ["z", dz]] as const) {
+      V[a] += d * k;
+      P[a] += V[a] * dt;
+    }
+    // At the edge of reach (or right by the base) it slides along the edge instead of sticking to it.
+    const r = reachable(P.x, P.z);
+    const nx = r.x - P.x, nz = r.z - P.z, n = Math.hypot(nx, nz);
+    if (n > 1e-9) {
+      const into = (V.x * nx + V.z * nz) / n;
+      if (into < 0) {
+        V.x -= (into * nx) / n;
+        V.z -= (into * nz) / n;
+      }
+      P.x = r.x;
+      P.z = r.z;
+    }
+    const lo = this.lowestGrip(P);
+    if (P.y < lo) {
+      P.y = lo;
+      V.y = Math.max(0, V.y);
+    }
+    if (P.y > JOG.top) {
+      P.y = JOG.top;
+      V.y = Math.min(0, V.y);
+    }
+    const h = this.held;
+    if (!h) {
+      // Over the rubber block, the wrist turns the fingers to face its flat sides.
+      const under = this.samples.find((o) => !o.broken && SAMPLE[o.kind].sym && Math.hypot(o.p.x - P.x, o.p.z - P.z) < capture(o.kind));
+      if (under) this.jogBeta = under.yaw;
+    }
+    const period = h ? SAMPLE[h.kind].sym || TAU : SAMPLE.rubber.sym;
+    const roll = nearest(Math.atan2(P.x, P.z) + (h?.rel ?? 0) - this.jogBeta, this.q.roll, period);
+    const want2 = inverse(P, roll).joints;
+    want2.yaw = this.q.yaw + wrap(want2.yaw - this.q.yaw);
+    for (const k of JOINTS) this.q[k] += clamp(want2[k] - this.q[k], -MAX_SPEED[k] * dt, MAX_SPEED[k] * dt);
+    if (this.closing && Math.abs(this.grip - this.gripTarget) < 1e-5) {
+      this.closing = false;
+      this.status = this.held ? "GRIPPED" : "MISSED";
+      if (this.held) {
+        this.jogBeta = this.held.yaw;
+        this.said.push("GRIPPED");
+      }
+    }
+  }
+
+  /** How low the grip point may go here without the fingers, or what they hold, hitting something. */
+  private lowestGrip(P: Vec3) {
+    const h = this.held;
+    const over = (r: number) => (inTray(P, r) ? TRAY.foam : inTray(P, -r) ? TRAY.rim : 0);
+    if (h) {
+      const k = SAMPLE[h.kind];
+      let floor = over(k.foot);
+      for (const o of this.samples)
+        if (o !== h && !o.broken && Math.hypot(o.p.x - P.x, o.p.z - P.z) < k.foot + SAMPLE[o.kind].foot) floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
+      return floor + k.h - h.off.y + 0.002; // off.y: how far the sample sits below the grip point
+    }
+    const span = this.grip + 0.008; // how far the fingers reach out to each side
+    let lo = over(span) + ARM.fingerLen / 2 + 0.004;
+    for (const o of this.samples) {
+      if (o.broken) continue;
+      const d = Math.hypot(o.p.x - P.x, o.p.z - P.z);
+      if (d < capture(o.kind)) continue; // centred: the open fingers go down either side of it
+      if (d < SAMPLE[o.kind].foot + span) lo = Math.max(lo, o.p.y + SAMPLE[o.kind].h + ARM.fingerLen / 2 + 0.004);
+    }
+    return lo;
+  }
+
   /** How far the fingers can close: onto the sample between them, or all the way if there is nothing there. */
   private closeTarget() {
     if (this.held) return SAMPLE[this.held.kind].half;
     const g = forward(this.q).grip;
     const s = this.samples.find(
-      (o) => Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind) && Math.abs(o.p.y + gripAbove(o.kind) - g.y) < SAMPLE[o.kind].h * 0.8 + 0.01,
+      (o) => !o.broken && Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind) && Math.abs(o.p.y + gripAbove(o.kind) - g.y) < SAMPLE[o.kind].h * 0.8 + 0.01,
     );
     this.squeeze = s ?? null;
     return s ? SAMPLE[s.kind].half : 0.004;
@@ -518,7 +682,7 @@ export class ArmSim {
     if (held && this.gripTarget > this.grip && this.grip > SAMPLE[held.kind].half + 0.003) {
       held.held = false;
       held.queued = false;
-      held.v = { x: 0, y: 0, z: 0 };
+      held.v = { ...this.gripVel }; // let go while moving and it keeps going
       this.held = null;
       this.squeeze = null;
     }
@@ -531,7 +695,6 @@ export class ArmSim {
     const k = Math.exp(-dt / 0.05);
     s.off.x *= k;
     s.off.z *= k;
-    s.off.y += (-gripAbove(s.kind) - s.off.y) * (1 - k);
     s.p = { x: this.gripPos.x + s.off.x, y: this.gripPos.y + s.off.y, z: this.gripPos.z + s.off.z };
     s.yaw = this.q.yaw - this.q.roll + s.rel;
     s.v = { ...this.gripVel };
@@ -542,7 +705,7 @@ export class ArmSim {
     let foam = inTray(s.p);
     const k = SAMPLE[s.kind];
     for (const o of this.samples) {
-      if (o === s || o.held) continue;
+      if (o === s || o.held || o.broken) continue;
       if (Math.hypot(o.p.x - s.p.x, o.p.z - s.p.z) < (SAMPLE[o.kind].foot + k.foot) * 0.6 && o.p.y < s.p.y) {
         const top = o.p.y + SAMPLE[o.kind].h;
         if (top > floor) {
@@ -558,7 +721,7 @@ export class ArmSim {
   private physics(dt: number) {
     let still = true;
     for (const s of this.samples) {
-      if (s.held) continue;
+      if (s.held || s.broken) continue;
       const k = SAMPLE[s.kind];
       const prev = { ...s.p };
       s.v.y -= G * dt;
@@ -570,6 +733,10 @@ export class ArmSim {
       if (s.p.y - k.h <= floor + 1e-6) {
         const impact = -s.v.y;
         s.p.y = floor + k.h;
+        if (s.kind === "glass" && !foam && impact > BREAK_SPEED) {
+          this.shatter(s);
+          continue;
+        }
         s.v.y = impact > 0.15 ? impact * (foam ? 0.08 : k.bounce) : 0;
         grounded = s.v.y === 0;
       }
@@ -584,7 +751,51 @@ export class ArmSim {
       if (Math.hypot(s.v.x, s.v.y, s.v.z) > 1e-4 || !grounded) still = false;
     }
     this.separate();
+    for (const sh of this.shards) {
+      if (sh.v.x === 0 && sh.v.y === 0 && sh.v.z === 0) continue;
+      still = false;
+      sh.v.y -= G * dt;
+      sh.p.x += sh.v.x * dt;
+      sh.p.y += sh.v.y * dt;
+      sh.p.z += sh.v.z * dt;
+      sh.ang += sh.spin * dt;
+      const floor = (inTray(sh.p) ? TRAY.foam : 0) + sh.size * 0.4;
+      if (sh.p.y < floor) {
+        sh.p.y = floor;
+        sh.v.y = -sh.v.y * 0.25;
+        sh.v.x *= 0.6;
+        sh.v.z *= 0.6;
+        sh.spin *= 0.5;
+        if (Math.abs(sh.v.y) < 0.08) sh.v = { x: 0, y: 0, z: 0 };
+      }
+      sh.p.x = clamp(sh.p.x, TABLE.minX, TABLE.maxX);
+      sh.p.z = clamp(sh.p.z, TABLE.minZ, TABLE.maxZ);
+    }
+    if (this.puddle && this.puddle.r < 0.042) {
+      this.puddle.r = Math.min(0.042, this.puddle.r + 0.09 * dt);
+      still = false;
+    }
     return still;
+  }
+
+  private shatter(s: Sample) {
+    s.broken = true;
+    s.queued = false;
+    const rand = this.random;
+    for (let i = 0; i < 14; i++) {
+      const a = rand() * TAU, sp = 0.25 + rand() * 0.6;
+      this.shards.push({
+        p: { x: s.p.x + Math.cos(a) * 0.01, y: 0.012 + rand() * 0.03, z: s.p.z + Math.sin(a) * 0.01 },
+        v: { x: Math.cos(a) * sp, y: 0.4 + rand() * 0.8, z: Math.sin(a) * sp },
+        axis: { x: rand() - 0.5, y: rand() - 0.5, z: rand() - 0.5 },
+        ang: rand() * TAU,
+        spin: (rand() - 0.5) * 30,
+        size: 0.008 + rand() * 0.009,
+      });
+    }
+    this.puddle = { x: s.p.x, z: s.p.z, r: 0 };
+    this.status = "GLASS BROKEN";
+    this.said.push("Glass broken. Press reset for a new vial.");
   }
 
   private walls(s: Sample, prev: Vec3) {
@@ -628,7 +839,7 @@ export class ArmSim {
   }
 
   private separate() {
-    const loose = this.samples.filter((s) => !s.held);
+    const loose = this.samples.filter((s) => !s.held && !s.broken);
     for (let i = 0; i < loose.length; i++)
       for (let j = i + 1; j < loose.length; j++) {
         const a = loose[i]!, b = loose[j]!;
