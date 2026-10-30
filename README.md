@@ -12,14 +12,14 @@ _Unauthorised innovation in progress!_
 
 <br />
 
-<a href="https://ro-bio.robiohub2026.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.robiohub2026.workers.dev-725DFF?style=for-the-badge" /></a>
-<a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=for-the-badge" /></a>
-<a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=for-the-badge" /></a>
-<img alt="Tests" src="https://img.shields.io/badge/tests-65_passing-725DFF?style=for-the-badge" />
+<a href="https://ro-bio.robiohub2026.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.robiohub2026.workers.dev-725DFF?style=flat" /></a>
+<a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=flat" /></a>
+<a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=flat" /></a>
+<img alt="Tests" src="https://img.shields.io/badge/tests-65_passing-725DFF?style=flat" />
 
 <br /><br />
 
-**[Visit the site](https://ro-bio.robiohub2026.workers.dev)** &nbsp;·&nbsp; **[Try the robot arm](#try-it-now)** &nbsp;·&nbsp; **[Play Robo Sumo](#try-it-now)** &nbsp;·&nbsp; **[Meet the team](https://ro-bio.robiohub2026.workers.dev/team)**
+[Visit the site](https://ro-bio.robiohub2026.workers.dev) | [Try the robot arm](#try-it-now) | [Play Robo Sumo](#try-it-now) | [Meet the team](https://ro-bio.robiohub2026.workers.dev/team)
 
 <br />
 
@@ -72,14 +72,14 @@ Everything here was built by students: the 3D robot arm, the Robo Sumo physics, 
 
 <a id="try-it-now"></a>
 
-| | Try this | What you will see |
-| :-: | :-- | :-- |
-| 🦾 | Tap a sample on the robot arm, then tap where it should go | The arm plans the whole move, grips, carries and sets it down gently |
-| 🎮 | Push the CPU robot out of the Robo Sumo ring | Wheel grip, real physics, and a CPU that changes its tactics |
-| 🤖 | Wait a moment on the home page | Robo wakes up, walks along the bottom of the screen and hops onto cards |
-| 🦴 | Open Robo's menu and pick **X-ray** | His skeleton and heart show through, next to the biology inside |
-| 💓 | Tap the heartbeat in the header | It speeds up while you play |
-| 🔎 | Visit a page that does not exist, like `/tem` | Robo guesses you meant `/team` and the flatline comes back to life |
+| Try this | What you will see |
+| --- | --- |
+| Tap a sample on the robot arm, then tap where it should go | The arm plans the whole move, grips, carries and sets it down gently |
+| Push the CPU robot out of the Robo Sumo ring | Wheel grip, real physics, and a CPU that changes its tactics |
+| Wait a moment on the home page | Robo wakes up, walks along the bottom of the screen and hops onto cards |
+| Open Robo's menu and pick **X-ray** | His skeleton and heart show through, next to the biology inside |
+| Tap the heartbeat in the header | It speeds up while you play |
+| Visit a page that does not exist, like `/tem` | Robo guesses you meant `/team` and the flatline comes back to life |
 
 <br />
 
@@ -264,9 +264,9 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 <img src="public/favicon.png" alt="" width="40" />
 
-**RO-BIO** · Biomedical and Robotic Engineering · Mysore University School of Engineering
+**RO-BIO**, Biomedical and Robotic Engineering, Mysore University School of Engineering
 
-[Website](https://ro-bio.robiohub2026.workers.dev) · [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) · [LinkedIn](https://www.linkedin.com/in/ro-bio-hub-606b5840b/) · [Contact](https://ro-bio.robiohub2026.workers.dev/contact)
+[Website](https://ro-bio.robiohub2026.workers.dev) | [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) | [LinkedIn](https://www.linkedin.com/in/ro-bio-hub-606b5840b/) | [Contact](https://ro-bio.robiohub2026.workers.dev/contact)
 
 <sub>Built by students. The text, design, logo and artwork belong to RO-BIO and its creators.</sub>
 
