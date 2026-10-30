@@ -83,7 +83,7 @@ function Hero() {
             <RobotArm />
             <p className="mt-3 text-sm text-muted-foreground">
               Tap the vial, the block or the ball, then tap where it should go. The arm reaches over, grips it, carries it and puts it
-              down gently, moving the way your own arm does.
+              down gently, moving the way your own arm does. Or switch to Manual and drive it yourself with the buttons, like a real robot.
             </p>
           </div>
         </div>
