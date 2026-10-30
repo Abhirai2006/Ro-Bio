@@ -111,7 +111,7 @@ The club's first event is **Bot Forge**, a robotics competition. Its events, dat
 | [Events](https://ro-bio.robiohub2026.workers.dev/events) and [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) | Date, events, a venue map and who to call |
 | [Workshops](https://ro-bio.robiohub2026.workers.dev/workshops) | The Saturday sessions. Speaker list coming soon |
 | [Projects](https://ro-bio.robiohub2026.workers.dev/projects) | What members are building. Write-ups coming soon |
-| [Team](https://ro-bio.robiohub2026.workers.dev/team) | President, Vice President and every squad, with flip cards |
+| [Team](https://ro-bio.robiohub2026.workers.dev/team) | The Head of Department and faculty coordinator, then the President, Vice President and every squad, with flip cards |
 | [Gallery](https://ro-bio.robiohub2026.workers.dev/gallery) and [Blog](https://ro-bio.robiohub2026.workers.dev/blog) | Photos, art and write-ups. Coming soon |
 | [Contact](https://ro-bio.robiohub2026.workers.dev/contact) | Phone numbers, a venue map and Instagram |
 | [FAQ](https://ro-bio.robiohub2026.workers.dev/faq), Privacy, Terms, Accessibility | Short and plain |
@@ -123,7 +123,7 @@ Pages that are waiting for the club's own content say so honestly. Nothing on th
 ## The interactive parts
 
 - **Robo** (`src/lib/robo-roam.ts`, `robo-rig.ts`, `robo-walk.ts`, `robo-talk.ts`, `components/site/RoboLayer.tsx`). A robot with a skeleton inside (try the X-ray from his menu). He wakes up, walks along the bottom of the screen, hops onto headings and cards, and can be picked up and dropped. When you stop scrolling he looks at the section you are reading, tilts his head at it and says something about it. Click a link and he uploads himself into it as a stream of pixels (`robo-pixels.ts`), then gets rebuilt pixel by pixel on the next page. Everything he says comes from the club facts, so it never goes out of date.
-- **Robot arm** (`src/lib/arm-sim.ts`, `components/site/RobotArm.tsx`, `components/site/arm-scene.ts`). A five-joint collaborative arm with a parallel gripper, drawn in 3D with three.js. Tap a sample to pick it up, then tap where it should go (with a mouse it follows the cursor, and dragging works too). The arm plans the whole move: reach over, go straight down, close the fingers until they touch, lift, glide over, lower gently, let go. Reaches follow a minimum-jerk curve, the same smooth start and stop that human reaching follows, with the shoulder leading and the wrist following a moment later. Carrying speeds up gently and brakes into the spot. It never sets one sample on top of another, and anything put near the tray lands inside it. The buttons under the arm put each sample in the tray. three.js only loads after the rest of the page, in its own file.
+- **Robot arm** (`src/lib/arm-sim.ts`, `components/site/RobotArm.tsx`, `components/site/arm-scene.ts`). A five-joint collaborative arm with a parallel gripper, drawn in 3D with three.js. Tap a sample to pick it up, then tap where it should go (with a mouse it follows the cursor, and dragging works too). The arm plans the whole move: reach over, go straight down, close the fingers until they touch, lift, glide over, lower gently, let go. Reaches follow a minimum-jerk curve, the same smooth start and stop that human reaching follows, with the shoulder leading and the wrist following a moment later. Carrying speeds up gently and brakes into the spot. It never sets one sample on top of another, and anything put near the tray lands inside it. The buttons under the arm put each sample in the tray. Manual mode works like a real robot's control pendant: hold the arrows to move, Raise and Lower, and one Grip button; let go of the glass from too high and it breaks, unless it lands on the foam. three.js only loads after the rest of the page, in its own file.
 - **Robo Sumo** (`src/lib/sumo.ts`, `components/site/SumoGame.tsx`). Physics, wheel grip and a CPU with tactics. `node --experimental-strip-types scripts/sumo-sim.mjs` plays hundreds of seeded matches and prints win rates.
 - **Live heartbeat** (`components/site/HeaderEcg.tsx`). The ECG in the header speeds up when you are active.
 - **Feedback loop** (`components/site/FeedbackLoop.tsx`). Sense, decide, act, feed back, for a robot and a body at the same time.
@@ -149,6 +149,7 @@ All the facts live in one file: **`src/lib/site.ts`**. Change them there and eve
 | Vision and mission | `vision` and `mission` |
 | Registration | `registration: "coming-soon"` (or `"open"` / `"closed"`) |
 | Coordinators and phone numbers | `contacts` |
+| Head of Department and faculty (top of the Team page) | `faculty` |
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")`. `sem` is the semester at the time of the announcement |
 | Member count | Counted from `coreTeam` automatically |
 | Live web address | `url` (change it when a custom domain is connected) |
