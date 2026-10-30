@@ -55,22 +55,6 @@ Everything here was built by students: the 3D robot arm, the Robo Sumo physics, 
 
 This is the star of the home page. It is a five-joint collaborative arm with a two-finger gripper, drawn in 3D with [three.js](https://threejs.org).
 
-Tap a sample, and the arm does the rest:
-
-```mermaid
-flowchart TD
-    A([Tap a sample]) --> B[Reach over it]
-    B --> C[Go straight down]
-    C --> D[Close the fingers]
-    D --> E{Fingers touch it?}
-    E -->|Yes| F[Lift and carry]
-    E -->|No| G[Open up and back off]
-    G --> K([Ready again])
-    F --> H[Lower it gently]
-    H --> I[Let go]
-    I --> J([Sample is in place])
-```
-
 <details>
 <summary><b>Two ways to drive it</b></summary>
 
