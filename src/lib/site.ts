@@ -23,6 +23,12 @@ export const contacts: Contact[] = [
   { name: "Shloka D Raj", role: "Student coordinator", phone: "9148020699" },
 ];
 
+/** The faculty behind the club, shown first on the Team page. A phone number is optional. */
+export const faculty: { name: string; role: string; phone?: string }[] = [
+  { name: "Dr. Nithin S K", role: "Head of Department, BMRE" },
+  { name: "Archana G", role: "Faculty coordinator", phone: "9481832235" },
+];
+
 export type Activity = { name: string; tag: "EVENT" | "EXPO" };
 
 export type ClubEvent = {
