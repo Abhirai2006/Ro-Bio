@@ -263,3 +263,137 @@ describe("responsiveness", () => {
     expect(inTray(sim.sample("glass").p)).toBe(true);
   });
 });
+
+describe("manual jogging", () => {
+  /** Hold a jog direction until the grip point is over (x, z), like a person pressing arrow buttons. */
+  const jogTo = (sim: ArmSim, x: number, z: number) => {
+    for (let i = 0; i < 2000; i++) {
+      const g = forward(sim.q).grip;
+      const dx = x - g.x, dz = z - g.z;
+      if (Math.hypot(dx, dz) < 0.004) break;
+      sim.jog(Math.abs(dx) > 0.004 ? Math.sign(dx) * Math.min(1, Math.abs(dx) * 20) : 0, 0, Math.abs(dz) > 0.004 ? Math.sign(dz) * Math.min(1, Math.abs(dz) * 20) : 0);
+      sim.step(1 / 120);
+    }
+    sim.jog(0, 0, 0);
+    run(sim, 0.5);
+  };
+  const lower = (sim: ArmSim, seconds = 2.5) => {
+    sim.jog(0, -1, 0);
+    run(sim, seconds);
+    sim.jog(0, 0, 0);
+    run(sim, 0.3);
+  };
+  const raise = (sim: ArmSim, seconds = 1.5) => {
+    sim.jog(0, 1, 0);
+    run(sim, seconds);
+    sim.jog(0, 0, 0);
+    run(sim, 0.5);
+  };
+  const grabWithJog = (sim: ArmSim, kind: Kind) => {
+    expect(sim.setMode("manual")).toBe(true);
+    const s = sim.sample(kind);
+    jogTo(sim, s.p.x, s.p.z);
+    lower(sim);
+    sim.toggleGrip();
+    run(sim, 0.6);
+  };
+
+  it("move over a sample, lower, grip, lift: it comes up with the arm", () => {
+    const sim = new ArmSim();
+    grabWithJog(sim, "rubber");
+    expect(sim.status).toBe("GRIPPED");
+    raise(sim);
+    expect(sim.sample("rubber").p.y).toBeGreaterThan(0.1);
+  });
+
+  it("holding left goes left, sliding round the front of the base, never behind it", () => {
+    const sim = new ArmSim();
+    sim.setMode("manual");
+    sim.jog(-0.976, 0, -0.21); // "left" as seen from the camera
+    let minZ = Infinity;
+    for (let t = 0; t < 5; t += 1 / 60) {
+      sim.step(1 / 60);
+      minZ = Math.min(minZ, forward(sim.q).grip.z);
+    }
+    const g = forward(sim.q).grip;
+    expect(g.x).toBeLessThan(-0.2);
+    expect(minZ).toBeGreaterThan(0);
+  });
+
+  it("jogging starts and stops smoothly", () => {
+    const sim = new ArmSim();
+    sim.setMode("manual");
+    sim.jog(1, 0, 0);
+    const a = smoothRun(sim, 0.6);
+    sim.jog(0, 0, 0);
+    const b = smoothRun(sim, 0.6);
+    expect(Math.max(a.maxAccel, b.maxAccel)).toBeLessThan(25);
+  });
+
+  it("lowering stops above a sample the fingers would land on", () => {
+    const sim = new ArmSim();
+    sim.setMode("manual");
+    const s = sim.sample("rubber");
+    jogTo(sim, s.p.x + 0.045, s.p.z);
+    lower(sim, 4);
+    expect(forward(sim.q).grip.y - ARM.fingerLen / 2).toBeGreaterThan(s.p.y + SAMPLE.rubber.h);
+  });
+
+  it("never goes through the bench", () => {
+    const sim = new ArmSim();
+    sim.setMode("manual");
+    jogTo(sim, 0.05, 0.3);
+    const { lowest } = (() => {
+      sim.jog(0, -1, 0);
+      return smoothRun(sim, 4);
+    })();
+    expect(lowest).toBeGreaterThan(0);
+  });
+
+  it("glass let go high above the bench breaks", () => {
+    const sim = new ArmSim();
+    grabWithJog(sim, "glass");
+    raise(sim, 2);
+    jogTo(sim, 0.05, 0.32);
+    sim.toggleGrip();
+    run(sim, 1.5);
+    expect(sim.sample("glass").broken).toBe(true);
+    expect(sim.shards.length).toBeGreaterThan(0);
+    expect(sim.status).toBe("GLASS BROKEN");
+  });
+
+  it("glass let go over the foam survives", () => {
+    const sim = new ArmSim();
+    grabWithJog(sim, "glass");
+    raise(sim, 2);
+    jogTo(sim, TRAY.x, TRAY.z);
+    sim.toggleGrip();
+    run(sim, 2);
+    const s = sim.sample("glass");
+    expect(s.broken).toBe(false);
+    expect(inTray(s.p)).toBe(true);
+  });
+
+  it("reset brings back a whole vial", () => {
+    const sim = new ArmSim();
+    grabWithJog(sim, "glass");
+    raise(sim, 2);
+    jogTo(sim, 0.05, 0.32);
+    sim.toggleGrip();
+    run(sim, 1.5);
+    sim.reset();
+    expect(sim.sample("glass").broken).toBe(false);
+    expect(sim.shards.length).toBe(0);
+  });
+
+  it("switching back to tap mode keeps holding the sample", () => {
+    const sim = new ArmSim();
+    grabWithJog(sim, "ball");
+    raise(sim);
+    expect(sim.setMode("tap")).toBe(true);
+    expect(sim.holding).toBe(true);
+    sim.place(0.05, 0.32);
+    settle(sim);
+    expect(Math.hypot(sim.sample("ball").p.x - 0.05, sim.sample("ball").p.z - 0.32)).toBeLessThan(0.004);
+  });
+});
