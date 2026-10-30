@@ -1,11 +1,12 @@
 <div align="center">
 
-<img src="src/assets/robio-logo.jpg" alt="RO-BIO logo" width="140" />
+<img src="src/assets/robio-logo.jpg" alt="RO-BIO logo" width="150" />
 
 # RO-BIO
 
-**The student club of Biomedical and Robotic Engineering**<br />
-Mysore University School of Engineering (MUSE), Manasa Gangotri Campus, Mysuru
+### Where circuits meet cells.
+
+Robots, sensors and the human body, built by students of **Biomedical and Robotic Engineering** at Mysore University School of Engineering, Mysuru.
 
 _Unauthorised innovation in progress!_
 
@@ -15,213 +16,214 @@ _Unauthorised innovation in progress!_
 <a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=for-the-badge" /></a>
 <a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=for-the-badge" /></a>
 
-<img alt="TanStack Start" src="https://img.shields.io/badge/TanStack_Start-React_19-201E2D?style=flat-square" />
-<img alt="Tailwind CSS 4" src="https://img.shields.io/badge/Tailwind_CSS-4-6294FF?style=flat-square" />
-<img alt="Cloudflare Workers" src="https://img.shields.io/badge/Hosted_on-Cloudflare_Workers-F38020?style=flat-square" />
-<img alt="Tests" src="https://img.shields.io/badge/tests-vitest-725DFF?style=flat-square" />
-
 <br /><br />
 
-<a href="https://ro-bio.robiohub2026.workers.dev">Visit the site</a> ·
-<a href="https://ro-bio.robiohub2026.workers.dev/events/bot-forge">Bot Forge</a> ·
-<a href="https://ro-bio.robiohub2026.workers.dev/team">Team</a> ·
-<a href="https://ro-bio.robiohub2026.workers.dev/contact">Contact</a>
+**[Visit the site](https://ro-bio.robiohub2026.workers.dev)** &nbsp;·&nbsp; **[Try the robot arm](#try-it-now)** &nbsp;·&nbsp; **[Play Robo Sumo](#try-it-now)** &nbsp;·&nbsp; **[Meet the team](https://ro-bio.robiohub2026.workers.dev/team)**
 
-<br /><br />
+<br />
 
-<img src="docs/screenshots/home.jpg" alt="The RO-BIO home page with the 3D pick-and-place robot arm" width="100%" />
+<img src="docs/screenshots/home.jpg" alt="The RO-BIO home page with the 3D robot arm picking up a ball" width="100%" />
 
 </div>
 
 <br />
 
-## About the club
+## Two kinds of machine, one loop
 
-RO-BIO started on 20 May 2026 at Mysore University School of Engineering. It brings together students of Biomedical and Robotic Engineering, the branch that studies both kinds of machine: robots and the human body. Most Saturdays, engineers from companies like L&T come to campus to teach practical skills.
+Our branch studies robots and bodies. A line-following robot and a hand holding a cup solve the same problem: **sense, decide, act, feed back.** So this website runs that same loop, and it is a little bit of both.
 
-The club's first event is **Bot Forge**, a robotics competition. Its events, date and registration news are on the [Bot Forge page](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) and on Instagram.
-
-<br />
-
-## A look around
-
-<div align="center">
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/boot.jpg" alt="The intro: Robo under the X-ray, showing his skeleton and heart" /><br />
-      <sub><b>The intro.</b> Robo gets assembled, X-rayed and switched on. Tap him to speed up his heart.</sub>
-    </td>
-    <td align="center" width="50%">
-      <img src="docs/screenshots/robo.jpg" alt="Robo standing on an activity card and talking about it" /><br />
-      <sub><b>Robo.</b> Roams every page, reads along and travels between pages as pixels.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="docs/screenshots/sumo.jpg" alt="Robo Sumo game with YOU and CPU robots" /><br />
-      <sub><b>Robo Sumo.</b> Push the CPU robot out of the ring.</sub>
-    </td>
-    <td align="center">
-      <img src="docs/screenshots/about-loop.jpg" alt="Feedback loop for a robot and a body, side by side" /><br />
-      <sub><b>Sense, decide, act, feed back.</b> A robot and a body, running the same loop.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="docs/screenshots/bot-forge.jpg" alt="The Bot Forge event page" /><br />
-      <sub><b>Bot Forge.</b> Date, events, venue map and coordinators.</sub>
-    </td>
-    <td align="center">
-      <img src="docs/screenshots/team.jpg" alt="The team page" /><br />
-      <sub><b>Team.</b> Coordinators and every squad of the core team.</sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <img src="docs/screenshots/404.jpg" alt="The 404 page with a puzzled Robo and a did-you-mean suggestion" /><br />
-      <sub><b>404.</b> Robo guesses the page you meant, and the flatline revives.</sub>
-    </td>
-    <td align="center">
-      <img src="docs/screenshots/contact-map.jpg" alt="Contact page with coordinators and the venue map" /><br />
-      <sub><b>Contact.</b> Coordinators, Instagram and the venue map.</sub>
-    </td>
-  </tr>
-</table>
+Everything here was built by students: the 3D robot arm, the Robo Sumo physics, the robot called Robo who walks across every page, and the ECG that beats in the header. It is open, so you can read every line.
 
 <br />
 
-<img src="docs/screenshots/phone-home.jpg" alt="Home page on a phone" width="260" />
-&nbsp;&nbsp;
-<img src="docs/screenshots/phone-menu.jpg" alt="The mobile menu" width="260" />
+## Try it now
 
-<sub>On a phone: the home page and the mobile menu.</sub>
+<a id="try-it-now"></a>
 
-</div>
+| | Try this | What you will see |
+| :-: | :-- | :-- |
+| 🦾 | Tap a sample on the robot arm, then tap where it should go | The arm plans the whole move, grips, carries and sets it down gently |
+| 🎮 | Push the CPU robot out of the Robo Sumo ring | Wheel grip, real physics, and a CPU that changes its tactics |
+| 🤖 | Wait a moment on the home page | Robo wakes up, walks along the bottom of the screen and hops onto cards |
+| 🦴 | Open Robo's menu and pick **X-ray** | His skeleton and heart show through, next to the biology inside |
+| 💓 | Tap the heartbeat in the header | It speeds up while you play |
+| 🔎 | Visit a page that does not exist, like `/tem` | Robo guesses you meant `/team` and the flatline comes back to life |
 
 <br />
 
-## What is on the site
+## The robot arm
 
-| Page | What it has |
+This is the star of the home page. It is a five-joint collaborative arm with a two-finger gripper, drawn in 3D with [three.js](https://threejs.org).
+
+Tap a sample, and the arm does the rest:
+
+```mermaid
+flowchart TD
+    A([Tap a sample]) --> B[Reach over it]
+    B --> C[Go straight down]
+    C --> D[Close the fingers]
+    D --> E{Fingers touch it?}
+    E -->|Yes| F[Lift and carry]
+    E -->|No| G[Open up and back off]
+    G --> K([Ready again])
+    F --> H[Lower it gently]
+    H --> I[Let go]
+    I --> J([Sample is in place])
+```
+
+<details>
+<summary><b>Two ways to drive it</b></summary>
+
+<br />
+
+- **Tap to move (default).** Tap a sample to pick it up, then tap a spot to put it down. With a mouse, the sample follows the cursor. You can also drag. The buttons under the arm send each sample straight to the tray.
+- **Manual.** A control pad like a real robot's teach pendant. Hold the arrows to move across the bench, use Raise and Lower for height, and press one big **Grip** button to close the fingers. Press **Let go** to drop. Glass breaks if it falls from high up and lands on the bench, but survives the foam in the tray.
+
+On a keyboard, the arrow keys move, W and S raise and lower, and Space grips.
+
+</details>
+
+<details>
+<summary><b>Why the motion looks like a person's arm</b></summary>
+
+<br />
+
+- Every reach follows a **minimum-jerk curve**: the same smooth start and stop that human reaching follows. The shoulder leads and the wrist follows a moment later.
+- Carrying speeds up gently and brakes into the spot, so nothing jerks.
+- The elbow always stays above the bench, so the arm never flips over mid-move.
+- It never sets one sample on top of another, and anything put near the tray lands inside it.
+- The arm's maths lives in [`src/lib/arm-sim.ts`](src/lib/arm-sim.ts) and is covered by unit tests, so the motion stays correct as the site changes.
+
+</details>
+
+<br />
+
+## Robo, the robot on every page
+
+Robo is the mascot. He is a small robot with a skeleton inside, and he lives on every page of the site.
+
+- He wakes up, walks along the bottom of the screen and hops onto headings and cards.
+- You can pick him up and drop him.
+- When you stop scrolling, he looks at the section you are reading and comments on it.
+- Click a link and he uploads himself into the next page as a stream of pixels, then rebuilds there.
+- Everything he says comes from the club facts in one file, so his lines never go out of date.
+
+He respects reduced-motion settings and can be rested or hidden with one click, and that choice is remembered.
+
+<br />
+
+## Inside the site
+
+<img src="docs/screenshots/sumo.jpg" alt="Robo Sumo: a player robot and a CPU robot in the ring" width="100%" />
+
+**Robo Sumo** is a physics game against a CPU with tactics. The CPU flanks, brakes when it is pushed towards the edge, and reverses when it is stuck. A simulator plays seeded matches between the tactics and prints win rates: `node --experimental-strip-types scripts/sumo-sim.mjs`.
+
+<br />
+
+<img src="docs/screenshots/boot.jpg" alt="The intro: Robo under an X-ray, showing his skeleton and heart" width="100%" />
+
+**The intro** runs once per visit. Robo is assembled part by part, X-rayed, and switched on in about six seconds. Skip it any time with a button or the Esc key. It is never shown to people who turn on reduced motion, and it ends by itself even if JavaScript fails.
+
+<br />
+
+<img src="docs/screenshots/team.jpg" alt="The team page with flip cards" width="100%" />
+
+**The team page** starts with the Head of Department and the faculty coordinator, then the President, Vice President and every squad. Each card flips to show more.
+
+<br />
+
+<img src="docs/screenshots/bot-forge.jpg" alt="The Bot Forge event page" width="100%" />
+
+**Bot Forge** is the club's first event, a robotics competition with Robo Sumo and a Robot Race. The date is coming soon, and the page says so plainly until it is set.
+
+<br />
+
+<img src="docs/screenshots/404.jpg" alt="The 404 page with a puzzled Robo" width="100%" />
+
+**Pages that are not ready** say so honestly. Nothing on the site is made up.
+
+<br />
+
+## Built with
+
+| Part | What it does |
 | --- | --- |
-| [Home](https://ro-bio.robiohub2026.workers.dev/) | A 3D pick-and-place robot arm, what we work on, Bot Forge, Robo Sumo and the coordinators |
-| [About](https://ro-bio.robiohub2026.workers.dev/about) | Who the club is, our vision and mission, what we work on, and a live feedback loop for a robot and a body |
-| [Events](https://ro-bio.robiohub2026.workers.dev/events) and [Bot Forge](https://ro-bio.robiohub2026.workers.dev/events/bot-forge) | Date, events, a venue map and who to call |
-| [Workshops](https://ro-bio.robiohub2026.workers.dev/workshops) | The Saturday sessions. Speaker list coming soon |
-| [Projects](https://ro-bio.robiohub2026.workers.dev/projects) | What members are building. Write-ups coming soon |
-| [Team](https://ro-bio.robiohub2026.workers.dev/team) | The Head of Department and faculty coordinator, then the President, Vice President and every squad, with flip cards |
-| [Gallery](https://ro-bio.robiohub2026.workers.dev/gallery) and [Blog](https://ro-bio.robiohub2026.workers.dev/blog) | Photos, art and write-ups. Coming soon |
-| [Contact](https://ro-bio.robiohub2026.workers.dev/contact) | Phone numbers, a venue map and Instagram |
-| [FAQ](https://ro-bio.robiohub2026.workers.dev/faq), Privacy, Terms, Accessibility | Short and plain |
+| [TanStack Start](https://tanstack.com/start) and [React 19](https://react.dev) | Pages, routing and server rendering |
+| [Tailwind CSS 4](https://tailwindcss.com) | Styling, colours and the blueprint look |
+| [three.js](https://threejs.org) | The 3D robot arm, loaded after the page |
+| Hand-written physics | Robo Sumo and the sample bench, with no physics engine |
+| [Cloudflare Workers](https://workers.cloudflare.com) | Hosting, with a fresh deploy on every push to `main` |
+| [Vitest](https://vitest.dev) | The unit tests |
 
-Pages that are waiting for the club's own content say so honestly. Nothing on the site is made up.
+Type is [Tektur](https://fonts.google.com/specimen/Tektur) for headings, [Atkinson Hyperlegible Next](https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next) for reading (made for low-vision readers), Silkscreen for the pixel labels and JetBrains Mono for numbers.
 
 <br />
 
-## The interactive parts
+## Keep the facts current
 
-- **Robo** (`src/lib/robo-roam.ts`, `robo-rig.ts`, `robo-walk.ts`, `robo-talk.ts`, `components/site/RoboLayer.tsx`). A robot with a skeleton inside (try the X-ray from his menu). He wakes up, walks along the bottom of the screen, hops onto headings and cards, and can be picked up and dropped. When you stop scrolling he looks at the section you are reading, tilts his head at it and says something about it. Click a link and he uploads himself into it as a stream of pixels (`robo-pixels.ts`), then gets rebuilt pixel by pixel on the next page. Everything he says comes from the club facts, so it never goes out of date.
-- **Robot arm** (`src/lib/arm-sim.ts`, `components/site/RobotArm.tsx`, `components/site/arm-scene.ts`). A five-joint collaborative arm with a parallel gripper, drawn in 3D with three.js. Tap a sample to pick it up, then tap where it should go (with a mouse it follows the cursor, and dragging works too). The arm plans the whole move: reach over, go straight down, close the fingers until they touch, lift, glide over, lower gently, let go. Reaches follow a minimum-jerk curve, the same smooth start and stop that human reaching follows, with the shoulder leading and the wrist following a moment later. Carrying speeds up gently and brakes into the spot. It never sets one sample on top of another, and anything put near the tray lands inside it. The buttons under the arm put each sample in the tray. Manual mode works like a real robot's control pendant: hold the arrows to move, Raise and Lower, and one Grip button; let go of the glass from too high and it breaks, unless it lands on the foam. three.js only loads after the rest of the page, in its own file.
-- **Robo Sumo** (`src/lib/sumo.ts`, `components/site/SumoGame.tsx`). Physics, wheel grip and a CPU with tactics. `node --experimental-strip-types scripts/sumo-sim.mjs` plays hundreds of seeded matches and prints win rates.
-- **Live heartbeat** (`components/site/HeaderEcg.tsx`). The ECG in the header speeds up when you are active.
-- **Feedback loop** (`components/site/FeedbackLoop.tsx`). Sense, decide, act, feed back, for a robot and a body at the same time.
-- **404 page** (`components/site/NotFound.tsx`). Robo, puzzled, tells you what you asked for, guesses the page you probably meant (`/tem` becomes `/team`), and the flatline comes back to life when you reach for the way home.
-- **Intro** (`components/site/BootScreen.tsx`). On the first visit, Robo is assembled part by part, X-rayed (robot outside, biology inside) and switched on, in about 6 seconds. Tap him and his heart races, and the intro waits while you play. Skip it any time, or press Esc. It is never shown to people who turn on reduced motion, and its timing is pure CSS, so it ends by itself even if JavaScript fails.
+Club members do not need to touch the code to update the site. Every fact lives in one file, [`src/lib/site.ts`](src/lib/site.ts). Change it there, push, and the pages, the FAQ, the search-engine data and the AI-readable files all update by themselves.
 
-Everything respects `prefers-reduced-motion`, works with a keyboard, and has a light and a dark theme.
-
-**Type:** [Tektur](https://fonts.google.com/specimen/Tektur) for headings (angular, like machined parts), [Atkinson Hyperlegible Next](https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next) for text (drawn by the Braille Institute for low vision readers), Silkscreen for the pixel labels and JetBrains Mono for numbers. All free from Google Fonts.
-
-<br />
-
-## Updating club facts (no coding needed)
-
-All the facts live in one file: **`src/lib/site.ts`**. Change them there and every page, the FAQ, the structured data for Google and the files for AI assistants update by themselves.
-
-| To change | Edit this in `src/lib/site.ts` |
+| To change | Edit in `src/lib/site.ts` |
 | --- | --- |
-| Event date | `date` inside `events`, written `"YYYY-MM-DD"`. Use `null` and the site shows "Date coming soon" everywhere |
-| Events at Bot Forge | `activities` inside `events` |
-| Map | `mapUrl` (the "Open in Google Maps" link) and `mapEmbed` (Google Maps, Share, "Embed a map", copy the `src` link) |
+| Bot Forge date | `date` inside `events`, written `"YYYY-MM-DD"`. Use `null` for "Date coming soon" |
+| Bot Forge activities | `activities` inside `events` |
+| Head of Department and faculty | `faculty` |
+| Coordinators and phone numbers | `contacts` |
+| Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")` |
+| Semester on the team cards | `currentSem` adds one to the announced semester. Update it when the semester changes |
 | What we work on | `focusAreas` |
 | Vision and mission | `vision` and `mission` |
-| Registration | `registration: "coming-soon"` (or `"open"` / `"closed"`) |
-| Coordinators and phone numbers | `contacts` |
-| Head of Department and faculty (top of the Team page) | `faculty` |
-| Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")`. `sem` is the semester at the time of the announcement |
-| Member count | Counted from `coreTeam` automatically |
-| Live web address | `url` (change it when a custom domain is connected) |
-
-After you push, Cloudflare rebuilds and deploys the site in a minute or two.
+| Venue map | `mapUrl` and `mapEmbed` |
+| Live web address | `url`, once a custom domain is connected |
 
 <br />
 
 ## Run it on your computer
 
-You need [Node.js 22](https://nodejs.org/) or newer.
+You need [Node.js 22](https://nodejs.org) or newer.
 
-```sh
+```bash
 npm ci
 npm run dev
 ```
 
-Then open http://localhost:5173.
+Then open http://localhost:5173 and start tapping.
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Local site with hot reload |
-| `npm test` | Unit tests (club facts, FAQ, team, Robo's walk and talk, sumo physics, the robot arm's kinematics, motion and physics, ECG) |
-| `npm run build` | Production build. Also regenerates `sitemap.xml`, `robots.txt`, `llms.txt` and `llms-full.txt` |
-| `npm run preview` | Runs the production build locally on the Cloudflare Workers runtime |
+| `npm run dev` | The site with hot reload |
+| `npm test` | Unit tests for the club facts, Robo, Robo Sumo, the arm and the ECG |
+| `npm run build` | A production build, plus the sitemap, robots file and AI-readable files |
+| `npm run preview` | The production build, running like it does on Cloudflare |
 | `npm run deploy` | Builds and deploys by hand with Wrangler |
 
 <br />
 
 ## Deploying
 
-The repository is connected to Cloudflare Workers. Every push to `main` builds and deploys automatically.
+Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 - Build command: `npm run build`
 - Deploy command: `npx wrangler deploy`
-- The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project name in Cloudflare.
-- Keep `package-lock.json` in the repository. With it, Cloudflare runs `npm ci`, which installs the exact same versions every time and avoids a dependency resolution bug in npm 10.
+- The Worker name in `wrangler.jsonc` (`ro-bio`) must match the project in Cloudflare.
+- Keep `package-lock.json` in the repository, so Cloudflare installs the exact same versions every time.
 
 <br />
 
-## Security and privacy
+## Privacy and security
 
-- No accounts, no forms, no analytics, no cookies, and no third-party scripts. The [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy) lists the few settings kept in your own browser.
-- Every page is sent with a strict Content Security Policy and security headers (`src/server.ts`). Static files get the same headers from `public/_headers`. Clickjacking, MIME sniffing and camera, microphone and location access are all blocked.
-- External links open with `rel="noreferrer"`, and structured data is escaped before it goes into the page.
-- The venue map on the Contact and Bot Forge pages is a Google Maps embed. It is the only part of the site served by another company, and the Privacy Policy says so.
-
-<br />
-
-## SEO and AI readiness
-
-Every page has its own title, description, canonical link and share image, so links look right on WhatsApp, Instagram and Google. Pages carry structured data (Organization, WebSite, Event, FAQPage). `llms.txt` and `llms-full.txt` give AI assistants the facts straight from the club.
+- **No accounts, no forms, no analytics, no cookies, no tracking scripts.** The [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy) lists the few settings kept in your own browser.
+- **Two outside services.** Fonts load from Google Fonts, and the venue map on the Contact and Bot Forge pages is a Google Maps embed. The Privacy Policy explains both.
+- Every page is sent with a strict Content Security Policy and security headers ([`src/server.ts`](src/server.ts)). Clickjacking, MIME sniffing, and camera, microphone and location access are blocked.
 
 <br />
 
-## Project structure
+## What is next
 
-```text
-src/
-  routes/            one file per page (file-based routing, see src/routes/README.md)
-  components/site/   the site's own components: header, footer, Robo, arm, sumo, loop, intro
-  components/ui/     shared UI building blocks
-  lib/site.ts        all club facts, edit here
-  lib/robo-*.ts      Robo's body, walk, brain, lines and pixel teleport
-  lib/sumo.ts        Robo Sumo physics and CPU
-  lib/arm-sim.ts     the robot arm: kinematics, motion planning and bench physics
-  server.ts          Cloudflare Worker entry and security headers
-  styles.css         colours, fonts and animations
-public/              favicon, share image, robots.txt, sitemap.xml, llms.txt, _headers
-scripts/             SEO file generator, Robo preview renders, sumo simulator, Robo browser checks
-docs/screenshots/    the images in this README
-```
+- Bot Forge date and registration, once the club confirms them
+- Real photos for the gallery and team cards
+- Write-ups of the projects members are building
+- The full list is in [roadmap.md](roadmap.md)
 
 <br />
 
