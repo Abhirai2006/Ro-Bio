@@ -9,6 +9,7 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - Branch: Biomedical and Robotic Engineering
 - College: Mysore University School of Engineering. Address: Mysore University School of Engineering, Manasa Gangotri Campus, Mysore-570006
 - Started: 20 May 2026
+- Head of Department, BMRE: Dr. Nithin S K
 - Core team: 32 students
 - Website: https://ro-bio.robiohub2026.workers.dev
 - Instagram: https://www.instagram.com/ro_bio_hub/
