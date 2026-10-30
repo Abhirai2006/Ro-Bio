@@ -15,6 +15,7 @@ _Unauthorised innovation in progress!_
 <a href="https://ro-bio.robiohub2026.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.robiohub2026.workers.dev-725DFF?style=for-the-badge" /></a>
 <a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=for-the-badge" /></a>
 <a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=for-the-badge" /></a>
+<img alt="Tests" src="https://img.shields.io/badge/tests-65_passing-725DFF?style=for-the-badge" />
 
 <br /><br />
 
@@ -28,11 +29,42 @@ _Unauthorised innovation in progress!_
 
 <br />
 
+## Quick start
+
+You need [Node.js 22](https://nodejs.org) or newer. Then run:
+
+```bash
+npm ci
+npm run dev
+```
+
+Open http://localhost:5173 and start tapping.
+
+<br />
+
+<table>
+  <tr>
+    <td align="center" width="33%"><img src="docs/screenshots/sumo.jpg" alt="Robo Sumo: a player robot and a CPU robot in the ring" /><br /><sub><b>Robo Sumo</b> against a CPU with tactics</sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/boot.jpg" alt="The intro: Robo under an X-ray" /><br /><sub><b>The intro</b>, Robo assembled and X-rayed</sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/team.jpg" alt="The team page with flip cards" /><br /><sub><b>The team</b>, faculty first, then every squad</sub></td>
+  </tr>
+</table>
+
+<br />
+
 ## Two kinds of machine, one loop
 
 Our branch studies robots and bodies. A line-following robot and a hand holding a cup solve the same problem: **sense, decide, act, feed back.** So this website runs that same loop, and it is a little bit of both.
 
 Everything here was built by students: the 3D robot arm, the Robo Sumo physics, the robot called Robo who walks across every page, and the ECG that beats in the header. It is open, so you can read every line.
+
+<br />
+
+## Who this is for
+
+- **Students at MUSE.** See what the club builds, what Bot Forge will look like and how the Saturday sessions work.
+- **Faculty and the department.** A live record of the club's work, from the robot arm to the team behind it.
+- **Engineers who visit us.** The Saturday sessions are where many of us learn most. This site shows what happens in them.
 
 <br />
 
@@ -128,6 +160,15 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 <br />
 
+## What we have built so far
+
+- **20 May 2026:** RO-BIO starts at Mysore University School of Engineering.
+- **Most Saturdays:** engineers from companies like L&T come to campus and teach practical skills.
+- **The website:** the 3D pick-and-place arm, Robo, the Robo Sumo game, the team page and the Bot Forge page.
+- **Next:** Bot Forge, on a date that is coming soon.
+
+<br />
+
 ## Built with
 
 | Part | What it does |
@@ -199,6 +240,14 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 - **No accounts, no forms, no analytics, no cookies, no tracking scripts.** The [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy) lists the few settings kept in your own browser.
 - **Two outside services.** Fonts load from Google Fonts, and the venue map on the Contact and Bot Forge pages is a Google Maps embed. The Privacy Policy explains both.
 - Every page is sent with a strict Content Security Policy and security headers ([`src/server.ts`](src/server.ts)). Clickjacking, MIME sniffing, and camera, microphone and location access are blocked.
+
+<br />
+
+## Found a bug or have an idea?
+
+- **A bug:** tell us the page, the device and what you expected. Open an issue on GitHub, or send a message on [Instagram](https://www.instagram.com/ro_bio_hub/).
+- **An idea for a game, a page or a robot:** open an issue with a short description. Club members can then talk it through with the coordinators.
+- **A question about the club:** the [FAQ](https://ro-bio.robiohub2026.workers.dev/faq) and the [Contact page](https://ro-bio.robiohub2026.workers.dev/contact) are the quickest way to an answer.
 
 <br />
 
