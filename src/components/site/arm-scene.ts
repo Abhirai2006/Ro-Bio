@@ -10,6 +10,8 @@ const C = { ink: 0x201e2d, paper: 0xfffffa, lens: 0x6294ff, lilac: 0xa979fa, vio
 
 export type Hit = { kind?: Kind | undefined; point?: { x: number; z: number } | undefined };
 export type ArmScene = {
+  /** Which way on the bench "right" and "away from you" point, as seen through the camera. */
+  axes: () => { right: { x: number; z: number }; away: { x: number; z: number } };
   hit: (clientX: number, clientY: number) => Hit;
   hover: (kind: Kind | null) => void;
   dispose: () => void;
@@ -345,6 +347,30 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     meshes.set(s.kind, g);
   }
 
+  // Broken glass and the spill
+  const shardMesh = new THREE.InstancedMesh(
+    new THREE.TetrahedronGeometry(1),
+    new THREE.MeshPhysicalMaterial({ color: 0xe6eeff, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.85 }),
+    16,
+  );
+  shardMesh.castShadow = true;
+  shardMesh.count = 0;
+  scene.add(shardMesh);
+  const puddle = new THREE.Mesh(
+    new THREE.CircleGeometry(1, 48),
+    new THREE.MeshStandardMaterial({ color: C.lens, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.6 }),
+  );
+  puddle.rotation.x = -Math.PI / 2;
+  puddle.visible = false;
+  scene.add(puddle);
+
+  // Manual mode: a ring on the bench under the gripper. It turns solid lilac when the fingers are right over a sample.
+  const jogMat = new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.8, depthWrite: false });
+  const jogRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 48), jogMat);
+  jogRing.rotation.x = -Math.PI / 2;
+  jogRing.visible = false;
+  scene.add(jogRing);
+
   // A ring under a sample the mouse is over, and a landing mark under whatever is being carried
   const hoverRing = new THREE.Mesh(new THREE.RingGeometry(0.036, 0.041, 48), new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.9, depthWrite: false }));
   hoverRing.rotation.x = -Math.PI / 2;
@@ -381,7 +407,7 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   size();
 
   // Copy the simulation onto the models
-  const q = new THREE.Quaternion();
+  const q = new THREE.Quaternion(), m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
   const axis = new THREE.Vector3();
   const ballPrev = { x: 0, z: 0, yaw: 0, ready: false };
   const sync = () => {
@@ -393,6 +419,7 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     for (const { f, side } of fingers) f.position.x = side * sim.grip;
     for (const s of sim.samples) {
       const g = meshes.get(s.kind)!;
+      g.visible = !s.broken;
       g.position.set(s.p.x, s.p.y, s.p.z);
       if (s.kind === "ball") {
         // Roll the ball by the distance it travelled, and turn it with the gripper while it is held.
@@ -407,12 +434,34 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
         Object.assign(ballPrev, { x: s.p.x, z: s.p.z, yaw: s.yaw, ready: true });
       } else g.rotation.y = s.yaw;
     }
+    shardMesh.count = Math.min(16, sim.shards.length);
+    sim.shards.slice(0, 16).forEach((sh, i) => {
+      axis.set(sh.axis.x, sh.axis.y, sh.axis.z).normalize();
+      q.setFromAxisAngle(axis, sh.ang);
+      m4.compose(pos.set(sh.p.x, sh.p.y, sh.p.z), q, scl.set(sh.size, sh.size * 0.5, sh.size));
+      shardMesh.setMatrixAt(i, m4);
+    });
+    shardMesh.instanceMatrix.needsUpdate = true;
+    puddle.visible = !!sim.puddle;
+    if (sim.puddle) {
+      puddle.position.set(sim.puddle.x, 0.0009, sim.puddle.z);
+      puddle.scale.setScalar(Math.max(0.001, sim.puddle.r));
+    }
     const floorAt = (p: { x: number; z: number }) => (inTray(p) ? TRAY.foam : 0) + 0.0012;
-    const hs = hovered && !sim.heldKind && !sim.busy ? sim.sample(hovered) : null;
+    jogRing.visible = sim.mode === "manual";
+    if (jogRing.visible) {
+      const over = sim.overSample;
+      jogRing.position.set(sim.gripPos.x, floorAt(sim.gripPos), sim.gripPos.z);
+      jogRing.scale.setScalar(over ? SAMPLE[over].foot + 0.01 : 0.014);
+      jogMat.color.setHex(over ? C.lilac : C.lens);
+      jogMat.opacity = over ? 1 : 0.7;
+    }
+    const hs = hovered && sim.mode === "tap" && !sim.heldKind && !sim.busy ? sim.sample(hovered) : null;
     hoverRing.visible = !!hs;
     if (hs) hoverRing.position.set(hs.p.x, floorAt(hs.p), hs.p.z);
     const held = sim.heldKind ? sim.sample(sim.heldKind) : null;
-    landing.visible = guide.visible = !!held;
+    landing.visible = !!held && sim.mode === "tap";
+    guide.visible = !!held;
     if (held) {
       landing.position.set(sim.aim.x, floorAt(sim.aim), sim.aim.z);
       landing.scale.setScalar(SAMPLE[held.kind].foot + 0.008);
@@ -448,11 +497,15 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
 
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   return {
+    axes() {
+      const ax = lookAt.x - camera.position.x, az = lookAt.z - camera.position.z, n = Math.hypot(ax, az);
+      return { away: { x: ax / n, z: az / n }, right: { x: -az / n, z: ax / n } };
+    },
     hit(clientX, clientY) {
       const r = canvas.getBoundingClientRect();
       ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      const found = ray.intersectObjects(hitboxes, false)[0];
+      const found = ray.intersectObjects(hitboxes.filter((b) => !sim.sample(b.userData["kind"] as Kind).broken), false)[0];
       const t = -ray.ray.origin.y / ray.ray.direction.y;
       const point = t > 0 ? { x: ray.ray.origin.x + ray.ray.direction.x * t, z: ray.ray.origin.z + ray.ray.direction.z * t } : undefined;
       return found ? { kind: found.object.userData["kind"] as Kind, point } : { point };
