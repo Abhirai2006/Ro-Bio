@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "lucide-react";
-import { ArmSim, SAMPLE, type Kind } from "@/lib/arm-sim";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsDown, ChevronsUp, RotateCcw } from "lucide-react";
+import { ArmSim, SAMPLE, type Kind, type Mode } from "@/lib/arm-sim";
 import type { ArmScene } from "./arm-scene";
 
 const KINDS: Kind[] = ["glass", "rubber", "ball"];
@@ -18,6 +18,15 @@ const HUD = [
 /** One line under the arm that always says what to do next. */
 function hint(sim: ArmSim) {
   const k = sim.heldKind;
+  if (sim.mode === "manual") {
+    if (sim.status === "GLASS BROKEN") return "Oops. Press reset for a new vial.";
+    if (k) return `Got the ${SAMPLE[k].label.toLowerCase()}. Move it, then press Let go. Glass only survives a drop onto the foam.`;
+    if (sim.status === "GRIPPING") return "Gripping.";
+    if (sim.gripClosed) return "Nothing between the fingers. Press Let go, lower a bit more and try again.";
+    const over = sim.overSample;
+    if (over) return `Right over the ${SAMPLE[over].label.toLowerCase()}. Lower it all the way, then press Grip.`;
+    return "Use the arrows to move over a sample.";
+  }
   if (k && sim.holding) return `Now tap where the ${SAMPLE[k].label.toLowerCase()} should go. The tray works too.`;
   if (k) return ["CARRY", "PLACING", "RELEASE"].includes(sim.status) ? "Putting it down." : "Picking it up.";
   if (sim.busy && sim.samples.some((s) => s.queued)) return "Picking it up.";
@@ -41,6 +50,10 @@ export function RobotArm() {
   const [status, setStatus] = useState(sim.status);
   const [tip, setTip] = useState(hint(sim));
   const [holding, setHolding] = useState(false);
+  const [mode, setMode] = useState<Mode>("tap");
+  const [busy, setBusy] = useState(false);
+  const [closed, setClosed] = useState(false);
+  const jogKeys = useRef(new Set<string>());
   const [said, setSaid] = useState("");
 
   useEffect(() => {
@@ -53,6 +66,8 @@ export function RobotArm() {
       setStatus(sim.status);
       setTip(hint(sim));
       setHolding(!!sim.heldKind);
+      setBusy(sim.busy);
+      setClosed(sim.gripClosed);
       if (sim.said.length) setSaid(sim.said.splice(0).pop()!);
     };
     const start = () =>
@@ -91,8 +106,27 @@ export function RobotArm() {
     return near && near.d < 0.06 ? { ...hit, kind: near.kind } : hit;
   };
 
+  // Manual mode: every held jog button or key adds a direction. On screen, up is away from you and left is left.
+  const applyJog = () => {
+    const keys = jogKeys.current, ax = scene.current?.axes();
+    if (!ax) return;
+    const sx = Number(keys.has("right")) - Number(keys.has("left")), sy = Number(keys.has("away")) - Number(keys.has("near"));
+    const lift = Number(keys.has("raise")) - Number(keys.has("lower"));
+    sim.jog(sx * ax.right.x + sy * ax.away.x, lift, sx * ax.right.z + sy * ax.away.z);
+  };
+  const hold = (dir: string, on: boolean) => {
+    if (on) jogKeys.current.add(dir);
+    else jogKeys.current.delete(dir);
+    applyJog();
+  };
+  const switchMode = (next: Mode) => {
+    jogKeys.current.clear();
+    if (sim.setMode(next)) setMode(next);
+    scene.current?.hover(null);
+  };
+
   const onDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!scene.current || e.button > 0) return;
+    if (!scene.current || e.button > 0 || sim.mode === "manual") return;
     const hit = hitAt(e);
     let grabbed = false;
     if (!sim.heldKind && hit.kind) grabbed = sim.grab(hit.kind);
@@ -100,7 +134,7 @@ export function RobotArm() {
     press.current = { x: e.clientX, y: e.clientY, grabbed, moved: false };
   };
   const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!scene.current) return;
+    if (!scene.current || sim.mode === "manual") return;
     const p = press.current;
     if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 8) p.moved = true;
     const hit = hitAt(e);
@@ -128,7 +162,23 @@ export function RobotArm() {
     }
     if (!p.moved && hit.point && !hit.kind) sim.point(hit.point.x, hit.point.z);
   };
+  const KEYS: Record<string, string> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "away", ArrowDown: "near", w: "raise", W: "raise", s: "lower", S: "lower" };
+  const onKeyUp = (e: React.KeyboardEvent) => {
+    const dir = KEYS[e.key];
+    if (sim.mode === "manual" && dir) hold(dir, false);
+  };
   const onKey = (e: React.KeyboardEvent) => {
+    if (sim.mode === "manual") {
+      const dir = KEYS[e.key];
+      if (dir) {
+        e.preventDefault();
+        if (!e.repeat) hold(dir, true);
+      } else if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        if (!e.repeat) sim.toggleGrip();
+      }
+      return;
+    }
     if (!sim.heldKind) return;
     const step = 0.02;
     const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
@@ -156,15 +206,24 @@ export function RobotArm() {
         tabIndex={phase === "ready" ? 0 : -1}
         role="application"
         aria-roledescription="robot arm"
-        aria-label="3D robot arm. Use the buttons below to put a sample in the tray. While the arm holds something, the arrow keys move it and Enter puts it down."
+        aria-label={
+          mode === "manual"
+            ? "3D robot arm in manual mode. Arrow keys move the gripper, W raises it, S lowers it, Space grips and lets go."
+            : "3D robot arm. Use the buttons below to put a sample in the tray. While the arm holds something, the arrow keys move it and Enter puts it down."
+        }
         // A finger only locks the page scroll while the arm is holding something; otherwise swiping scrolls as usual.
-        className={`relative aspect-[5/4] w-full select-none outline-none focus-visible:ring-2 focus-visible:ring-lens ${holding ? "touch-none" : "touch-pan-y"}`}
+        className={`relative aspect-[5/4] w-full select-none outline-none focus-visible:ring-2 focus-visible:ring-lens ${holding && mode === "tap" ? "touch-none" : "touch-pan-y"}`}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
         onPointerCancel={() => (press.current = null)}
         onPointerLeave={() => scene.current?.hover(null)}
         onKeyDown={onKey}
+        onKeyUp={onKeyUp}
+        onBlur={() => {
+          jogKeys.current.clear();
+          applyJog();
+        }}
       >
         {phase !== "ready" && (
           <div className="blueprint absolute inset-0 grid place-items-center">
@@ -191,11 +250,18 @@ export function RobotArm() {
         ))}
       </figcaption>
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-paper/20 px-3 py-2">
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Put in the tray">
-          <span className="mr-1 font-pixel text-[10px] text-paper/60">TO THE TRAY</span>
-          {KINDS.map((k) => (
-            <Button key={k} variant="ghost" size="sm" disabled={phase !== "ready" || holding} onClick={() => sim.pick(k)} className="text-paper/80 hover:bg-paper/10 hover:text-lens">
-              {SAMPLE[k].label}
+        <div className="flex border border-paper/30" role="group" aria-label="Control mode">
+          {(["tap", "manual"] as const).map((m) => (
+            <Button
+              key={m}
+              variant="ghost"
+              size="sm"
+              aria-pressed={mode === m}
+              disabled={phase !== "ready" || (busy && mode !== m)}
+              onClick={() => switchMode(m)}
+              className={`rounded-none hover:bg-paper/10 hover:text-lens ${mode === m ? "bg-paper/15 text-lens" : "text-paper/60"}`}
+            >
+              {m === "tap" ? "Tap to move" : "Manual"}
             </Button>
           ))}
         </div>
@@ -207,6 +273,7 @@ export function RobotArm() {
           title="Reset the bench"
           disabled={phase !== "ready"}
           onClick={() => {
+            jogKeys.current.clear();
             sim.reset();
             setSaid("Bench reset.");
           }}
@@ -214,7 +281,74 @@ export function RobotArm() {
           <RotateCcw />
         </Button>
       </div>
+      {mode === "tap" ? (
+        <div className="flex flex-wrap items-center gap-1 border-t border-paper/20 px-3 py-2" role="group" aria-label="Put in the tray">
+          <span className="mr-1 font-pixel text-[10px] text-paper/60">TO THE TRAY</span>
+          {KINDS.map((k) => (
+            <Button key={k} variant="ghost" size="sm" disabled={phase !== "ready" || holding} onClick={() => sim.pick(k)} className="text-paper/80 hover:bg-paper/10 hover:text-lens">
+              {SAMPLE[k].label}
+            </Button>
+          ))}
+        </div>
+      ) : (
+        <JogPad hold={hold} grip={() => sim.toggleGrip()} closed={closed} disabled={phase !== "ready" || busy} />
+      )}
     </figure>
+  );
+}
+
+/** A button that moves the arm for as long as it is held down, with a finger or a mouse. */
+function JogButton({ dir, label, hold, disabled, children }: { dir: string; label: string; hold: (dir: string, on: boolean) => void; disabled: boolean; children: React.ReactNode }) {
+  const off = () => hold(dir, false);
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      className="grid h-11 w-11 touch-none select-none place-items-center border-2 border-paper/40 bg-paper/5 text-paper transition-colors hover:border-lens hover:text-lens active:bg-lens active:text-ink disabled:opacity-40 [&_svg]:size-5"
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        hold(dir, true);
+      }}
+      onPointerUp={off}
+      onPointerCancel={off}
+      onLostPointerCapture={off}
+      onKeyDown={(e) => (e.key === " " || e.key === "Enter") && !e.repeat && hold(dir, true)}
+      onKeyUp={(e) => (e.key === " " || e.key === "Enter") && off()}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Manual mode controls, laid out like a robot's control pendant: move, raise and lower, grip. */
+function JogPad({ hold, grip, closed, disabled }: { hold: (dir: string, on: boolean) => void; grip: () => void; closed: boolean; disabled: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-paper/20 px-3 py-3" role="group" aria-label="Manual controls">
+      <div className="grid grid-cols-3 gap-1">
+        <span />
+        <JogButton dir="away" label="Move away from you" hold={hold} disabled={disabled}><ArrowUp /></JogButton>
+        <span />
+        <JogButton dir="left" label="Move left" hold={hold} disabled={disabled}><ArrowLeft /></JogButton>
+        <JogButton dir="near" label="Move towards you" hold={hold} disabled={disabled}><ArrowDown /></JogButton>
+        <JogButton dir="right" label="Move right" hold={hold} disabled={disabled}><ArrowRight /></JogButton>
+      </div>
+      <div className="flex flex-col gap-1">
+        <JogButton dir="raise" label="Raise" hold={hold} disabled={disabled}><ChevronsUp /></JogButton>
+        <JogButton dir="lower" label="Lower" hold={hold} disabled={disabled}><ChevronsDown /></JogButton>
+      </div>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={grip}
+        aria-pressed={closed}
+        className={`min-h-[5.75rem] min-w-[7rem] flex-1 border-2 px-4 font-display text-lg font-black transition-colors disabled:opacity-40 ${closed ? "border-lilac bg-lilac text-ink" : "border-lens bg-lens text-ink hover:bg-paper"}`}
+      >
+        {closed ? "Let go" : "Grip"}
+      </button>
+    </div>
   );
 }
 
