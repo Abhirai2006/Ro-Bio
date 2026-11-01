@@ -5,5 +5,9 @@
   "main": "src/server.ts",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // Robo Spark judge scores. Cloudflare creates this SQLite store on the first deploy, nothing to set up by hand.
+  // The judge passcode is a secret named JUDGE_PASSCODE, added in the dashboard: Settings, Variables and Secrets.
+  "durable_objects": { "bindings": [{ "name": "JUDGE_SCORES", "class_name": "JudgeScores" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["JudgeScores"] }]
 }
