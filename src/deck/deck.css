@@ -1170,3 +1170,128 @@
     transition: none;
   }
 }
+
+/* Motion layers: transitions draw on .rsd-fx above the slides, titles weld on their own canvas */
+.rsd-fx {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  z-index: 6;
+  pointer-events: none;
+}
+.rsd-weld {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  z-index: 4;
+  pointer-events: none;
+}
+.rsd-flyer {
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+/* The logo badge that travels from slide to slide */
+.rsd-badge {
+  position: absolute;
+  padding: 6px;
+  background: var(--paper);
+  border: 5px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 8px 8px 0 var(--violet);
+  overflow: hidden;
+  z-index: 3;
+}
+.rsd-badge img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.rsd-badge-open {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+.rsd-badge-hands {
+  left: 120px;
+  bottom: 70px;
+  width: 120px;
+  height: 120px;
+}
+.rsd-badge-route {
+  right: 120px;
+  top: 70px;
+  width: 120px;
+  height: 120px;
+}
+.rsd-badge-weare {
+  left: 1460px;
+  top: 60px;
+  width: 220px;
+  height: 220px;
+}
+.rsd-thanks-bot {
+  position: absolute;
+  left: 700px;
+  bottom: 40px;
+  width: 195px;
+  height: 108px;
+  z-index: 2;
+}
+
+/* 0. The 3D opening */
+.rsd-3d-host {
+  position: absolute;
+  inset: 0;
+}
+.rsd-3d {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  display: block;
+}
+.rsd .rsd-open-fallback {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1010px;
+  height: 584px;
+  display: none;
+}
+.rsd .rsd-no3d .rsd-open-fallback {
+  display: block;
+}
+.rsd-open-end {
+  position: absolute;
+  left: 120px;
+  top: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.8s ease,
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.rsd-open-done .rsd-open-end {
+  opacity: 1;
+  transform: none;
+}
+.rsd-open-kicker {
+  font-size: 38px;
+  color: var(--yellow);
+}
+.rsd-open-title {
+  font-family: var(--f-display);
+  font-size: 120px;
+  line-height: 0.96;
+  color: var(--paper);
+  text-shadow: 8px 8px 0 var(--violet);
+  white-space: nowrap;
+}
