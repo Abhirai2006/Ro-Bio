@@ -2,6 +2,10 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleJudgeApi, type JudgeEnv } from "./server/judge-api";
+
+// The Robo Spark score sheet. Cloudflare needs the Durable Object class exported from the Worker's main file.
+export { JudgeScores } from "./server/judge-store";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -81,6 +85,7 @@ function withSecurityHeaders(response: Response): Response {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      if (new URL(request.url).pathname.startsWith("/api/judge/")) return withSecurityHeaders(await handleJudgeApi(request, env as JudgeEnv));
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
