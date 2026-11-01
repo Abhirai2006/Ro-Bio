@@ -1,13 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { canonical } from "@/lib/seo";
-import { commonTicks, missionByNumber, STAGE_TEAMS, TEAM_COUNT } from "@/lib/robo-spark";
+import {
+  commonTicks,
+  missionByNumber,
+  STAGE_TEAMS,
+  STAGE_TEAMS_MAX,
+  TEAM_COUNT,
+} from "@/lib/robo-spark";
 import {
   cleanName,
   judgeApi,
   rankTeams,
   readLogin,
   saveLogin,
+  stagePick,
   tieAtCutoff,
   total,
   type JudgeLogin,
@@ -574,11 +581,10 @@ function Ranking({
   onPick: (t: number) => void;
 }) {
   const ranks = useMemo(() => rankTeams(scores), [scores]);
-  const tie = tieAtCutoff(ranks, STAGE_TEAMS);
-  const stage = ranks
-    .slice(0, STAGE_TEAMS)
-    .map((r) => r.team)
-    .sort((a, b) => a - b);
+  const pick = useMemo(() => stagePick(scores, STAGE_TEAMS, STAGE_TEAMS_MAX), [scores]);
+  const stage = pick.teams;
+  const onStage = new Set(stage);
+  const tiedForFifth = tieAtCutoff(ranks, STAGE_TEAMS) && stage.length > STAGE_TEAMS;
   const missing = Array.from({ length: TEAM_COUNT }, (_, k) => k + 1).filter(
     (t) => !ranks.some((r) => r.team === t),
   );
@@ -591,15 +597,21 @@ function Ranking({
         <p className="mt-2 font-display text-4xl font-black">
           {stage.length ? stage.join(" · ") : "No scores yet"}
         </p>
-        {tie && (
+        {tiedForFifth && !pick.unresolved && (
+          <p className="mt-3 border-2 border-lilac p-2 text-sm font-bold">
+            5th and 6th place have the same score, so both teams go on stage: {stage.length} teams.
+          </p>
+        )}
+        {pick.unresolved && (
           <p className="mt-3 border-2 border-yellow-300 p-2 text-sm font-bold text-yellow-200">
-            Tie for the last place. Head judge: pick using the tie rule in the guide, then type the
-            teams on the slide with &quot;Set teams&quot;.
+            More teams share the last place than fit on the stage. Head judge: pick using the tie
+            rule in the guide, then type the teams on the slide with &quot;Set teams&quot;.
           </p>
         )}
         <p className="mt-3 text-sm opacity-80">
-          The presenter laptop shows these on the &quot;Teams on stage&quot; slide if it is logged
-          in on this page. Otherwise press &quot;Set teams&quot; on that slide and type them.
+          The &quot;Teams on stage&quot; slide shows these by itself and checks again every 10
+          seconds, as long as the presenter laptop has logged in on this page once. To override
+          them, press &quot;Set teams&quot; on that slide.
         </p>
       </div>
 
@@ -637,10 +649,10 @@ function Ranking({
             </tr>
           </thead>
           <tbody>
-            {ranks.map((r, i) => (
+            {ranks.map((r) => (
               <tr
                 key={r.team}
-                className={`border-b border-border last:border-0 ${i < STAGE_TEAMS ? "bg-primary/10 font-bold" : ""}`}
+                className={`border-b border-border last:border-0 ${onStage.has(r.team) ? "bg-primary/10 font-bold" : ""}`}
               >
                 <td className="px-3 py-2 font-mono">{r.place}</td>
                 <td className="px-3 py-2">
