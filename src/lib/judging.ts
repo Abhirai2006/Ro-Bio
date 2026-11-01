@@ -84,13 +84,27 @@ export function rankTeams(scores: Score[]): TeamRank[] {
   return rows;
 }
 
-/** The teams to call to the stage: the top `n` by rank, given back in team-number order. */
-export function stageTeams(scores: Score[], n: number) {
-  return rankTeams(scores)
-    .slice(0, n)
-    .map((r) => r.team)
-    .sort((a, b) => a - b);
+/**
+ * The teams to call to the stage: the top `n` by average ticks, plus any team tied with the last place,
+ * up to `max` teams. Given back in team-number order, so no team learns its rank. `unresolved` is true
+ * when even more teams share the last place than fit, so the head judge has to choose.
+ */
+export function stagePick(scores: Score[], n: number, max = n) {
+  const ranks = rankTeams(scores);
+  let k = Math.min(n, ranks.length);
+  while (k < max && k > 0 && ranks[k] && ranks[k]!.average === ranks[k - 1]!.average) k++;
+  const next = ranks[k];
+  const unresolved = k > 0 && !!next && next.average === ranks[k - 1]!.average;
+  return {
+    teams: ranks
+      .slice(0, k)
+      .map((r) => r.team)
+      .sort((a, b) => a - b),
+    unresolved,
+  };
 }
+
+export const stageTeams = (scores: Score[], n: number, max = n) => stagePick(scores, n, max).teams;
 
 /** True when the last stage place is tied with the next team, so the head judge has to choose. */
 export function tieAtCutoff(ranks: TeamRank[], n: number) {
