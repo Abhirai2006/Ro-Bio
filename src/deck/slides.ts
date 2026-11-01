@@ -627,7 +627,6 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
             <div class="rsd-qr" data-in="3" data-fx="pop" style="transform: rotate(2deg)">
               <span class="rsd-qr-box">[QR CODE]</span>
               <span>attendance and certificate form</span>
-              <img src="${img.sparkbot}" alt="" width="130" height="72" data-morph="bot">
             </div>
           </div>
         </div>`,
@@ -647,7 +646,6 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
           <p class="rsd-lead rsd-ink" data-in="3" data-fx="fade">Your robotics journey starts today.</p>
           <p class="rsd-pix rsd-deep rsd-thanks-foot" data-in="4" data-fx="fade">ROBO SPARK${date ? ` · ${esc(date)}` : ""}</p>
         </div>
-        <img class="rsd-thanks-bot" src="${img.sparkbot}" alt="" width="130" height="72" data-morph="bot">
         <div class="rsd-thanks-art" data-in="1" data-fx="right"><img src="${img.poster}" alt="The Robo Spark characters with the sparking robot" width="1010" height="584"></div>`,
     },
   ];
