@@ -886,11 +886,29 @@
   font-weight: 800;
   font-size: 40px;
 }
+/* Only the presenter sees this line: it shows when the mouse moves, like the control bar. */
 .rsd-stage-note {
   margin-top: 20px;
   min-height: 36px;
-  font-size: 26px;
+  max-width: 1500px;
+  font-size: 24px;
+  line-height: 1.4;
   color: var(--yellow);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.rsd-awake .rsd-stage-note {
+  opacity: 1;
+}
+.rsd-slot[data-off] {
+  display: none;
+}
+.rsd-slots.rsd-six {
+  grid-template-columns: repeat(6, 1fr);
+  gap: 30px;
+}
+.rsd-six .rsd-slot-num {
+  font-size: 112px;
 }
 .rsd-set-teams {
   position: absolute;
