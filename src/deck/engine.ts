@@ -85,7 +85,7 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
   const clicksOf = (i: number) =>
     Math.max(
       0,
-      ...[...els[i]!.querySelectorAll<HTMLElement>("[data-click]")].map((e) =>
+      ...[...els[i]!.querySelectorAll<HTMLElement>("[data-click]:not([data-off])")].map((e) =>
         Number(e.dataset["click"]),
       ),
     );
@@ -134,7 +134,7 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
   };
 
   const setClicks = (i: number, upTo: number) => {
-    for (const e of els[i]!.querySelectorAll<HTMLElement>("[data-click]"))
+    for (const e of els[i]!.querySelectorAll<HTMLElement>("[data-click]:not([data-off])"))
       e.classList.toggle("rsd-shown", Number(e.dataset["click"]) <= upTo);
   };
 
