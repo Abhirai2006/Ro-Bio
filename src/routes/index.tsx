@@ -18,16 +18,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     links: [canonical("/")],
     meta: [
-      { title: "RO-BIO | Biomedical and Robotic Engineering club, MUSE Mysuru" },
+      { title: "RO-BIO | Robotics and biomedical club for every branch, MUSE Mysuru" },
       {
         name: "description",
         content:
-          `RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. Next up: ${whenLine(nextEvent(todayInIndia()))}.`,
+          `RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, open to students of every branch. Next up: ${whenLine(nextEvent(todayInIndia()))}.`,
       },
       { property: "og:title", content: "RO-BIO | Unauthorised innovation in progress!" },
       {
         property: "og:description",
-        content: "The student club of Biomedical and Robotic Engineering, Mysore University School of Engineering.",
+        content: "A robotics and biomedical engineering club for every branch, Mysore University School of Engineering.",
       },
     ],
   }),
@@ -46,7 +46,7 @@ function Hero() {
           <div className="flex items-center gap-3">
             <img src={logoUrl} alt="RO-BIO logo" width={56} height={56} className="h-14 w-14 rounded-full border-2 border-border bg-paper object-cover shadow-hard" fetchPriority="high" />
             <p className="font-pixel text-[11px] leading-5 text-primary">
-              {site.branch.toUpperCase()}
+              ROBOTICS + BIOMEDICAL · EVERY BRANCH
               <br />
               MUSE MYSURU
             </p>
@@ -112,7 +112,7 @@ function Index() {
       <section id="below" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-14 pt-16">
         <div className="grid gap-10 md:grid-cols-[1.3fr_1fr] md:items-end">
           <h2 className="text-3xl font-black leading-tight md:text-5xl">
-            We're the students of {site.branch}, and this is our club.
+            Students from every branch of MUSE, building robots together.
           </h2>
           <p className="text-lg text-muted-foreground">
             RO-BIO started on 20 May 2026 at {site.college}. {coreTeamSize} of us so far. Most Saturdays, people
