@@ -1,8 +1,9 @@
 // What Robo says about the page he is on and the section he is looking at. Built from the club facts in site.ts,
 // so nothing here goes stale when a date or the team changes. Robot logic first, then a human feeling.
-import { coreTeamSize, events, formatDate, site } from "./site";
+import { botForge, coreTeamSize, events, formatDate, site } from "./site";
 
-const bf = events[0]!;
+const bf = botForge;
+const spark = events.find((e) => e.slug === "robo-spark");
 const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026"
 const bfDay = bf.date ? plain(bf.date).replace(/\s\d{4}$/, "") : null; // "6 Nov", or null while the date is not fixed
 const when = bfDay ? `is on ${bfDay}` : "is coming soon";
@@ -18,8 +19,9 @@ export const FORGE_IDLE = `${bf.title} ${when}. Still tuning my motors.`;
 export const GREET: Record<string, string> = {
   "/": "Home page loaded. Arm, sumo ring, heartbeat. Everything I love.",
   "/about": "About page. This is where they explain me. Sort of.",
-  "/events": bfDay ? `Events. ${bf.title} is on ${bfDay}. I have it on my calendar chip.` : `Events. ${bf.title} is coming soon. My calendar chip is waiting.`,
+  "/events": `Events. ${events.map((e) => e.title).join(" and ")}. My calendar chip is busy.`,
   [`/events/${bf.slug}`]: `${bf.title}. ${bf.activities.map((a) => a.name).join(" and ")}. I want to enter ${all}.`,
+  ...(spark ? { [`/events/${spark.slug}`]: `${spark.title}. Teams, one robotics problem, and a podium. I am practising my listening face.` } : {}),
   "/team": `Team page. ${coreTeamSize} humans on the core team. I counted twice.`,
   "/workshops": "Workshops. Humans teaching humans. I take notes.",
   "/projects": "Projects. Mine is not listed. Yet.",
@@ -37,6 +39,7 @@ const SECTIONS: [RegExp, string[]][] = [
   [/line follower/i, ["Line Follower. IR sensors, a black line and a lot of tiny corrections. My kind of sport.", "Line Follower. Sense, steer, repeat. Very relaxing to watch."]],
   [/robot race/i, ["Robot Race. Fastest bot wins. My top speed is a brisk walk.", "Robot Race. I would need new motors. And courage."]],
   [/robo sumo/i, ["Robo Sumo. Two bots, one ring. You can practise on the home page.", "Robo Sumo. Push, do not get pushed. Simple. Not easy."]],
+  [/robo spark/i, ["Robo Spark. Many teams, one robotics problem. I like these odds.", "Robo Spark. A group discussion. I would bring a good idea and a snack."]],
   [/bot forge/i, [bfDay ? `${bf.title}, ${bfDay}. Mark your calendar.` : `${bf.title}. Date coming soon. I keep checking.`, `${bf.title}. ${regLine}`]],
   [/activities/i, [`${n} events. I would enter ${all}. Probably lose ${all}.`]],
   [/core team|keeping it running/i, [`Scanning faces... ${coreTeamSize} humans found. Photos not loaded yet.`, "The core team. They keep the lights on. And me."]],
