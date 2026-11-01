@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Pending } from "@/components/site/parts";
-import { events } from "@/lib/site";
+import { nextEvent, todayInIndia } from "@/lib/site";
 
 export const Route = createFileRoute("/blog")({
   head: () => ({
@@ -21,7 +21,7 @@ function Blog() {
     <>
       <PageIntro label="BLOG / LAB NOTES" title="Lab notes." />
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <Pending title="No posts yet">The first write-up will probably be about {events[0]!.title}. Check back after it.</Pending>
+        <Pending title="No posts yet">The first write-up will probably be about {nextEvent(todayInIndia()).title}. Check back after it.</Pending>
       </section>
     </>
   );
