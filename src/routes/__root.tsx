@@ -6,6 +6,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -123,8 +124,21 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/** Pages that fill the whole screen on their own: the Robo Spark slides. No header, footer or Robo there. */
+const isBarePage = (path: string) => /^\/events\/robo-spark\/present\/?$/.test(path);
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+
+  if (isBarePage(path))
+    return (
+      <QueryClientProvider client={queryClient}>
+        <main id="main">
+          <Outlet />
+        </main>
+      </QueryClientProvider>
+    );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -133,8 +147,13 @@ function RootComponent() {
         <Outlet />
       </main>
       <SiteFooter />
-      <RoboLayer />
-      <ClickSpark />
+      {/* On the judge page Robo would walk over the Save bar on phones, so he sits that one out. */}
+      {!path.startsWith("/events/robo-spark/judge") && (
+        <>
+          <RoboLayer />
+          <ClickSpark />
+        </>
+      )}
     </QueryClientProvider>
   );
 }
