@@ -27,6 +27,8 @@ export const route = [
 export const ICEBREAKER_MINUTES = 5;
 export const DISCUSSION_MINUTES = 20;
 export const STAGE_TEAMS = 5;
+/** When 5th and 6th place have the same average, both go on stage: at most this many teams. */
+export const STAGE_TEAMS_MAX = 6;
 
 /** Ticks 1 to 6, the same for every team. */
 export const commonTicks = [
