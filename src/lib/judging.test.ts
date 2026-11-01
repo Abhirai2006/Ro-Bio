@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseScore, rankTeams, stageTeams, tieAtCutoff, type Score } from "./judging";
+import { parseScore, rankTeams, stagePick, stageTeams, tieAtCutoff, type Score } from "./judging";
 import { missions, TEAM_COUNT } from "./robo-spark";
 
 const sheet = (team: number, judge: string, n: number): Score => ({
@@ -65,10 +65,28 @@ describe("rankTeams", () => {
       [9, 7, 2],
     ]);
   });
-  it("calls the top teams in team-number order and spots a tie at the cut-off", () => {
+  it("calls the top teams in team-number order and adds the team tied with the last place", () => {
     const s = [sheet(30, "A", 9), sheet(3, "A", 8), sheet(12, "A", 7), sheet(50, "A", 7)];
-    expect(stageTeams(s, 3)).toEqual([3, 12, 30]);
+    expect(stageTeams(s, 2)).toEqual([3, 30]);
+    expect(stageTeams(s, 3, 4)).toEqual([3, 12, 30, 50]);
     expect(tieAtCutoff(rankTeams(s), 3)).toBe(true);
     expect(tieAtCutoff(rankTeams(s), 2)).toBe(false);
+  });
+  it("takes 6 teams when 5th and 6th tie, and flags a tie it cannot fit", () => {
+    const five = [9, 8, 7, 6, 5].map((n, k) => sheet(k + 1, "A", n));
+    expect(stagePick([...five, sheet(20, "A", 4)], 5, 6)).toEqual({
+      teams: [1, 2, 3, 4, 5],
+      unresolved: false,
+    });
+    expect(stagePick([...five, sheet(20, "A", 5)], 5, 6)).toEqual({
+      teams: [1, 2, 3, 4, 5, 20],
+      unresolved: false,
+    });
+    expect(stagePick([...five, sheet(20, "A", 5), sheet(33, "A", 5)], 5, 6)).toEqual({
+      teams: [1, 2, 3, 4, 5, 20],
+      unresolved: true,
+    });
+    expect(stagePick([sheet(7, "A", 3)], 5, 6)).toEqual({ teams: [7], unresolved: false });
+    expect(stagePick([], 5, 6)).toEqual({ teams: [], unresolved: false });
   });
 });
