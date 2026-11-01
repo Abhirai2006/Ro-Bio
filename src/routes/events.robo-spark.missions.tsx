@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { PageIntro } from "@/components/site/parts";
+import { sceneTeam } from "@/art/scenes";
 import { canonical } from "@/lib/seo";
 import {
   cardMaking,
@@ -32,6 +33,9 @@ export const Route = createFileRoute("/events/robo-spark/missions")({
   component: Missions,
 });
 
+// Drawn once, with fixed ids, so the server and the browser produce exactly the same picture.
+const teamArt = sceneTeam("mission-team");
+
 const sections = [
   { id: "start", label: "Start here" },
   { id: "checklist", label: "10 ticks" },
@@ -60,6 +64,12 @@ function Missions() {
         Team N gets mission card N. Each mission below says what a strong answer looks like, so you
         do not need to know robotics to judge it.
       </PageIntro>
+      <div className="border-b-2 border-border bg-violet">
+        <div
+          className="mx-auto max-w-2xl px-4 pt-6"
+          dangerouslySetInnerHTML={{ __html: teamArt }}
+        />
+      </div>
 
       <nav
         aria-label="Sections"
