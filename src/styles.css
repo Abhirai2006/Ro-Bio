@@ -73,6 +73,9 @@
   --grid: color-mix(in oklab, var(--lens) 18%, transparent);
   --shadow-hard: 4px 4px 0 0 var(--ink);
   --shadow-hard-violet: 6px 6px 0 0 var(--violet);
+  --scroll-track: var(--muted);
+  --scroll-thumb: var(--violet);
+  --scroll-thumb-hover: var(--violet-deep);
 }
 
 .dark {
@@ -96,6 +99,94 @@
   --grid: color-mix(in oklab, var(--lilac) 12%, transparent);
   --shadow-hard: 4px 4px 0 0 var(--violet);
   --shadow-hard-violet: 6px 6px 0 0 var(--lens);
+  --scroll-thumb: var(--lilac);
+  --scroll-thumb-hover: #c4a6fb;
+}
+
+/*
+ * Cursors: a pixel arrow in the club's violet everywhere, and the arm's reticle over the robot arm (set in RobotArm.tsx).
+ * Links and buttons keep the hand, text fields keep the text cursor. Both images are at most 32 px, the size every
+ * browser accepts. Browsers that cannot read image-set() get the 1x image; anything that cannot load it gets the
+ * normal system cursor, named last in each list.
+ */
+:root {
+  --cur-arrow: url("/cursors/arrow.png") 2 2, default;
+  --cur-reticle: url("/cursors/reticle.png") 15 15, crosshair;
+}
+@supports (cursor: image-set(url("/cursors/arrow.png") 1x) 2 2, default) {
+  :root {
+    --cur-arrow: image-set(url("/cursors/arrow.png") 1x, url("/cursors/arrow@2x.png") 2x) 2 2, default;
+    --cur-reticle: image-set(url("/cursors/reticle.png") 1x, url("/cursors/reticle@2x.png") 2x) 15 15, crosshair;
+  }
+}
+@layer base {
+  html {
+    cursor: var(--cur-arrow);
+  }
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="button"], [type="submit"]),
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+  /* Browsers give plain buttons the system arrow; anything you can press gets the hand instead. */
+  button:not(:disabled),
+  [role="button"],
+  summary,
+  select {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+/* High contrast mode: people there often rely on their own system cursor scheme, so leave it alone. */
+@media (forced-colors: active) {
+  html {
+    cursor: auto;
+  }
+}
+
+/*
+ * Scrollbar: a slim square violet thumb on a muted track, with the site's 2 px border along its edge. 12 px wide,
+ * and the thumb keeps at least 3 to 1 contrast with the track in both themes. Firefox only takes two colours, so it
+ * gets those; Chrome, Edge and Safari get the full style. Phones keep their own overlay scrollbars.
+ */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+  }
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+/* Chrome paints neither borders nor shadows on the track, so the 2 px edge line is a stripe in its background. */
+::-webkit-scrollbar-track:vertical {
+  background: linear-gradient(to right, var(--border) 2px, var(--scroll-track) 2px);
+}
+::-webkit-scrollbar-track:horizontal {
+  background: linear-gradient(to bottom, var(--border) 2px, var(--scroll-track) 2px);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent; /* see-through, so the track and its edge line show around the thumb */
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:vertical {
+  border-left-width: 4px;
+}
+::-webkit-scrollbar-thumb:horizontal {
+  border-top-width: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+::-webkit-scrollbar-corner {
+  background: var(--scroll-track);
 }
 
 @layer base {
