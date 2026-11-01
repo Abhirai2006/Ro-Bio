@@ -27,7 +27,7 @@ const orgLd = {
     {
       "@type": "Organization", "@id": `${site.url}/#org`, name: "RO-BIO", alternateName: "Ro-Bio Hub", url: site.url,
       logo: `${site.url}/favicon.png`, image: `${site.url}/og-image.png`,
-      description: `RO-BIO is the student club for ${site.branch} at ${site.college}, Mysuru, India.`,
+      description: `RO-BIO is a ${site.focus} club at ${site.college}, Mysuru, India, open to ${site.openTo}.`,
       foundingDate: site.startedOn, sameAs: [site.instagram, site.linkedin], address,
       parentOrganization: { "@type": "CollegeOrUniversity", name: site.college, address },
     },
@@ -73,8 +73,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RO-BIO | Biomedical and Robotic Engineering club, MUSE Mysuru" },
-      { name: "description", content: "RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering." },
+      { title: "RO-BIO | Robotics and biomedical club for every branch, MUSE Mysuru" },
+      { name: "description", content: "RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, open to students of every branch." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:site_name", content: "RO-BIO" },
