@@ -8,7 +8,7 @@ export const Route = createFileRoute("/blog")({
     links: [canonical("/blog")],
     meta: [
       { title: "Blog | RO-BIO" },
-      { name: "description", content: "News and write-ups from RO-BIO, the Biomedical and Robotic Engineering club at MUSE." },
+      { name: "description", content: "News and write-ups from RO-BIO, the robotics and biomedical club for every branch at MUSE." },
       { property: "og:title", content: "Blog | RO-BIO" },
       { property: "og:description", content: "News and write-ups from RO-BIO." },
     ],
