@@ -1,12 +1,13 @@
 # RO-BIO
 
-> RO-BIO is the student club for Biomedical and Robotic Engineering at Mysore University School of Engineering, Mysuru, India. It started on 20 May 2026 and has 32 students on its core team. Its first robotics competition is Bot Forge. The date is coming soon.
+> RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, Mysuru, India, open to students of every branch. It started on 20 May 2026 and has 32 students on its core team. Its first robotics competition is Bot Forge. The date is coming soon.
 
 RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Robotic Engineering.
 
 ## Key facts
 - Name: RO-BIO (Ro-Bio Hub)
-- Branch: Biomedical and Robotic Engineering
+- Open to: students of every branch
+- Faculty department: Biomedical and Robotic Engineering
 - College: Mysore University School of Engineering. Address: Mysore University School of Engineering, Manasa Gangotri Campus, Mysore-570006
 - Started: 20 May 2026
 - Head of Department, BMRE: Dr. Nithin S K
