@@ -77,6 +77,19 @@ function EventPage() {
       <section className={`mx-auto max-w-6xl px-4 pt-14 ${e.poster ? "grid items-start gap-8 md:grid-cols-[2fr_1fr]" : ""}`}>
         <div>
           {e.about && <p className="max-w-2xl text-lg">{e.about}</p>}
+          {e.slug === "robo-spark" && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link to="/events/robo-spark/present" className="border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-hard">
+                Open the presentation
+              </Link>
+              <Link to="/events/robo-spark/missions" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
+                Missions and judging guide
+              </Link>
+              <Link to="/events/robo-spark/judge" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
+                Judge scoring
+              </Link>
+            </div>
+          )}
           <h2 className={`text-2xl font-black ${e.about ? "mt-8" : ""}`}>{e.poster ? "What happens" : "Activities"}</h2>
           <ul className={`mt-5 grid gap-4 ${e.poster ? "" : "sm:grid-cols-2"}`}>
             {e.activities.map((a) => (
