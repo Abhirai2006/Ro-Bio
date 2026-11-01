@@ -11,7 +11,9 @@ import {
   missions,
   route,
 } from "@/lib/robo-spark";
+import { scenePen, scenePhones, sceneStage, sceneTeam } from "@/art/scenes";
 import * as A from "./anims";
+import { animateScene } from "./artlive";
 import type { SlideDef } from "./engine";
 import { Countdown } from "./timer";
 
@@ -148,16 +150,31 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     "Water cleanup",
   ];
   const tagSpots = [
-    [30, 50, -6],
-    [330, 155, 4],
-    [60, 260, 3],
-    [300, 365, -5],
-    [10, 470, -3],
-    [320, 575, 6],
-    [70, 680, -4],
-    [300, 785, 3],
-    [20, 890, 5],
+    [0, 50, -5],
+    [380, 70, 4],
+    [30, 150, 3],
+    [400, 170, -4],
+    [0, 250, -3],
+    [390, 270, 5],
+    [40, 350, -4],
+    [400, 370, 3],
+    [10, 450, 4],
   ];
+  /** Runs the physics in the slide's scene while it is on screen. */
+  const live = () => {
+    let stop: (() => void) | null = null;
+    return {
+      onEnter: (el: HTMLElement) => {
+        stop?.();
+        const svg = el.querySelector<SVGSVGElement>(".rsd-art svg");
+        stop = svg ? animateScene(svg) : null;
+      },
+      onLeave: () => {
+        stop?.();
+        stop = null;
+      },
+    };
+  };
   const stops = route.length;
   const stopW = 1584 / stops;
 
@@ -426,6 +443,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "rules",
+      ...live(),
       title: "No phones",
       bg: V.ink,
       html: `
@@ -437,10 +455,11 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
           <div class="rsd-sticker-text rsd-pink" data-in="5" data-fx="pop" style="transform: rotate(-3deg)">PENS + PAPER ONLY</div>
           <p class="rsd-lead rsd-paper" data-in="6" data-fx="fade">Everyone speaks. Every idea counts. Write it on your card.</p>
         </div>
-        <div class="rsd-rules-art" data-in="4" data-fx="rise"><img src="${img.astronaut}" alt="" width="510" height="584"></div>`,
+        <div class="rsd-art rsd-art-phones" data-in="4" data-fx="rise">${scenePhones()}</div>`,
     },
     {
       id: "missions",
+      ...live(),
       title: `${missions.length} missions`,
       bg: V.violet,
       html: `
@@ -453,17 +472,20 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
         </div>
         <div class="rsd-tags">
           ${tagNames.map((t, k) => `<span class="rsd-tag ${k % 3 === 1 ? "rsd-tag-light" : ""}" data-in="${k + 3}" data-fx="pop" style="left:${tagSpots[k]![0]}px;top:${tagSpots[k]![1]}px;transform:rotate(${tagSpots[k]![2]}deg)">${esc(t.toUpperCase())}</span>`).join("")}
-          <span class="rsd-tag rsd-tag-more" data-in="13" data-fx="pop" style="left:430px;top:985px;transform:rotate(-2deg)">+ ${missions.length - tagNames.length} MORE</span>
-        </div>`,
+          <span class="rsd-tag rsd-tag-more" data-in="13" data-fx="pop" style="left:420px;top:468px;transform:rotate(-2deg)">+ ${missions.length - tagNames.length} MORE</span>
+        </div>
+        <div class="rsd-art rsd-art-team" data-in="2" data-fx="rise">${sceneTeam()}</div>`,
     },
     {
       id: "card",
+      ...live(),
       title: "Flip your card",
       bg: V.beige,
       html: `
         <div class="rsd-pad">
           <div class="rsd-h2" data-in="0" data-fx="left"><span class="rsd-ink">FLIP YOUR</span> <span class="rsd-violet">CARD</span></div>
         </div>
+        <div class="rsd-art rsd-art-pen" data-in="3" data-fx="right">${scenePen()}</div>
         <div class="rsd-cards">
           <div class="rsd-card rsd-card-front" data-in="1" data-fx="tilt" style="transform: rotate(-2deg)">
             <p class="rsd-pix rsd-violet">FRONT · YOUR MISSION</p>
@@ -524,6 +546,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "stage",
+      ...live(),
       title: "On stage",
       bg: V.violet,
       anims: { spots: A.spotlights },
@@ -536,7 +559,8 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
             <div data-in="2" data-fx="rise"><b>1</b><span class="rsd-pix">QUESTION</span><p>from the judges</p></div>
             <div data-in="3" data-fx="rise"><b>ALL</b><span class="rsd-pix">TEAMS</span><p>get a big clap</p></div>
           </div>
-        </div>`,
+        </div>
+        <div class="rsd-art rsd-art-stage" data-in="2" data-fx="rise">${sceneStage()}</div>`,
     },
     {
       id: "callup",
