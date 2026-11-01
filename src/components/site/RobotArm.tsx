@@ -142,7 +142,8 @@ export function RobotArm() {
     if (sim.heldKind && hit.point && (e.pointerType === "mouse" || p)) sim.carry(hit.point.x, hit.point.z);
     if (e.pointerType === "mouse") {
       scene.current.hover(hit.kind ?? null);
-      e.currentTarget.style.cursor = hit.kind && !sim.heldKind ? "grab" : sim.heldKind ? "copy" : "default";
+      // The hand over a sample you can pick up, the arm's reticle everywhere else on the bench (see styles.css).
+      e.currentTarget.style.cursor = hit.kind && !sim.heldKind ? "grab" : "var(--cur-reticle)";
     }
   };
   const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -213,6 +214,8 @@ export function RobotArm() {
         }
         // A finger only locks the page scroll while the arm is holding something; otherwise swiping scrolls as usual.
         className={`relative aspect-[5/4] w-full select-none outline-none focus-visible:ring-2 focus-visible:ring-lens ${holding && mode === "tap" ? "touch-none" : "touch-pan-y"}`}
+        // Manual mode drives the arm with the jog buttons, not the canvas, so the canvas keeps the plain arrow there.
+        style={{ cursor: phase === "ready" && mode === "tap" ? "var(--cur-reticle)" : undefined }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
