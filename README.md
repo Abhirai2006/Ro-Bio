@@ -150,7 +150,7 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 <img src="docs/screenshots/bot-forge.jpg" alt="The Bot Forge event page" width="100%" />
 
-**Bot Forge** is the club's first event, a robotics competition with Robo Sumo and a Robot Race. The date is coming soon, and the page says so plainly until it is set.
+**Bot Forge** is the club's first robotics competition, with Robo Sumo and a Robot Race. The date is coming soon, and the page says so plainly until it is set.
 
 <br />
 
@@ -165,7 +165,7 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 - **20 May 2026:** RO-BIO starts at Mysore University School of Engineering.
 - **Most Saturdays:** engineers from companies like L&T come to campus and teach practical skills.
 - **The website:** the 3D pick-and-place arm, Robo, the Robo Sumo game, the team page and the Bot Forge page.
-- **Next:** Bot Forge, on a date that is coming soon.
+- **Events:** Robo Spark, an interactive group discussion for first years on 3 November 2026, and Bot Forge, on a date that is coming soon.
 
 <br />
 
@@ -192,6 +192,7 @@ Club members do not need to touch the code to update the site. Every fact lives 
 | --- | --- |
 | Bot Forge date | `date` inside `events`, written `"YYYY-MM-DD"`. Use `null` for "Date coming soon" |
 | Bot Forge activities | `activities` inside `events` |
+| A new event, like Robo Spark | A new entry in `events`: `date`, `time`, `venue`, `audience`, `about` and a `poster` image in `public/events/`. It gets its own page, shows on the Events page, and leads the home page until its date passes |
 | Head of Department and faculty | `faculty` |
 | Coordinators and phone numbers | `contacts` |
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")` |
