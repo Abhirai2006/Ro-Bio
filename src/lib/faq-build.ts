@@ -1,5 +1,5 @@
 // Builds the FAQ from the site's own facts. No imports, so Node scripts can use it too.
-type Site = { branch: string; college: string; address: string; startedOn: string; instagramHandle: string };
+type Site = { branch: string; focus: string; openTo: string; college: string; address: string; startedOn: string; instagramHandle: string };
 type Event = { slug: string; kind: string; date: string | null; activities: { name: string }[] };
 
 export function buildFaqs(site: Site, events: Event[], formatDate: (iso: string) => string, teamSize: number): { q: string; a: string }[] {
@@ -8,7 +8,8 @@ export function buildFaqs(site: Site, events: Event[], formatDate: (iso: string)
   const count = (n: number) => ["no", "one", "two", "three", "four", "five", "six"][n] ?? String(n);
   const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026", no weekday
   return [
-    { q: "What is RO-BIO?", a: `RO-BIO is the student club for ${site.branch} at ${site.college} (MUSE), Mysuru, India. It started on ${plain(site.startedOn)} and has ${teamSize} students on its core team. It is also written Ro-Bio Hub.` },
+    { q: "What is RO-BIO?", a: `RO-BIO is a ${site.focus} club at ${site.college} (MUSE), Mysuru, India, open to ${site.openTo}. It started on ${plain(site.startedOn)} and has ${teamSize} students on its core team. It is also written Ro-Bio Hub.` },
+    { q: "Who can join RO-BIO?", a: `Any student of ${site.college}, from any branch. You do not have to study ${site.branch} to join.` },
     { q: "Where is RO-BIO based?", a: `${site.address}.` },
     { q: "What is Bot Forge?", a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(bf.activities.length)} ${bf.activities.length === 1 ? "event" : "events"}: ${parts}.` },
     { q: "When is Bot Forge?", a: bf.date ? `Bot Forge is on ${formatDate(bf.date)}. The start time has not been announced yet.` : `The date for Bot Forge is coming soon. It will be announced on the Bot Forge page and on Instagram ${site.instagramHandle}.` },
