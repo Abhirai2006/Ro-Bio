@@ -1,13 +1,17 @@
 // The Robo Spark presenter. Plain DOM and canvas, no framework, so it runs the same on the website
 // and in the offline copy. Slides are drawn at 1920 x 1080 and scaled to fit any screen.
 import type { Anim } from "./anims";
+import { fadeBack, iris, morph, scanner, weldTitles, type Transition } from "./motion";
 import { chime, type Countdown } from "./timer";
 
 export type SlideDef = {
   id: string;
   title: string;
   bg: string;
-  transition?: "fade" | "push";
+  /** How the deck arrives on this slide going forward: the laser scanner (default) or the camera iris. */
+  transition?: "scanner" | "iris";
+  /** Weld this slide's titles slowly, for the big title slide. */
+  longWeld?: boolean;
   html: string;
   anims?: Record<string, Anim>;
   timer?: Countdown;
@@ -52,7 +56,7 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
   root.classList.add("rsd");
   root.tabIndex = -1;
   root.innerHTML = `
-    <div class="rsd-stage">${slides.map((s, i) => `<section class="rsd-slide rsd-s-${s.id}" data-i="${i}" aria-label="${s.title}" style="background:${s.bg}">${s.html}</section>`).join("")}</div>
+    <div class="rsd-stage">${slides.map((s, i) => `<section class="rsd-slide rsd-s-${s.id}" data-i="${i}" aria-label="${s.title}" style="background:${s.bg}">${s.html}</section>`).join("")}<canvas class="rsd-fx" width="1920" height="1080" aria-hidden="true"></canvas></div>
     <div class="rsd-black" hidden></div>
     <div class="rsd-jump" hidden></div>
     <div class="rsd-bar" role="toolbar" aria-label="Presenter controls">
@@ -75,6 +79,13 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
     <div class="rsd-help" hidden><div><p class="rsd-help-title">PRESENTER KEYS</p><dl>${HELP.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl><p class="rsd-help-foot">Clickers work too: they send PgDn and PgUp.</p></div></div>`;
 
   const stage = root.querySelector<HTMLElement>(".rsd-stage")!;
+  const fx = root.querySelector<HTMLCanvasElement>(".rsd-fx")!;
+  // Everything still moving from the last slide change: stopped the moment the next one starts.
+  let motion: (() => void)[] = [];
+  const stopMotion = () => {
+    for (const f of motion) f();
+    motion = [];
+  };
   const els = [...root.querySelectorAll<HTMLElement>(".rsd-slide")];
   const bar = root.querySelector<HTMLElement>(".rsd-bar")!;
   const count = root.querySelector<HTMLElement>(".rsd-count")!;
@@ -157,6 +168,7 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
   const show = (i: number, toStep: number, dir: number) => {
     i = Math.max(0, Math.min(slides.length - 1, i));
     const prev = index;
+    stopMotion();
     for (const a of running) a.cancel();
     running = [];
     if (prev >= 0 && prev !== i) slides[prev]!.onLeave?.();
@@ -168,38 +180,25 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
       e.classList.toggle("rsd-on", e === el || (e === els[prev] && prev !== i && !reduced));
     root.style.background = slides[i]!.bg;
 
+    let reveal = 120;
     if (prev >= 0 && prev !== i && !reduced) {
       const out = els[prev]!;
-      const kind = slides[i]!.transition ?? "push";
-      const d = dir >= 0 ? 1 : -1;
-      const opt = {
-        duration: kind === "fade" ? 420 : 560,
-        easing: "cubic-bezier(0.33, 0.01, 0.2, 1)",
-      };
-      const a1 =
-        kind === "fade"
-          ? el.animate([{ opacity: 0 }, { opacity: 1 }], opt)
-          : el.animate([{ transform: `translateX(${d * 100}%)` }, { transform: "none" }], opt);
-      const a2 =
-        kind === "fade"
-          ? out.animate([{ opacity: 1 }, { opacity: 0 }], opt)
-          : out.animate(
-              [
-                { transform: "none", opacity: 1 },
-                { transform: `translateX(${-d * 35}%)`, opacity: 0.4 },
-              ],
-              opt,
-            );
-      a2.finished.then(
-        () => out !== els[index] && out.classList.remove("rsd-on"),
-        () => {},
-      );
-      void a1;
+      let tr: Transition;
+      if (dir < 0) tr = fadeBack(out, el);
+      else
+        tr =
+          (slides[i]!.transition ?? "scanner") === "iris"
+            ? iris(fx, out, el)
+            : scanner(fx, out, el);
+      motion.push(tr.cancel);
+      reveal = tr.revealAt;
+      if (dir > 0) motion.push(morph(stage, out, el, Math.max(0, reveal - 350)));
     }
     if (prev !== i) {
-      const lead = prev >= 0 && !reduced ? 260 : 120;
+      const lead = reveal;
       for (const e of el.querySelectorAll<HTMLElement>("[data-in]"))
         animateIn(e, lead + Number(e.dataset["in"]) * 150);
+      if (!reduced && dir >= 0) motion.push(weldTitles(el, lead, !!slides[i]!.longWeld));
       startAnims(i);
       slides[i]!.onEnter?.(el);
       const t = slides[i]!.timer;
@@ -399,6 +398,7 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
   wake();
 
   return () => {
+    stopMotion();
     for (const f of stops) f();
     for (const a of running) a.cancel();
     clearInterval(tick);
