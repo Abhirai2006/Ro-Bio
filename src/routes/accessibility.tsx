@@ -33,11 +33,12 @@ function Page() {
         <li>Robo Sumo can be played with the arrow keys or W, A, S and D, or with the on-screen buttons on a touch screen. Its messages are announced to screen readers.</li>
         <li>Robo, the robot that roams the site, announces what it says to screen readers. A "Rest Robo" button is always on screen at the bottom right and stops Robo moving. "Hide" removes Robo completely, and the choice is remembered. Robo can be opened with the keyboard: it is a button at the end of each page.</li>
         <li>Robo never blocks the games. It cannot be clicked while it stands in front of one.</li>
+        <li>Links, buttons and text fields keep their usual pointers. In high contrast mode the site's pixel pointer switches off and your system pointer comes back.</li>
       </ul>
 
       <h2>What does not work yet</h2>
       <ul>
-        <li>The robot arm toy on the home page needs a mouse or touch. It cannot be operated by keyboard yet.</li>
+        <li>The site's small pixel pointer replaces the pointer size set in your system. If you use a larger pointer, the site shows its own size instead, except on links, buttons and text fields.</li>
         <li>The games need quick reactions and fine control, which not everyone has.</li>
         <li>The live ECG, the robot companion and the X-ray view are decorative. Their meaning is also given in text, but the visuals themselves are not described in detail.</li>
         <li>We have not yet checked every colour pairing against WCAG contrast rules.</li>
