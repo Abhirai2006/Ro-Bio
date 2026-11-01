@@ -5,6 +5,8 @@ import {
   DISCUSSION_MINUTES,
   ICEBREAKER_MINUTES,
   STAGE_TEAMS,
+  STAGE_TEAMS_MAX,
+  TEAM_COUNT,
   missionByNumber,
   missions,
   route,
@@ -53,25 +55,52 @@ const MONTHS = [
   "December",
 ];
 
-const KEY = "stage-teams";
-const savedTeams = (): number[] => {
+// The stage teams. "auto" is the last list read from the judges' ranking, kept so a reload shows it at once.
+// "manual" is a list the head judge typed with Set teams. While it exists it wins, and the ranking is not used.
+const AUTO_KEY = "robo-spark-stage-auto";
+const MANUAL_KEY = "robo-spark-stage-manual";
+const readList = (key: string): number[] | null => {
   try {
-    const v = JSON.parse(localStorage.getItem(`robo-spark-${KEY}`) ?? "[]") as unknown;
-    return Array.isArray(v) ? v.filter((n): n is number => Number.isInteger(n)) : [];
+    const v = JSON.parse(localStorage.getItem(key) ?? "null") as unknown;
+    return Array.isArray(v) ? v.filter((n): n is number => Number.isInteger(n)) : null;
   } catch {
-    return [];
+    return null;
   }
 };
-let teamsInMemory: number[] | null = null;
-const currentTeams = () => teamsInMemory ?? savedTeams();
-const saveTeams = (t: number[]) => {
-  teamsInMemory = t;
+const writeList = (key: string, list: number[] | null) => {
   try {
-    localStorage.setItem(`robo-spark-${KEY}`, JSON.stringify(t));
+    if (list) localStorage.setItem(key, JSON.stringify(list));
+    else localStorage.removeItem(key);
   } catch {
-    /* fine */
+    /* fine: the lists also live in memory */
   }
 };
+const stage = {
+  auto: null as number[] | null,
+  manual: null as number[] | null,
+  loaded: false,
+  load() {
+    if (this.loaded) return;
+    this.loaded = true;
+    this.auto = readList(AUTO_KEY);
+    this.manual = readList(MANUAL_KEY);
+  },
+  setAuto(t: number[]) {
+    this.auto = t;
+    writeList(AUTO_KEY, t);
+  },
+  setManual(t: number[] | null) {
+    this.manual = t && t.length ? t : null;
+    writeList(MANUAL_KEY, this.manual);
+  },
+  shown() {
+    this.load();
+    return this.manual ?? this.auto ?? [];
+  },
+};
+
+const clock = (at: number) =>
+  new Date(at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
 export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] {
   const spark = events.find((e) => e.slug === "robo-spark");
@@ -108,16 +137,68 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
 
   let stageNote = "";
   let popper: ReturnType<typeof A.popper> | null = null;
-  const paintTeams = (el: HTMLElement, revealed: number) => {
-    const teams = currentTeams();
-    const slots = [...el.querySelectorAll<HTMLElement>(".rsd-slot")];
-    slots.forEach((s, k) => {
+  let poll = 0;
+  /** Puts the current stage list into the slots. The 6th slot only exists when 5th and 6th place are tied. */
+  const paintTeams = (el: HTMLElement) => {
+    const teams = stage.shown();
+    const six = teams.length > STAGE_TEAMS;
+    el.querySelector(".rsd-slots")!.classList.toggle("rsd-six", six);
+    el.querySelectorAll<HTMLElement>(".rsd-slot").forEach((s, k) => {
       const n = teams[k];
       s.querySelector(".rsd-slot-num")!.textContent = n ? String(n) : "?";
       s.classList.toggle("rsd-empty", !n);
-      void revealed;
+      if (k >= STAGE_TEAMS && !six) s.setAttribute("data-off", "");
+      else s.removeAttribute("data-off");
     });
     el.querySelector(".rsd-stage-note")!.textContent = stageNote;
+  };
+  const readRanking = (el: HTMLElement) => {
+    if (stage.manual) {
+      stageNote =
+        "Teams typed by hand. Press Set teams and leave it empty to go back to the judges' ranking.";
+      paintTeams(el);
+      return;
+    }
+    if (!hooks.stageTeams) {
+      stageNote = "No ranking in this copy. Press Set teams to type the numbers.";
+      paintTeams(el);
+      return;
+    }
+    hooks
+      .stageTeams()
+      .then((t) => {
+        if (stage.manual) return;
+        if (t.length) stage.setAuto(t);
+        stageNote = t.length
+          ? `From the judges' ranking, checked at ${clock(Date.now())}. Updates every 10 seconds.`
+          : "No scores yet. Checking again every 10 seconds.";
+      })
+      .catch(() => {
+        stageNote = stage.auto?.length
+          ? "Cannot reach the ranking right now. Showing the last list. Still trying."
+          : "Ranking not available on this laptop. Log in on the judge page, or press Set teams.";
+      })
+      .finally(() => paintTeams(el));
+  };
+  const setTeamsByHand = (el: HTMLElement) => {
+    const typed = window.prompt(
+      `Team numbers for the stage, separated by commas (up to ${STAGE_TEAMS_MAX}). Leave it empty to use the judges' ranking again.`,
+      stage.manual?.join(", ") ?? "",
+    );
+    if (typed === null) return;
+    const list = [
+      ...new Set(
+        typed
+          .split(/[^0-9]+/)
+          .filter(Boolean)
+          .map(Number)
+          .filter((n) => n >= 1 && n <= TEAM_COUNT),
+      ),
+    ]
+      .sort((a, b) => a - b)
+      .slice(0, STAGE_TEAMS_MAX);
+    stage.setManual(list);
+    readRanking(el);
   };
 
   return [
@@ -399,25 +480,18 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
         },
       },
       onEnter: (el) => {
-        paintTeams(el, 0);
-        if (!hooks.stageTeams) return;
-        stageNote = "Reading the judges' ranking…";
-        paintTeams(el, 0);
-        hooks
-          .stageTeams()
-          .then((t) => {
-            if (t.length) {
-              saveTeams(t);
-              stageNote = "";
-            } else stageNote = currentTeams().length ? "" : "No scores yet. Press Set teams.";
-          })
-          .catch(() => {
-            stageNote = currentTeams().length
-              ? ""
-              : "Ranking not available on this laptop. Press Set teams.";
-          })
-          .finally(() => paintTeams(el, 0));
+        const btn = el.querySelector<HTMLButtonElement>(".rsd-set-teams")!;
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          setTeamsByHand(el);
+        };
+        stageNote = stage.manual ? "" : "Reading the judges' ranking…";
+        paintTeams(el);
+        readRanking(el);
+        clearInterval(poll);
+        poll = window.setInterval(() => readRanking(el), 10000);
       },
+      onLeave: () => clearInterval(poll),
       onStep: (step, el) => {
         const slot = el.querySelector<HTMLElement>(`.rsd-slot[data-click="${step}"]`);
         if (!slot || !popper) return;
@@ -432,7 +506,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
           <p class="rsd-pix rsd-lilac rsd-kicker" data-in="0" data-fx="fade">CALLING TO THE STAGE</p>
           <div class="rsd-h2 rsd-paper" data-in="1" data-fx="rise">TEAM NUMBERS</div>
           <div class="rsd-slots">
-            ${Array.from({ length: STAGE_TEAMS }, (_, k) => `<div class="rsd-slot" data-click="${k + 1}" data-fx="pop"><span class="rsd-pix">TEAM</span><span class="rsd-slot-num">?</span></div>`).join("")}
+            ${Array.from({ length: STAGE_TEAMS_MAX }, (_, k) => `<div class="rsd-slot" data-click="${k + 1}" data-fx="pop"${k >= STAGE_TEAMS ? " data-off" : ""}><span class="rsd-pix">TEAM</span><span class="rsd-slot-num">?</span></div>`).join("")}
           </div>
           <p class="rsd-callup-foot rsd-paper" data-in="2" data-fx="fade">In order of team number. Come to the stage with your card!</p>
           <p class="rsd-stage-note rsd-pix"></p>
@@ -481,39 +555,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
   ];
 }
 
-/** Lets the presenter type the stage teams by hand when the ranking is not available on this laptop. */
-export function wireSetTeams(root: HTMLElement) {
-  const onClick = (e: Event) => {
-    const b = (e.target as HTMLElement).closest(".rsd-set-teams");
-    if (!b) return;
-    e.stopPropagation();
-    const now = currentTeams().join(", ");
-    const typed = window.prompt(
-      `Team numbers for the stage, separated by commas (up to ${STAGE_TEAMS}):`,
-      now,
-    );
-    if (typed === null) return;
-    const list = [
-      ...new Set(
-        typed
-          .split(/[^0-9]+/)
-          .filter(Boolean)
-          .map(Number)
-          .filter((n) => n >= 1 && n <= 999),
-      ),
-    ]
-      .sort((a, b) => a - b)
-      .slice(0, STAGE_TEAMS);
-    saveTeams(list);
-    const slide = b.closest<HTMLElement>(".rsd-slide");
-    if (slide)
-      slide.querySelectorAll<HTMLElement>(".rsd-slot").forEach((s, k) => {
-        s.querySelector(".rsd-slot-num")!.textContent = list[k] ? String(list[k]) : "?";
-        s.classList.toggle("rsd-empty", !list[k]);
-      });
-    const note = slide?.querySelector(".rsd-stage-note");
-    if (note) note.textContent = "";
-  };
-  root.addEventListener("click", onClick, true);
-  return () => root.removeEventListener("click", onClick, true);
+/** Kept so older callers still work. The Set teams button is now wired by the slide itself. */
+export function wireSetTeams(_root: HTMLElement) {
+  return () => {};
 }
