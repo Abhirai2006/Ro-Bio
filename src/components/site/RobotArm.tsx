@@ -142,8 +142,9 @@ export function RobotArm() {
     if (sim.heldKind && hit.point && (e.pointerType === "mouse" || p)) sim.carry(hit.point.x, hit.point.z);
     if (e.pointerType === "mouse") {
       scene.current.hover(hit.kind ?? null);
-      // The hand over a sample you can pick up, the arm's reticle everywhere else on the bench (see styles.css).
-      e.currentTarget.style.cursor = hit.kind && !sim.heldKind ? "grab" : "var(--cur-reticle)";
+      // The open gripper over a sample you can pick up, the closed one (holding a sample) while carrying,
+      // and the arm's reticle everywhere else on the bench. The images live in styles.css.
+      e.currentTarget.style.cursor = sim.heldKind ? "var(--cur-grabbing)" : hit.kind ? "var(--cur-grab)" : "var(--cur-reticle)";
     }
   };
   const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
