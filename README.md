@@ -6,7 +6,7 @@
 
 ### Where circuits meet cells.
 
-Robots, sensors and the human body, built by students of **Biomedical and Robotic Engineering** at Mysore University School of Engineering, Mysuru.
+Robots, sensors and the human body. A club for students of **every branch** at Mysore University School of Engineering, Mysuru.
 
 _Unauthorised innovation in progress!_
 
@@ -54,7 +54,7 @@ Open http://localhost:5173 and start tapping.
 
 ## Two kinds of machine, one loop
 
-Our branch studies robots and bodies. A line-following robot and a hand holding a cup solve the same problem: **sense, decide, act, feed back.** So this website runs that same loop, and it is a little bit of both.
+RO-BIO works on robots and bodies. A line-following robot and a hand holding a cup solve the same problem: **sense, decide, act, feed back.** So this website runs that same loop, and it is a little bit of both.
 
 Everything here was built by students: the 3D robot arm, the Robo Sumo physics, the robot called Robo who walks across every page, and the ECG that beats in the header. It is open, so you can read every line.
 
@@ -265,7 +265,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 <img src="public/favicon.png" alt="" width="40" />
 
-**RO-BIO**, Biomedical and Robotic Engineering, Mysore University School of Engineering
+**RO-BIO**, a robotics and biomedical club for every branch, Mysore University School of Engineering
 
 [Website](https://ro-bio.robiohub2026.workers.dev) | [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) | [LinkedIn](https://www.linkedin.com/in/ro-bio-hub-606b5840b/) | [Contact](https://ro-bio.robiohub2026.workers.dev/contact)
 
