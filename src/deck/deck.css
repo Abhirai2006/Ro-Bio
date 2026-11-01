@@ -1295,3 +1295,80 @@
   text-shadow: 8px 8px 0 var(--violet);
   white-space: nowrap;
 }
+
+/* The Robo Spark scenes: semi-realistic students with the spark robot */
+.rsd-art {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+.rsd-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.rsd-art-phones {
+  right: 40px;
+  bottom: 0;
+  width: 640px;
+  height: 610px;
+}
+.rsd-art-team {
+  left: 1000px;
+  bottom: 0;
+  width: 800px;
+  height: 509px;
+}
+.rsd-art-pen {
+  right: 30px;
+  bottom: 0;
+  width: 540px;
+  height: 820px;
+}
+.rsd-art-stage {
+  right: 40px;
+  bottom: 0;
+  width: 640px;
+  height: 700px;
+}
+/* make room for them */
+.rsd-tag {
+  font-size: 26px;
+  padding: 14px 26px;
+}
+.rsd-s-card .rsd-cards {
+  right: 600px;
+  gap: 60px;
+}
+.rsd-s-card .rsd-card {
+  min-height: 560px;
+  padding: 44px 40px;
+}
+.rsd-s-card .rsd-card-mission {
+  font-size: 50px;
+}
+.rsd-s-card .rsd-card-text {
+  font-size: 38px;
+}
+.rsd-s-card .rsd-card-back li {
+  font-size: 32px;
+}
+.rsd-s-card .rsd-card-hint {
+  font-size: 27px;
+}
+.rsd-s-stage .rsd-stage-cards {
+  max-width: 1080px;
+  gap: 30px;
+}
+.rsd-s-stage .rsd-stage-cards > div {
+  padding: 32px 30px;
+}
+.rsd-s-stage .rsd-stage-cards b {
+  font-size: 84px;
+}
+.rsd-s-stage .rsd-stage-cards .rsd-pix {
+  font-size: 28px;
+}
+.rsd-s-stage .rsd-stage-cards p {
+  font-size: 29px;
+}
