@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { canonical } from "@/lib/seo";
+import { scenePen } from "@/art/scenes";
 import {
   commonTicks,
   missionByNumber,
@@ -96,6 +97,9 @@ function JudgePage() {
   );
 }
 
+// Drawn once, with fixed ids, so the server and the browser produce exactly the same picture.
+const penArt = scenePen("judge-pen");
+
 function Gate({ onIn }: { onIn: (l: JudgeLogin) => void }) {
   const [passcode, setPasscode] = useState("");
   const [name, setName] = useState("");
@@ -120,6 +124,10 @@ function Gate({ onIn }: { onIn: (l: JudgeLogin) => void }) {
 
   return (
     <section className="mx-auto max-w-md px-4 py-14">
+      <div
+        className="mx-auto mb-6 h-56 w-40 [&_svg]:h-full [&_svg]:w-full"
+        dangerouslySetInnerHTML={{ __html: penArt }}
+      />
       <p className="font-pixel text-xs text-primary">ROBO SPARK / JUDGES ONLY</p>
       <h1 className="mt-3 text-4xl font-black">Judge scoring</h1>
       <p className="mt-3 text-muted-foreground">
