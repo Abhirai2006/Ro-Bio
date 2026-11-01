@@ -274,7 +274,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     {
       id: "title",
       transition: "iris",
-      longWeld: true,
+      weld: "long",
       title: "Robo Spark",
       bg: V.beige,
       anims: {
@@ -342,7 +342,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "weare",
-      transition: "iris",
+      weld: true,
       title: "We are RO-BIO",
       bg: V.beige,
       html: `
@@ -407,7 +407,6 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "group",
-      transition: "iris",
       title: "Meet your group",
       bg: V.beige,
       timer: ice,
@@ -510,7 +509,6 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "judges",
-      transition: "iris",
       title: "Judges at work",
       bg: V.ink,
       anims: { scan: A.scanner },
@@ -542,7 +540,6 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "callup",
-      transition: "iris",
       title: "Teams on stage",
       bg: V.ink,
       anims: {
@@ -613,6 +610,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "thanks",
+      weld: true,
       transition: "iris",
       title: "Thank you",
       bg: V.beige,
