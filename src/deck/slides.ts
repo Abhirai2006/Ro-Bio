@@ -56,13 +56,33 @@ const MONTHS = [
 ];
 
 // The stage teams. "auto" is the last list read from the judges' ranking, kept so a reload shows it at once.
+// It always follows the ranking, including when the ranking becomes empty because scores were removed.
 // "manual" is a list the head judge typed with Set teams. While it exists it wins, and the ranking is not used.
+// A typed list older than 3 hours (a rehearsal) is dropped, so it never hides the live ranking on the day.
 const AUTO_KEY = "robo-spark-stage-auto";
 const MANUAL_KEY = "robo-spark-stage-manual";
 const readList = (key: string): number[] | null => {
   try {
     const v = JSON.parse(localStorage.getItem(key) ?? "null") as unknown;
     return Array.isArray(v) ? v.filter((n): n is number => Number.isInteger(n)) : null;
+  } catch {
+    return null;
+  }
+};
+const MANUAL_HOURS = 3;
+const readManual = (): number[] | null => {
+  try {
+    const v = JSON.parse(localStorage.getItem(MANUAL_KEY) ?? "null") as {
+      teams?: unknown;
+      at?: unknown;
+    } | null;
+    if (!v || !Array.isArray(v.teams) || typeof v.at !== "number") return null;
+    if (Date.now() - v.at > MANUAL_HOURS * 3600000) {
+      localStorage.removeItem(MANUAL_KEY);
+      return null;
+    }
+    const teams = v.teams.filter((n): n is number => Number.isInteger(n));
+    return teams.length ? teams : null;
   } catch {
     return null;
   }
@@ -83,7 +103,7 @@ const stage = {
     if (this.loaded) return;
     this.loaded = true;
     this.auto = readList(AUTO_KEY);
-    this.manual = readList(MANUAL_KEY);
+    this.manual = readManual();
   },
   setAuto(t: number[]) {
     this.auto = t;
@@ -91,7 +111,13 @@ const stage = {
   },
   setManual(t: number[] | null) {
     this.manual = t && t.length ? t : null;
-    writeList(MANUAL_KEY, this.manual);
+    try {
+      if (this.manual)
+        localStorage.setItem(MANUAL_KEY, JSON.stringify({ teams: this.manual, at: Date.now() }));
+      else localStorage.removeItem(MANUAL_KEY);
+    } catch {
+      /* fine: it also lives in memory */
+    }
   },
   shown() {
     this.load();
@@ -168,15 +194,22 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
       .stageTeams()
       .then((t) => {
         if (stage.manual) return;
-        if (t.length) stage.setAuto(t);
+        stage.setAuto(t); // an empty ranking clears the slide too
+
         stageNote = t.length
           ? `From the judges' ranking, checked at ${clock(Date.now())}. Updates every 10 seconds.`
           : "No scores yet. Checking again every 10 seconds.";
       })
-      .catch(() => {
-        stageNote = stage.auto?.length
-          ? "Cannot reach the ranking right now. Showing the last list. Still trying."
-          : "Ranking not available on this laptop. Log in on the judge page, or press Set teams.";
+      .catch((err: Error) => {
+        // No passcode, or a wrong one: never show an old list. Only a network drop keeps the last list on screen.
+        if (/passcode/i.test(err.message ?? "")) {
+          stage.setAuto([]);
+          stageNote =
+            "This laptop is not logged in as a judge. Log in on the judge page, or press Set teams.";
+        } else
+          stageNote = stage.auto?.length
+            ? "Cannot reach the ranking right now. Showing the last list. Still trying."
+            : "Cannot reach the ranking right now. Still trying every 10 seconds.";
       })
       .finally(() => paintTeams(el));
   };
