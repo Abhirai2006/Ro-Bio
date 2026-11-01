@@ -234,12 +234,49 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     readRanking(el);
   };
 
+  // The 3D opening loads as soon as the deck does, so it is ready (and cached) before it is shown.
+  const opening3d = import("./opening3d");
+  let stopOpening: (() => void) | null = null;
+  let openingToken = 0;
+
   return [
     {
+      id: "opening",
+      title: "RO-BIO presents",
+      bg: "#120f26",
+      onEnter: (el) => {
+        const my = ++openingToken;
+        el.classList.remove("rsd-open-done", "rsd-no3d");
+        stopOpening?.();
+        stopOpening = null;
+        const host = el.querySelector<HTMLElement>(".rsd-3d-host")!;
+        opening3d
+          .then((m) => {
+            if (my !== openingToken) return;
+            stopOpening = m.mountOpening(host, { onDone: () => el.classList.add("rsd-open-done") });
+          })
+          .catch(() => el.classList.add("rsd-no3d", "rsd-open-done"));
+      },
+      onLeave: () => {
+        openingToken++;
+        stopOpening?.();
+        stopOpening = null;
+      },
+      html: `
+        <div class="rsd-3d-host"></div>
+        <img class="rsd-open-fallback" src="${img.poster}" alt="" width="1010" height="584">
+        <div class="rsd-open-end">
+          <div class="rsd-badge rsd-badge-open" data-morph="logo"><img src="${img.logo}" alt="RO-BIO logo" width="150" height="150"></div>
+          <p class="rsd-pix rsd-open-kicker">RO-BIO PRESENTS</p>
+          <p class="rsd-open-title">ROBO SPARK</p>
+        </div>`,
+    },
+    {
       id: "title",
+      transition: "iris",
+      longWeld: true,
       title: "Robo Spark",
       bg: V.beige,
-      transition: "fade",
       anims: {
         sparks: A.sparks,
         term: A.terminal(["> HELLO, FIRST YEARS", "> ROBO SPARK: ONLINE"]),
@@ -255,7 +292,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
           </div>
           <canvas class="rsd-term" data-anim="term" width="760" height="104" aria-hidden="true"></canvas>
         </div>
-        <div class="rsd-sticker" data-in="5" data-fx="pop" style="transform: rotate(8deg)"><img src="${img.logo}" alt="RO-BIO logo" width="180" height="180"></div>
+        <div class="rsd-sticker" data-morph="logo" style="transform: rotate(8deg)"><img src="${img.logo}" alt="RO-BIO logo" width="180" height="180"></div>
         <div class="rsd-poster" data-in="1" data-fx="right">
           <img src="${img.poster}" alt="Robo Spark poster art: a girl with a magnifying glass and an astronaut inspect a tiny sparking robot" width="1010" height="584">
           <canvas class="rsd-sparks" data-anim="sparks" width="480" height="320" aria-hidden="true"></canvas>
@@ -267,6 +304,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
       bg: V.violet,
       html: `
         <div class="rsd-stripes rsd-stripes-r rsd-stripes-beige"></div>
+        <div class="rsd-badge rsd-badge-hands" data-morph="logo" style="transform: rotate(-6deg)"><img src="${img.logo}" alt="" width="120" height="120"></div>
         <div class="rsd-hands-left">
           ${dup("HANDS<br>UP!", "rsd-light rsd-hands-big")}
           <div class="rsd-sticker-text rsd-pink" data-in="3" data-fx="pop" style="transform: rotate(-4deg)">YES, YOU!</div>
@@ -291,6 +329,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
           <div class="rsd-h2" data-in="0" data-fx="left"><span class="rsd-ink">TODAY'S</span> <span class="rsd-violet">ROUTE</span></div>
           <p class="rsd-pix rsd-sub" data-in="1" data-fx="fade">${stops} STOPS · 75 MINUTES · 0 PHONES</p>
         </div>
+        <div class="rsd-badge rsd-badge-route" data-morph="logo" style="transform: rotate(6deg)"><img src="${img.logo}" alt="" width="120" height="120"></div>
         <div class="rsd-route">
           <canvas data-anim="signal" width="1584" height="200" aria-hidden="true"></canvas>
           <ol>${route
@@ -303,6 +342,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "weare",
+      transition: "iris",
       title: "We are RO-BIO",
       bg: V.beige,
       html: `
@@ -310,13 +350,14 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
         <div class="rsd-weare-col">
           <div class="rsd-h2 rsd-ink" data-in="0" data-fx="left">WE ARE</div>
           ${dup("RO-BIO", "rsd-weare-big")}
-          <p class="rsd-lead rsd-deep" data-in="2" data-fx="fade">${esc(site.branch)} students at MUSE Mysuru.</p>
+          <p class="rsd-lead rsd-deep" data-in="2" data-fx="fade">A club for students of every branch at MUSE Mysuru.</p>
           <ul class="rsd-stats">
             <li data-in="3" data-fx="left"><b>${coreTeamSize}</b><span>core members, all students like you</span></li>
             <li data-in="4" data-fx="left"><b>${startYear}</b><span>started in ${MONTHS[startMonth - 1]}, right here at MUSE</span></li>
             <li data-in="5" data-fx="left"><b>SAT</b><span>sessions with engineers from companies like L&amp;T</span></li>
           </ul>
         </div>
+        <div class="rsd-badge rsd-badge-weare" data-morph="logo" style="transform: rotate(-4deg)"><img src="${img.logo}" alt="RO-BIO logo" width="220" height="220"></div>
         <div class="rsd-weare-art" data-in="1" data-fx="rise"><img src="${img.astronaut}" alt="The Robo Spark astronaut giving a thumbs up" width="510" height="584"></div>`,
     },
     {
@@ -366,6 +407,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "group",
+      transition: "iris",
       title: "Meet your group",
       bg: V.beige,
       timer: ice,
@@ -445,9 +487,9 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "go",
+      transition: "iris",
       title: "Ready, set, go",
       bg: V.violet,
-      transition: "fade",
       anims: { burst: A.burst },
       html: `
         <canvas class="rsd-full" data-anim="burst" width="1920" height="1080" aria-hidden="true"></canvas>
@@ -461,7 +503,6 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
       id: "timer",
       title: `${DISCUSSION_MINUTES}-minute timer`,
       bg: V.beige,
-      transition: "fade",
       timer: discussion,
       anims: { big: A.bigTimer(discussion, "ROBO SPARK · GROUP DISCUSSION") },
       html: `<canvas class="rsd-full" data-anim="big" width="1920" height="1080" aria-label="${DISCUSSION_MINUTES}-minute discussion countdown"></canvas>
@@ -469,6 +510,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "judges",
+      transition: "iris",
       title: "Judges at work",
       bg: V.ink,
       anims: { scan: A.scanner },
@@ -500,9 +542,9 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
     },
     {
       id: "callup",
+      transition: "iris",
       title: "Teams on stage",
       bg: V.ink,
-      transition: "fade",
       anims: {
         pop: (X, W, H) => {
           popper = A.popper(X, W, H);
@@ -564,16 +606,16 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
             <div class="rsd-qr" data-in="3" data-fx="pop" style="transform: rotate(2deg)">
               <span class="rsd-qr-box">[QR CODE]</span>
               <span>attendance and certificate form</span>
-              <img src="${img.sparkbot}" alt="" width="130" height="72">
+              <img src="${img.sparkbot}" alt="" width="130" height="72" data-morph="bot">
             </div>
           </div>
         </div>`,
     },
     {
       id: "thanks",
+      transition: "iris",
       title: "Thank you",
       bg: V.beige,
-      transition: "fade",
       anims: { conf: A.confetti },
       html: `
         <canvas class="rsd-full" data-anim="conf" width="1920" height="1080" aria-hidden="true"></canvas>
@@ -583,6 +625,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
           <p class="rsd-lead rsd-ink" data-in="3" data-fx="fade">Your robotics journey starts today.</p>
           <p class="rsd-pix rsd-deep rsd-thanks-foot" data-in="4" data-fx="fade">ROBO SPARK${date ? ` · ${esc(date)}` : ""}</p>
         </div>
+        <img class="rsd-thanks-bot" src="${img.sparkbot}" alt="" width="130" height="72" data-morph="bot">
         <div class="rsd-thanks-art" data-in="1" data-fx="right"><img src="${img.poster}" alt="The Robo Spark characters with the sparking robot" width="1010" height="584"></div>`,
     },
   ];
