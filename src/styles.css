@@ -104,19 +104,36 @@
 }
 
 /*
- * Cursors: a pixel arrow in the club's violet everywhere, and the arm's reticle over the robot arm (set in RobotArm.tsx).
- * Links and buttons keep the hand, text fields keep the text cursor. Both images are at most 32 px, the size every
- * browser accepts. Browsers that cannot read image-set() get the 1x image; anything that cannot load it gets the
- * normal system cursor, named last in each list.
+ * Cursors, drawn in pixels from the club's own pieces: an arrow with Robo's blue visor eye, Robo's robot hand
+ * pointing (like the hand on the Robo Spark poster) on links and buttons, the arm's two finger gripper on anything
+ * you can pick up, open to grab and closed while holding, and the arm's reticle over the robot arm (RobotArm.tsx).
+ * Text fields keep the text cursor. Every image is at most 32 px, the size every browser accepts. Browsers that
+ * cannot read image-set() get the 1x image; anything that cannot load it gets the system cursor named last.
  */
 :root {
   --cur-arrow: url("/cursors/arrow.png") 2 2, default;
+  --cur-hand: url("/cursors/hand.png") 11 2, pointer;
+  --cur-grab: url("/cursors/grab.png") 14 20, grab;
+  --cur-grabbing: url("/cursors/grabbing.png") 14 20, grabbing;
   --cur-reticle: url("/cursors/reticle.png") 15 15, crosshair;
 }
 @supports (cursor: image-set(url("/cursors/arrow.png") 1x) 2 2, default) {
   :root {
     --cur-arrow: image-set(url("/cursors/arrow.png") 1x, url("/cursors/arrow@2x.png") 2x) 2 2, default;
+    --cur-hand: image-set(url("/cursors/hand.png") 1x, url("/cursors/hand@2x.png") 2x) 11 2, pointer;
+    --cur-grab: image-set(url("/cursors/grab.png") 1x, url("/cursors/grab@2x.png") 2x) 14 20, grab;
+    --cur-grabbing: image-set(url("/cursors/grabbing.png") 1x, url("/cursors/grabbing@2x.png") 2x) 14 20, grabbing;
     --cur-reticle: image-set(url("/cursors/reticle.png") 1x, url("/cursors/reticle@2x.png") 2x) 15 15, crosshair;
+  }
+}
+/* High contrast mode: people there often rely on their own system cursor scheme, so every cursor goes back to it. */
+@media (forced-colors: active) {
+  :root {
+    --cur-arrow: auto;
+    --cur-hand: pointer;
+    --cur-grab: grab;
+    --cur-grabbing: grabbing;
+    --cur-reticle: crosshair;
   }
 }
 @layer base {
@@ -128,21 +145,83 @@
   [contenteditable="true"] {
     cursor: text;
   }
-  /* Browsers give plain buttons the system arrow; anything you can press gets the hand instead. */
-  button:not(:disabled),
-  [role="button"],
-  summary,
-  select {
-    cursor: pointer;
-  }
   button:disabled {
     cursor: not-allowed;
   }
 }
-/* High contrast mode: people there often rely on their own system cursor scheme, so leave it alone. */
-@media (forced-colors: active) {
-  html {
-    cursor: auto;
+/*
+ * Outside the layers on purpose, so Tailwind's cursor-pointer and cursor-grab classes draw Robo's hand and the
+ * gripper too. :where() keeps the hand rule weakest, so a grab class on a button still shows the gripper.
+ */
+:where(a[href], button:not(:disabled), [role="button"], summary, select, label[for]),
+.cursor-pointer:not(:disabled) {
+  cursor: var(--cur-hand);
+}
+.cursor-grab {
+  cursor: var(--cur-grab);
+}
+.cursor-grabbing,
+.cursor-grab:active {
+  cursor: var(--cur-grabbing);
+}
+
+/* The click spark (ClickSpark.tsx): a 4 point flash and six pixels flying out, gone in half a second. */
+.click-spark {
+  position: fixed;
+  z-index: 80;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.click-spark::before {
+  content: "";
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  background: var(--lilac);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: spark-flash 0.35s ease-out forwards;
+}
+.click-spark > span {
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  background: var(--lens);
+  animation: spark-fly 0.5s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.click-spark > span:nth-child(3n + 2) {
+  background: var(--violet);
+}
+.click-spark > span:nth-child(3n) {
+  background: var(--lilac);
+}
+@keyframes spark-fly {
+  from {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0.5);
+    opacity: 0;
+  }
+}
+@keyframes spark-flash {
+  from {
+    transform: scale(0.4);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .click-spark {
+    display: none;
   }
 }
 
@@ -367,7 +446,7 @@
   font-size: 10px;
   color: var(--paper);
   background: transparent;
-  cursor: pointer;
+  cursor: var(--cur-hand);
   animation: boot-fade-in 0.3s ease-out 0.4s both;
 }
 .boot-skip:hover {
@@ -402,7 +481,7 @@
   border: 0;
   padding: 0;
   background: none;
-  cursor: pointer;
+  cursor: var(--cur-hand);
   border-radius: 12px;
 }
 .boot-robo,
@@ -598,7 +677,7 @@
   font-weight: 800;
   font-size: 16px;
   box-shadow: 4px 4px 0 0 var(--lens);
-  cursor: pointer;
+  cursor: var(--cur-hand);
   opacity: 0;
   animation: boot-pop-in 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) 4.45s both, boot-nudge 1.2s ease-in-out 5s infinite;
 }
