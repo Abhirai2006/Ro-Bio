@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { canonical } from "@/lib/seo";
-import { STAGE_TEAMS } from "@/lib/robo-spark";
+import { STAGE_TEAMS, STAGE_TEAMS_MAX } from "@/lib/robo-spark";
 import { judgeApi, readLogin, stageTeams, type Score } from "@/lib/judging";
 import { mountDeck } from "@/deck/engine";
 import { buildSlides, wireSetTeams } from "@/deck/slides";
@@ -46,7 +46,7 @@ async function rankingTeams() {
   const login = readLogin();
   if (!login) throw new Error("No judge passcode in this browser.");
   const { scores } = await judgeApi<{ scores: Score[] }>(login.passcode, "scores");
-  return stageTeams(scores, STAGE_TEAMS);
+  return stageTeams(scores, STAGE_TEAMS, STAGE_TEAMS_MAX);
 }
 
 function Present() {
