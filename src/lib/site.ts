@@ -3,7 +3,10 @@ export const site = {
   name: "RO-BIO",
   url: "https://ro-bio.robiohub2026.workers.dev", // change this when a custom domain is connected
   tagline: "Unauthorised innovation in progress!",
+  // The department the club's faculty come from. RO-BIO itself is open to students of every branch: see `openTo`.
   branch: "Biomedical and Robotic Engineering",
+  focus: "robotics and biomedical engineering", // what the club works on
+  openTo: "students of every branch", // who can join
   college: "Mysore University School of Engineering",
   address: "Mysore University School of Engineering, Manasa Gangotri Campus, Mysore-570006",
   mapUrl: "https://maps.app.goo.gl/8douKdj7mEiE7aDKA", // the club's own pin
