@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { SiteFooter, SiteHeader } from "@/components/site/parts";
 import { RoboLayer } from "@/components/site/RoboLayer";
+import { ClickSpark } from "@/components/site/ClickSpark";
 import { BootScreen } from "@/components/site/BootScreen";
 import { NotFound } from "@/components/site/NotFound";
 import { site } from "@/lib/site";
@@ -133,6 +134,7 @@ function RootComponent() {
       </main>
       <SiteFooter />
       <RoboLayer />
+      <ClickSpark />
     </QueryClientProvider>
   );
 }
