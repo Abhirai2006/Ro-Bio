@@ -19,7 +19,7 @@ export const Route = createFileRoute("/privacy")({
 function Page() {
   return (
     <LegalPage label="LEGAL / PRIVACY" title="Privacy Policy">
-      <p>This policy covers the RO-BIO website, the site of the {site.branch} student club at {site.college}, Mysuru. It is written in plain language on purpose.</p>
+      <p>This policy covers the RO-BIO website, the site of RO-BIO, a student club for every branch at {site.college}, Mysuru. It is written in plain language on purpose.</p>
 
       <h2>The short version</h2>
       <p>We do not ask you for personal information on this site. There are no accounts, forms, comments or newsletters. We do not use analytics or advertising trackers, and the site does not set cookies. The only exception is the Google map on the Contact and Bot Forge pages, which comes from Google.</p>
