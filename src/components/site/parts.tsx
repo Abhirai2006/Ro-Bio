@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { daysBetween, eventDate, events, site, todayInIndia } from "@/lib/site";
+import { daysBetween, eventDate, nextEvent, site, todayInIndia } from "@/lib/site";
 import logo from "@/assets/robio-logo.jpg";
 import { HeaderEcg } from "@/components/site/HeaderEcg";
 
@@ -118,7 +118,7 @@ function MobileNav({ onClose, toggle }: { onClose: (refocus?: boolean) => void; 
   const panel = useRef<HTMLDivElement>(null);
   const [top, setTop] = useState(0);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
-  const next = events[0]!;
+  const next = nextEvent(todayInIndia());
 
   useEffect(() => {
     const root = document.documentElement;
