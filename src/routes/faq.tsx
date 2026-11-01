@@ -4,7 +4,7 @@ import { PageIntro } from "@/components/site/parts";
 import { faqs } from "@/lib/faq";
 import { canonical } from "@/lib/seo";
 
-const desc = "Straight answers about RO-BIO, the Biomedical and Robotic Engineering club at Mysore University School of Engineering, and its first event, Bot Forge.";
+const desc = "Straight answers about RO-BIO, the robotics and biomedical engineering club for every branch at Mysore University School of Engineering, and its first event, Bot Forge.";
 
 export const Route = createFileRoute("/faq")({
   head: () => ({
