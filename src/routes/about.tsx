@@ -9,10 +9,10 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     links: [canonical("/about")],
     meta: [
-      { title: "About RO-BIO | Biomedical and Robotic Engineering club" },
-      { name: "description", content: "Who RO-BIO is: the student club of Biomedical and Robotic Engineering at MUSE, Mysuru, since 20 May 2026." },
+      { title: "About RO-BIO | Robotics and biomedical club for every branch" },
+      { name: "description", content: "Who RO-BIO is: a robotics and biomedical engineering club at MUSE, Mysuru, open to students of every branch since 20 May 2026." },
       { property: "og:title", content: "About RO-BIO" },
-      { property: "og:description", content: "The student club of Biomedical and Robotic Engineering at MUSE, Mysuru." },
+      { property: "og:description", content: "A robotics and biomedical engineering club at MUSE, Mysuru, open to every branch." },
     ],
   }),
   component: About,
@@ -42,8 +42,8 @@ const loops: Loop[] = [
 function About() {
   return (
     <>
-      <PageIntro label="ABOUT / WHO WE ARE" title="One branch. Two kinds of machine.">
-        RO-BIO is the club of the {site.branch} branch at {site.college}. We started on 20 May 2026 and we're {coreTeamSize} people
+      <PageIntro label="ABOUT / WHO WE ARE" title="Every branch. Two kinds of machine.">
+        RO-BIO is a {site.focus} club at {site.college}, open to {site.openTo}. We started on 20 May 2026 and we're {coreTeamSize} people
         right now.
       </PageIntro>
       <section className="mx-auto grid max-w-6xl gap-6 px-4 pt-16 md:grid-cols-[1fr_1.3fr]" aria-label="Vision and mission">
@@ -69,7 +69,7 @@ function About() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-black md:text-3xl">Sense, decide, act, feed back.</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Our branch studies both. A line-following robot and a hand holding a cup solve the same kind of problem, so we put them side by side.
+          RO-BIO works on both. A line-following robot and a hand holding a cup solve the same kind of problem, so we put them side by side.
         </p>
         <FeedbackLoops loops={loops} />
       </section>
