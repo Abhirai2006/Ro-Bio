@@ -1233,14 +1233,6 @@
   width: 220px;
   height: 220px;
 }
-.rsd-thanks-bot {
-  position: absolute;
-  left: 700px;
-  bottom: 40px;
-  width: 195px;
-  height: 108px;
-  z-index: 2;
-}
 
 /* 0. The 3D opening */
 .rsd-3d-host {
