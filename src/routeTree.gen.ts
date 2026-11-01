@@ -23,6 +23,9 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WorkshopsRouteImport } from './routes/workshops'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
+import { Route as EventsRoboSparkJudgeRouteImport } from './routes/events.robo-spark.judge'
+import { Route as EventsRoboSparkMissionsRouteImport } from './routes/events.robo-spark.missions'
+import { Route as EventsRoboSparkPresentRouteImport } from './routes/events.robo-spark.present'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -94,6 +97,21 @@ const EventsSlugRoute = EventsSlugRouteImport.update({
   path: '/events/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsRoboSparkJudgeRoute = EventsRoboSparkJudgeRouteImport.update({
+  id: '/events/robo-spark/judge',
+  path: '/events/robo-spark/judge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoboSparkMissionsRoute = EventsRoboSparkMissionsRouteImport.update({
+  id: '/events/robo-spark/missions',
+  path: '/events/robo-spark/missions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsRoboSparkPresentRoute = EventsRoboSparkPresentRouteImport.update({
+  id: '/events/robo-spark/present',
+  path: '/events/robo-spark/present',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +128,9 @@ export interface FileRoutesByFullPath {
   '/workshops': typeof WorkshopsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/events/': typeof EventsIndexRoute
+  '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
+  '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
+  '/events/robo-spark/present': typeof EventsRoboSparkPresentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +147,9 @@ export interface FileRoutesByTo {
   '/workshops': typeof WorkshopsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/events': typeof EventsIndexRoute
+  '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
+  '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
+  '/events/robo-spark/present': typeof EventsRoboSparkPresentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +167,9 @@ export interface FileRoutesById {
   '/workshops': typeof WorkshopsRoute
   '/events/$slug': typeof EventsSlugRoute
   '/events/': typeof EventsIndexRoute
+  '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
+  '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
+  '/events/robo-spark/present': typeof EventsRoboSparkPresentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +188,9 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/events/$slug'
     | '/events/'
+    | '/events/robo-spark/judge'
+    | '/events/robo-spark/missions'
+    | '/events/robo-spark/present'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +207,9 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/events/$slug'
     | '/events'
+    | '/events/robo-spark/judge'
+    | '/events/robo-spark/missions'
+    | '/events/robo-spark/present'
   id:
     | '__root__'
     | '/'
@@ -193,6 +226,9 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/events/$slug'
     | '/events/'
+    | '/events/robo-spark/judge'
+    | '/events/robo-spark/missions'
+    | '/events/robo-spark/present'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +246,9 @@ export interface RootRouteChildren {
   WorkshopsRoute: typeof WorkshopsRoute
   EventsSlugRoute: typeof EventsSlugRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  EventsRoboSparkJudgeRoute: typeof EventsRoboSparkJudgeRoute
+  EventsRoboSparkMissionsRoute: typeof EventsRoboSparkMissionsRoute
+  EventsRoboSparkPresentRoute: typeof EventsRoboSparkPresentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +351,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/robo-spark/judge': {
+      id: '/events/robo-spark/judge'
+      path: '/events/robo-spark/judge'
+      fullPath: '/events/robo-spark/judge'
+      preLoaderRoute: typeof EventsRoboSparkJudgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/robo-spark/missions': {
+      id: '/events/robo-spark/missions'
+      path: '/events/robo-spark/missions'
+      fullPath: '/events/robo-spark/missions'
+      preLoaderRoute: typeof EventsRoboSparkMissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/robo-spark/present': {
+      id: '/events/robo-spark/present'
+      path: '/events/robo-spark/present'
+      fullPath: '/events/robo-spark/present'
+      preLoaderRoute: typeof EventsRoboSparkPresentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +390,9 @@ const rootRouteChildren: RootRouteChildren = {
   WorkshopsRoute: WorkshopsRoute,
   EventsSlugRoute: EventsSlugRoute,
   EventsIndexRoute: EventsIndexRoute,
+  EventsRoboSparkJudgeRoute: EventsRoboSparkJudgeRoute,
+  EventsRoboSparkMissionsRoute: EventsRoboSparkMissionsRoute,
+  EventsRoboSparkPresentRoute: EventsRoboSparkPresentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
