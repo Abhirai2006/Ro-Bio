@@ -29,16 +29,20 @@ export const faculty: { name: string; role: string; phone?: string }[] = [
   { name: "Archana G", role: "Faculty coordinator", phone: "9481832235" },
 ];
 
-export type Activity = { name: string; tag: "EVENT" | "EXPO" };
+export type Activity = { name: string; tag: "EVENT" | "EXPO" | "SESSION" };
 
 export type ClubEvent = {
   slug: string;
   title: string;
   kind: string;
   date: string | null; // YYYY-MM-DD, India time. null shows "Date coming soon" everywhere
+  time?: string; // like "11:45 am to 1:00 pm"; left out while it is not announced
   venue: string;
+  audience?: string; // who it is for, when it is not open to everyone
+  about?: string; // one or two plain sentences for the event page
+  poster?: string; // a file in public/, like "/events/robo-spark.jpg"
   activities: Activity[];
-  registration: "coming-soon" | "open" | "closed";
+  registration: "coming-soon" | "open" | "closed" | "none"; // "none": nothing to register for, so the page says nothing
 };
 
 export const events: ClubEvent[] = [
@@ -54,7 +58,43 @@ export const events: ClubEvent[] = [
     ],
     registration: "coming-soon",
   },
+  {
+    slug: "robo-spark",
+    title: "Robo Spark",
+    kind: "Interactive group discussion",
+    date: "2026-11-03",
+    time: "11:45 am to 1:00 pm",
+    venue: "Prof. K.S. Rangappa Auditorium, School of Planning and Architecture, University of Mysore",
+    audience: "First year students of MUSE",
+    about: "An interactive session for this year's first years. Teams of five to ten take on a robotics problem, and a few teams present their solution on stage.",
+    poster: "/events/robo-spark.jpg",
+    activities: [
+      { name: "Icebreaker", tag: "SESSION" },
+      { name: "Group discussion on a robotics problem", tag: "SESSION" },
+      { name: "Teams present on the podium", tag: "SESSION" },
+    ],
+    registration: "none",
+  },
 ];
+
+/** Bot Forge, the club's first competition. Named here because several pages talk about it whatever comes next. */
+export const botForge = events.find((e) => e.slug === "bot-forge")!;
+
+/** Events still to come on `today` (YYYY-MM-DD): dated ones in date order, then the ones whose date is not fixed yet. */
+export function upcomingEvents(today: string) {
+  const dated = events.filter((e) => e.date && e.date >= today).sort((a, b) => a.date!.localeCompare(b.date!));
+  return [...dated, ...events.filter((e) => !e.date)];
+}
+
+/** Events whose date has passed, newest first. */
+export function pastEvents(today: string) {
+  return events.filter((e) => e.date && e.date < today).sort((a, b) => b.date!.localeCompare(a.date!));
+}
+
+/** The event to put first on the home page: the next dated one, or Bot Forge while nothing is dated. */
+export function nextEvent(today: string) {
+  return upcomingEvents(today)[0] ?? botForge;
+}
 
 export function formatDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number) as [number, number, number];
