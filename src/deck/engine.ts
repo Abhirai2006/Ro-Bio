@@ -10,8 +10,8 @@ export type SlideDef = {
   bg: string;
   /** How the deck arrives on this slide going forward: the laser scanner (default) or the camera iris. */
   transition?: "scanner" | "iris";
-  /** Weld this slide's titles slowly, for the big title slide. */
-  longWeld?: boolean;
+  /** Weld this slide's big title with the print head: "long" for the main title slide. Only a few slides use it. */
+  weld?: boolean | "long";
   html: string;
   anims?: Record<string, Anim>;
   timer?: Countdown;
@@ -198,7 +198,8 @@ export function mountDeck(root: HTMLElement, slides: SlideDef[], opts: DeckOptio
       const lead = reveal;
       for (const e of el.querySelectorAll<HTMLElement>("[data-in]"))
         animateIn(e, lead + Number(e.dataset["in"]) * 150);
-      if (!reduced && dir >= 0) motion.push(weldTitles(el, lead, !!slides[i]!.longWeld));
+      const w = slides[i]!.weld;
+      if (w && !reduced && dir >= 0) motion.push(weldTitles(el, lead, w === "long"));
       startAnims(i);
       slides[i]!.onEnter?.(el);
       const t = slides[i]!.timer;
