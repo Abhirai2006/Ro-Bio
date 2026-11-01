@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FORGE_IDLE, GREET, sectionLine } from "./robo-talk";
-import { coreTeamSize, events, formatDate } from "./site";
+import { botForge, coreTeamSize, events, formatDate } from "./site";
 
 describe("robo talk", () => {
   it("talks about the section by name", () => {
@@ -13,14 +13,17 @@ describe("robo talk", () => {
     expect(sectionLine("Core team")).toMatch(new RegExp(`${coreTeamSize}|core team`, "i"));
   });
   it("greets the event page with its own facts", () => {
-    expect(GREET[`/events/${events[0]!.slug}`]).toContain(events[0]!.title);
+    for (const e of events) expect(GREET[`/events/${e.slug}`]).toContain(e.title);
   });
   it("takes dates and registration from site.ts", () => {
-    const bf = events[0]!;
+    const bf = botForge;
     const lines = Array.from({ length: 40 }, () => sectionLine("Bot Forge")).join(" ");
     expect(lines).toContain(bf.date ? formatDate(bf.date).replace(/^[A-Za-z]{3},\s*/, "").replace(/\s\d{4}$/, "") : "Date coming soon");
     if (bf.registration === "coming-soon") expect(lines).toMatch(/not open yet/);
     expect(FORGE_IDLE).toContain(bf.title);
+  });
+  it("talks about Robo Spark by name", () => {
+    expect(sectionLine("Robo Spark")).toMatch(/Robo Spark/);
   });
   it("reads out unknown headings instead of making things up", () => {
     expect(sectionLine("Some new heading")).toContain("Some new heading");
