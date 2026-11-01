@@ -279,7 +279,7 @@ export function SiteFooter() {
         <div>
           <p className="font-display text-2xl font-black italic">RO-BIO</p>
           <p className="mt-2 text-sm opacity-80">
-            The student club of {site.branch}, {site.college}.
+            A {site.focus} club at {site.college}, open to {site.openTo}.
           </p>
         </div>
         <div className="text-sm">
