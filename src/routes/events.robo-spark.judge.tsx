@@ -326,8 +326,14 @@ function Scoring({
     }
   };
 
+  const waitingHere = queue.some((q) => q.team === team && q.judge.toLowerCase() === me);
   const clear = async () => {
-    if (!mine(team) || !window.confirm(`Remove your score for team ${team}?`)) return;
+    if ((!mine(team) && !waitingHere) || !window.confirm(`Remove your score for team ${team}?`))
+      return;
+    // Drop any copy waiting for the network first, so it cannot come back later.
+    const q = readQueue().filter((x) => !(x.team === team && x.judge.toLowerCase() === me));
+    writeQueue(q);
+    setQueue(q);
     try {
       await judgeApi(
         login.passcode,
@@ -340,7 +346,13 @@ function Scoring({
       setDirty(false);
       setStatus({ kind: "ok", text: `Removed your score for team ${team}.` });
     } catch (err) {
-      setStatus({ kind: "err", text: (err as Error).message });
+      const msg = (err as Error).message;
+      setStatus({
+        kind: "err",
+        text: /passcode/i.test(msg)
+          ? msg
+          : `Could not remove team ${team}: no network. Try again when the signal is back.`,
+      });
     }
   };
 
@@ -364,7 +376,10 @@ function Scoring({
             className="text-primary underline"
             onClick={() => {
               const n = cleanName(
-                window.prompt("Your name, as other judges should see it:", login.name),
+                window.prompt(
+                  "Your name, as other judges should see it. Scores you already saved stay under your old name.",
+                  login.name,
+                ),
               );
               if (n) onRename(n);
             }}
@@ -498,7 +513,7 @@ function Scoring({
             />
           </label>
 
-          {mine(team) && (
+          {(mine(team) || waitingHere) && (
             <button
               type="button"
               onClick={() => void clear()}
