@@ -15,7 +15,7 @@ const COL = {
 };
 
 /** Total length of the build, in seconds. After it the robot keeps idling: blinking, looking around. */
-export const OPENING_SECONDS = 15.5;
+export const OPENING_SECONDS = 19;
 
 type Opts = { onDone?: () => void };
 
@@ -25,6 +25,8 @@ const SHOULDER_H = 0.075; // shoulder pivot above the yaw turret
 const L1 = 0.34; // upper arm
 const L2 = 0.3; // forearm
 const TOOL = 0.165; // wrist pivot to the middle of the finger pads
+const R_WHEEL = 0.03; // the small robot's wheel radius
+const G = 9.81; // m/s²
 
 type Pose = { yaw: number; a1: number; a2: number; a3: number; roll: number; grip: number };
 /** How far the parts are turned, so the finished robot faces the camera. */
@@ -110,8 +112,10 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   const cam = new THREE.PerspectiveCamera(30, 1920 / 1080, 0.02, 20);
 
   // Lighting: a soft key from above front, a violet rim from behind, a pink kicker, and a pool of light on the bench.
+  // The lamps follow the inverse-square law (decay 2, no cut-off), as real light does: half the distance, four times
+  // the light. Intensities are in candela, set so the bench is as bright as it was. The rim is a distant source.
   scene.add(new THREE.HemisphereLight(0xdcd8ff, 0x1e1a3c, 0.28));
-  const key = new THREE.SpotLight(0xfff4ea, 30, 6, Math.PI / 5.5, 0.6, 1.4);
+  const key = new THREE.SpotLight(0xfff4ea, 48, 0, Math.PI / 5.5, 0.6, 2);
   key.position.set(0.6, 2.1, 1.3);
   key.target.position.set(0, 0.1, 0.05);
   key.castShadow = true;
@@ -123,7 +127,7 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   const rim = new THREE.DirectionalLight(0x8f7bff, 2.4);
   rim.position.set(-1.2, 1.2, -1.6);
   scene.add(rim);
-  const kick = new THREE.PointLight(COL.pink, 1.4, 2.2, 1.8);
+  const kick = new THREE.PointLight(COL.pink, 1.3, 0, 2);
   kick.position.set(-0.8, 0.9, 0.5);
   scene.add(kick);
 
@@ -348,17 +352,32 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   );
   chassis.position.y = 0.036;
   baseP.add(chassis);
+  const wheels: THREE.Group[] = [];
+  const boltMat = new THREE.MeshStandardMaterial({
+    color: COL.yellow,
+    roughness: 0.35,
+    metalness: 0.6,
+  });
   for (const s of [-1, 1]) {
+    const wheel = new THREE.Group(); // turns about its axle (local x)
+    wheel.position.set(s * 0.066, R_WHEEL, 0);
+    baseP.add(wheel);
+    wheels.push(wheel);
     const tyre = shadowed(
-      new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.022, 40), rubber),
+      new THREE.Mesh(new THREE.CylinderGeometry(R_WHEEL, R_WHEEL, 0.022, 40), rubber),
     );
     tyre.rotation.z = Math.PI / 2;
-    tyre.position.set(s * 0.066, 0.03, 0);
-    baseP.add(tyre);
+    wheel.add(tyre);
     const hub = shadowed(new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.024, 24), cap));
     hub.rotation.z = Math.PI / 2;
-    hub.position.set(s * 0.066, 0.03, 0);
-    baseP.add(hub);
+    wheel.add(hub);
+    for (let k = 0; k < 3; k++) {
+      const a = (k * 2 * Math.PI) / 3;
+      const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.026, 10), boltMat);
+      bolt.rotation.z = Math.PI / 2;
+      bolt.position.set(0, Math.cos(a) * 0.008, Math.sin(a) * 0.008);
+      wheel.add(bolt);
+    }
   }
   const BASE_TOP = 0.052;
   // body: white shell with a violet chest panel, a status light and two small arms
@@ -457,7 +476,7 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.008, 20, 14), bulbMat);
   bulb.position.y = 0.092;
   headP.add(bulb);
-  const bulbLight = new THREE.PointLight(COL.pink, 0, 0.4, 2);
+  const bulbLight = new THREE.PointLight(COL.pink, 0, 0, 2);
   bulbLight.position.y = 0.092;
   headP.add(bulbLight);
   scene.add(baseP, bodyP, headP);
@@ -538,12 +557,30 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   let t = 2.2; // camera intro first
   let cur = HOME;
   const OPEN = 0.1;
-  const joint = (b: Pose, dur: number) => {
+  // Real motor limits, those of a small cobot (UR3e class): base, shoulder and elbow at most 180°/s, the wrist
+  // joints 360°/s, and the tool at most 0.5 m/s near the parts. A minimum-jerk move through Δ in time T peaks
+  // at 1.875 Δ / T, so no move is ever shorter than 1.875 Δ / limit.
+  const W_BIG = Math.PI;
+  const W_WRIST = 2 * Math.PI;
+  const V_TOOL = 0.5;
+  const PEAK = 1.875;
+  const need = (a: Pose, b: Pose) =>
+    PEAK *
+    Math.max(
+      Math.abs(b.yaw - a.yaw) / W_BIG,
+      Math.abs(b.a1 - a.a1) / W_BIG,
+      Math.abs(b.a2 - a.a2) / W_BIG,
+      Math.abs(b.a3 - a.a3) / W_WRIST,
+      Math.abs(b.roll - a.roll) / W_WRIST,
+    );
+  const joint = (b: Pose, want: number) => {
+    const dur = Math.max(want, need(cur, b));
     segs.push({ t0: t, t1: t + dur, kind: "joint", a: cur, b });
     t += dur;
     cur = b;
   };
-  const line = (pa: THREE.Vector3, pb: THREE.Vector3, g0: number, g1: number, dur: number) => {
+  const line = (pa: THREE.Vector3, pb: THREE.Vector3, g0: number, g1: number, want: number) => {
+    const dur = Math.max(want, need(cur, solve(pb, g1)), (PEAK * pa.distanceTo(pb)) / V_TOOL);
     segs.push({
       t0: t,
       t1: t + dur,
@@ -580,6 +617,24 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   const BUILT = t; // the robot is complete
   hold(30);
 
+  // After power-on the robot drives forward and coasts to a stop: its motors push at 0.25 m/s² for 0.4 s,
+  // then rolling resistance of rubber on the mat (Crr 0.05) slows it at Crr g. It rolls without slipping,
+  // so its wheels turn through distance / radius.
+  const ROLL_AT = BUILT + 0.9;
+  const A_PUSH = 0.25;
+  const T_PUSH = 0.4;
+  const A_STOP = 0.05 * G;
+  const V_TOP = A_PUSH * T_PUSH;
+  const T_STOP = V_TOP / A_STOP;
+  const rolled = (tm: number) => {
+    const s = tm - ROLL_AT;
+    if (s <= 0) return 0;
+    if (s < T_PUSH) return 0.5 * A_PUSH * s * s;
+    const c = Math.min(s - T_PUSH, T_STOP);
+    return 0.5 * A_PUSH * T_PUSH * T_PUSH + V_TOP * c - 0.5 * A_STOP * c * c;
+  };
+  const FWD = new THREE.Vector3(Math.sin(PART_YAW), 0, Math.cos(PART_YAW));
+
   const poseAt = (tm: number): Pose => {
     if (tm <= segs[0]!.t0) return HOME;
     const s = segs.find((x) => tm < x.t1) ?? segs[segs.length - 1]!;
@@ -607,27 +662,89 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   };
 
   /* ---------- sparks when a part clicks into place ---------- */
-  const sparkGeo = new THREE.BoxGeometry(0.004, 0.004, 0.004);
-  const sparkMat = new THREE.MeshBasicMaterial({ color: COL.yellow });
-  const sparks: { m: THREE.Mesh; v: THREE.Vector3; born: number; life: number }[] = [];
-  const fired = new Set<number>();
-  const burst = (at: THREE.Vector3, now: number, n = 50) => {
-    for (let i = 0; i < n; i++) {
-      const m = new THREE.Mesh(sparkGeo, sparkMat);
-      m.position.copy(at);
-      scene.add(m);
-      sparks.push({
-        m,
-        v: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.9,
-          Math.random() * 1.1,
-          (Math.random() - 0.5) * 0.9,
-        ),
-        born: now,
-        life: 0.5 + Math.random() * 0.4,
-      });
-    }
+  // Each spark flies ballistically under g = 9.81 m/s², bounces off the pad or the bench (restitution 0.3,
+  // sliding friction keeps 60 % of its sideways speed) and cools from white-yellow to orange as it goes.
+  // Seeded, and worked out from the time alone, so any frame can be drawn on its own.
+  const N_SPARK = 44;
+  const seeded = (seed: number) => () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let x = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
   };
+  const sparkSets = parts.map((_, i) => {
+    const r = seeded(17 + i * 101);
+    return Array.from({ length: N_SPARK }, () => {
+      const a = r() * 2 * Math.PI;
+      const sp = 0.35 + r() * 0.35; // m/s outward
+      return {
+        vx: Math.cos(a) * sp,
+        vy: 0.2 + r() * 0.9,
+        vz: Math.sin(a) * sp,
+        life: 0.45 + r() * 0.4,
+      };
+    });
+  });
+  const sparkGeo = new THREE.BoxGeometry(0.004, 0.004, 0.004);
+  const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const sparkMesh = new THREE.InstancedMesh(sparkGeo, sparkMat, parts.length * N_SPARK);
+  sparkMesh.frustumCulled = false;
+  scene.add(sparkMesh);
+  const hot = new THREE.Color(0xfff2b0);
+  const cool = new THREE.Color(0xff6a1a);
+  const sCol = new THREE.Color();
+  const sPos = new THREE.Vector3();
+  const sQ = new THREE.Quaternion();
+  const sScale = new THREE.Vector3();
+  const floorAt = (x: number, z: number) =>
+    Math.hypot(x - PAD.x, z - PAD.z) < 0.115 ? PAD_TOP : 0;
+  const fly = (
+    o: THREE.Vector3,
+    v: { vx: number; vy: number; vz: number },
+    age: number,
+    out: THREE.Vector3,
+  ) => {
+    let { x, y, z } = o;
+    let { vx, vy, vz } = v;
+    let left = age;
+    for (let b = 0; b < 4; b++) {
+      const floor = floorAt(x, z);
+      const hit = (vy + Math.sqrt(Math.max(0, vy * vy + 2 * G * (y - floor)))) / G; // when y reaches the floor
+      if (hit >= left) {
+        return out.set(x + vx * left, y + vy * left - 0.5 * G * left * left, z + vz * left);
+      }
+      x += vx * hit;
+      z += vz * hit;
+      y = floor;
+      vy = -(vy - G * hit) * 0.3;
+      vx *= 0.6;
+      vz *= 0.6;
+      left -= hit;
+    }
+    return out.set(x, y, z);
+  };
+  const drawSparks = (tm: number) => {
+    let n = 0;
+    for (let i = 0; i < parts.length; i++) {
+      const o = parts[i]!.to.clone().setY(parts[i]!.to.y + 0.004);
+      const age = tm - events[i]!.place;
+      for (const sp of sparkSets[i]!) {
+        const k = age / sp.life;
+        if (k < 0 || k >= 1) sScale.setScalar(0);
+        else {
+          fly(o, sp, age, sPos);
+          sScale.setScalar(1 - k * 0.7);
+          sCol.copy(hot).lerp(cool, k);
+          sparkMesh.setColorAt(n, sCol);
+        }
+        tmpM.compose(sPos, sQ, sScale);
+        sparkMesh.setMatrixAt(n++, tmpM);
+      }
+    }
+    sparkMesh.instanceMatrix.needsUpdate = true;
+    if (sparkMesh.instanceColor) sparkMesh.instanceColor.needsUpdate = true;
+  };
+  sparkMesh.setColorAt(0, hot); // makes the colour buffer
 
   /* ---------- camera path ---------- */
   const look = new THREE.Vector3();
@@ -659,22 +776,20 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   const frame = (now: number) => {
     const tm = forced() ?? (now - t0) / 1000;
     const pose = poseAt(tm);
+    const d = rolled(tm);
     for (let i = 0; i < parts.length; i++) {
       partMatrix(i, tm, tmpM);
       tmpM.decompose(parts[i]!.obj.position, parts[i]!.obj.quaternion, parts[i]!.obj.scale);
-      const ev = events[i]!;
-      if (tm >= ev.place && !fired.has(i)) {
-        fired.add(i);
-        burst(parts[i]!.to.clone().setY(parts[i]!.to.y + 0.004), tm);
-      }
+      if (d > 0) parts[i]!.obj.position.addScaledVector(FWD, d);
     }
+    for (const w of wheels) w.rotation.x = d / R_WHEEL;
     applyPose(pose);
 
-    // power on: chest light, antenna, eyes, smile; then a wave and a little roll forward
+    // power on: chest light, antenna, eyes, smile; a little roll forward, then a wave
     const on = smooth((tm - BUILT - 0.2) / 0.8);
     chestLight.emissiveIntensity = on * 3;
     bulbMat.emissiveIntensity = on * (2 + Math.sin(tm * 6) * 1.2);
-    bulbLight.intensity = on * 0.6;
+    bulbLight.intensity = on * 0.05; // a small LED, about 0.05 cd
     const blink = on > 0.9 && Math.sin(tm * 1.7) > 0.985;
     drawFace(on, blink, smooth((tm - BUILT - 1.0) / 0.6));
     padRingMat.emissiveIntensity = 1.5 + 3 * Math.max(0, 1 - Math.abs(tm - BUILT - 0.3) * 2);
@@ -686,19 +801,7 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
     const look2 = tm > BUILT + 1 ? Math.sin((tm - BUILT) * 0.8) * 0.35 : 0;
     headP.rotation.y = partYaw + look2;
 
-    // sparks
-    for (let i = sparks.length - 1; i >= 0; i--) {
-      const s = sparks[i]!;
-      const age = tm - s.born;
-      if (age > s.life || age < 0) {
-        scene.remove(s.m);
-        sparks.splice(i, 1);
-        continue;
-      }
-      s.m.position.addScaledVector(s.v, 1 / 60);
-      s.v.y -= 9.8 / 60 / 4;
-      if (s.m.position.y < 0.002) s.v.y = Math.abs(s.v.y) * 0.3;
-    }
+    drawSparks(tm);
 
     camAt(tm);
     renderer.render(scene, cam);
@@ -731,13 +834,12 @@ export function mountOpening(host: HTMLElement, opts: Opts = {}) {
   raf = requestAnimationFrame(loop);
   const restart = () => {
     t0 = performance.now();
-    fired.clear();
     doneFired = false;
   };
 
   const stop = () => {
     cancelAnimationFrame(raf);
-    for (const s of sparks) scene.remove(s.m);
+    sparkGeo.dispose();
     renderer.dispose();
     pmrem.dispose();
     envTex.dispose();
