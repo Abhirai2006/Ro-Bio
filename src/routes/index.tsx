@@ -5,7 +5,14 @@ import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
 import { FocusAreas } from "@/components/site/FocusAreas";
-import { contacts, coreTeamSize, daysBetween, eventDate, events, site } from "@/lib/site";
+import { contacts, coreTeamSize, daysBetween, eventDate, nextEvent, site, todayInIndia, type ClubEvent } from "@/lib/site";
+
+/** "Robo Spark, Tue, 3 Nov 2026" or "Bot Forge, date coming soon". */
+const whenLine = (e: ClubEvent) => `${e.title}, ${e.date ? eventDate(e) : "date coming soon"}`;
+
+/** What the "Registration" chip says, or nothing for an event with nothing to register for. */
+const registrationChip = (e: ClubEvent) =>
+  e.registration === "none" ? null : `REGISTRATION: ${e.registration === "open" ? "OPEN" : e.registration === "closed" ? "CLOSED" : "COMING SOON"}`;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,7 +22,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          `RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. ${events[0]!.title}, a robotics competition, is coming up.`,
+          `RO-BIO is the student club of Biomedical and Robotic Engineering at Mysore University School of Engineering. Next up: ${whenLine(nextEvent(todayInIndia()))}.`,
       },
       { property: "og:title", content: "RO-BIO | Unauthorised innovation in progress!" },
       {
@@ -29,7 +36,8 @@ export const Route = createFileRoute("/")({
 
 function Hero() {
   const today = useToday();
-  const next = events[0]!;
+  // The server and the browser both work out "today" in India time, so they pick the same event.
+  const next = nextEvent(today ?? todayInIndia());
   const daysLeft = today && next.date ? daysBetween(today, next.date) : null;
   return (
     <section className="blueprint relative overflow-hidden border-b-2 border-border" aria-label="Intro">
@@ -53,7 +61,7 @@ function Hero() {
             <span className="block bg-paper px-3 py-1.5 font-pixel text-[11px] text-ink">⚠ {site.tagline.toUpperCase()}</span>
           </p>
           <p className="mt-4 font-mono text-sm text-muted-foreground">
-            At Bot Forge: <Typed words={next.activities.map((a) => a.name)} />
+            At {next.title}: <Typed words={next.activities.map((a) => a.name)} />
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link to="/events/$slug" params={{ slug: next.slug }} className="rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5">
@@ -94,7 +102,9 @@ function Hero() {
 }
 
 function Index() {
-  const next = events[0]!;
+  const today = useToday();
+  const next = nextEvent(today ?? todayInIndia());
+  const chip = registrationChip(next);
   return (
     <>
       <Hero />
@@ -121,6 +131,7 @@ function Index() {
               {next.title}
             </h2>
             <p className="mt-4 font-display text-2xl font-bold text-primary">{eventDate(next)}</p>
+            {next.time && <p className="mt-1 font-mono text-sm">{next.time}</p>}
             <p className="mt-4 text-muted-foreground">{next.venue}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
@@ -128,11 +139,13 @@ function Index() {
                 params={{ slug: next.slug }}
                 className="border-2 border-border bg-primary px-5 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5"
               >
-                See Bot Forge
+                See {next.title}
               </Link>
-              <span className="border-2 border-dashed border-border px-4 py-3 font-pixel text-[11px] leading-6">
-                REGISTRATION: COMING SOON
-              </span>
+              {(chip ?? next.audience) && (
+                <span className="border-2 border-dashed border-border px-4 py-3 font-pixel text-[11px] leading-6">
+                  {chip ?? next.audience!.toUpperCase()}
+                </span>
+              )}
             </div>
           </div>
           <ul className="grid grid-cols-2 gap-3 self-center">
