@@ -625,7 +625,7 @@ export function buildSlides(img: DeckAssets, hooks: DeckHooks = {}): SlideDef[] 
               <canvas class="rsd-beat" data-anim="beat" width="900" height="130" aria-hidden="true"></canvas>
             </div>
             <div class="rsd-qr" data-in="3" data-fx="pop" style="transform: rotate(2deg)">
-              <span class="rsd-qr-box">[QR CODE]</span>
+              <img class="rsd-qr-code" src="/events/robo-spark/certificate-form-qr.svg" alt="QR code for the Robo Spark certificate form" width="400" height="400">
               <span>attendance and certificate form</span>
             </div>
           </div>
