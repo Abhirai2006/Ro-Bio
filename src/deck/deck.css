@@ -967,7 +967,7 @@
   gap: 24px;
   height: 560px;
   padding: 40px;
-  border: 6px dashed var(--violet);
+  border: 6px solid var(--violet);
   border-radius: 28px;
   background: var(--paper);
   text-align: center;
@@ -975,17 +975,19 @@
   font-size: 36px;
   color: var(--deep);
 }
-.rsd-qr-box {
-  font-family: var(--f-display);
-  font-size: 60px;
-  color: var(--violet);
-}
 .rsd-qr img {
   position: absolute;
   right: -40px;
   bottom: -40px;
   width: 195px;
   height: 108px;
+}
+/* The real QR for the certificate form (the rule above is for the small corner sticker) */
+.rsd-qr img.rsd-qr-code {
+  position: static;
+  width: 400px;
+  height: 400px;
+  image-rendering: pixelated;
 }
 
 /* 17. Thank you */
