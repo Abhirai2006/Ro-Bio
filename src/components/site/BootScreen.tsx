@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { POSES, rigMarkup } from "@/lib/robo-rig";
 
-// Runs before the intro is parsed. Skips it on repeat visits in this tab, for reduced motion and on the Robo Spark slides, missions and judge pages.
+// Runs before the intro is parsed. Skips it on repeat visits in this tab, for reduced motion, on the Robo Spark slides, missions and judge pages, and on the certificate pages (a scanned QR should open the certificate straight away).
 // It only ever adds a <style> to <head>, so React's hydration never sees a difference.
 const skip = `(function(){try{var s=function(){var e=document.createElement("style");e.id="boot-skip";e.textContent=".boot{display:none!important}";document.head.appendChild(e)};
-if(location.pathname.indexOf("/events/robo-spark/")===0)return s();if(sessionStorage.getItem("robio-boot")||matchMedia("(prefers-reduced-motion: reduce)").matches)return s();sessionStorage.setItem("robio-boot","1")}catch(e){}})();`;
+var p=location.pathname;if(["/events/robo-spark/","/certificates","/verify/","/admin/"].some(function(x){return p.indexOf(x)===0}))return s();if(sessionStorage.getItem("robio-boot")||matchMedia("(prefers-reduced-motion: reduce)").matches)return s();sessionStorage.setItem("robio-boot","1")}catch(e){}})();`;
 
 // Robo, standing, with his ids renamed so they never clash with the Robo who roams the site.
 const robo = rigMarkup({ ...POSES.stand }, false, false)
