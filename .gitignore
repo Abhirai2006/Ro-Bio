@@ -30,3 +30,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Certificate PDFs made by scripts/cert-pdfs.mjs: they hold student names, never commit them
+certificate-pdfs/
