@@ -147,8 +147,8 @@ function RootComponent() {
         <Outlet />
       </main>
       <SiteFooter />
-      {/* On the judge page Robo would walk over the Save bar on phones, so he sits that one out. */}
-      {!path.startsWith("/events/robo-spark/judge") && (
+      {/* On the judge and certificate pages Robo would walk over the buttons on phones, so he sits those out. */}
+      {!/^\/(events\/robo-spark\/judge|certificates|verify\/|admin\/)/.test(path) && (
         <>
           <RoboLayer />
           <ClickSpark />
