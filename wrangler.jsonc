@@ -8,6 +8,16 @@
   "observability": { "enabled": true },
   // Robo Spark judge scores. Cloudflare creates this SQLite store on the first deploy, nothing to set up by hand.
   // The judge passcode is a secret named JUDGE_PASSCODE, added in the dashboard: Settings, Variables and Secrets.
-  "durable_objects": { "bindings": [{ "name": "JUDGE_SCORES", "class_name": "JudgeScores" }] },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["JudgeScores"] }]
+  // Robo Spark certificates (CERT_STORE): names, emails and numbers live only in this SQLite store.
+  // The admin passcode is a secret named CERT_ADMIN_PASSCODE, added the same way as JUDGE_PASSCODE.
+  "durable_objects": {
+    "bindings": [
+      { "name": "JUDGE_SCORES", "class_name": "JudgeScores" },
+      { "name": "CERT_STORE", "class_name": "CertStore" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["JudgeScores"] },
+    { "tag": "v2", "new_sqlite_classes": ["CertStore"] }
+  ]
 }
