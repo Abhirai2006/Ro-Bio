@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AccessibilityRouteImport } from './routes/accessibility'
 import { Route as BlogRouteImport } from './routes/blog'
+import { Route as CertificatesRouteImport } from './routes/certificates'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GalleryRouteImport } from './routes/gallery'
@@ -21,8 +22,10 @@ import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WorkshopsRouteImport } from './routes/workshops'
+import { Route as AdminCertificatesRouteImport } from './routes/admin.certificates'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
+import { Route as VerifyNoRouteImport } from './routes/verify.$no'
 import { Route as EventsRoboSparkJudgeRouteImport } from './routes/events.robo-spark.judge'
 import { Route as EventsRoboSparkMissionsRouteImport } from './routes/events.robo-spark.missions'
 import { Route as EventsRoboSparkPresentRouteImport } from './routes/events.robo-spark.present'
@@ -45,6 +48,11 @@ const AccessibilityRoute = AccessibilityRouteImport.update({
 const BlogRoute = BlogRouteImport.update({
   id: '/blog',
   path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificatesRoute = CertificatesRouteImport.update({
+  id: '/certificates',
+  path: '/certificates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -87,6 +95,11 @@ const WorkshopsRoute = WorkshopsRouteImport.update({
   path: '/workshops',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCertificatesRoute = AdminCertificatesRouteImport.update({
+  id: '/admin/certificates',
+  path: '/admin/certificates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -95,6 +108,11 @@ const EventsIndexRoute = EventsIndexRouteImport.update({
 const EventsSlugRoute = EventsSlugRouteImport.update({
   id: '/events/$slug',
   path: '/events/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyNoRoute = VerifyNoRouteImport.update({
+  id: '/verify/$no',
+  path: '/verify/$no',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoboSparkJudgeRoute = EventsRoboSparkJudgeRouteImport.update({
@@ -118,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/accessibility': typeof AccessibilityRoute
   '/blog': typeof BlogRoute
+  '/certificates': typeof CertificatesRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
@@ -126,7 +145,9 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/workshops': typeof WorkshopsRoute
+  '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
   '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
@@ -137,6 +158,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/accessibility': typeof AccessibilityRoute
   '/blog': typeof BlogRoute
+  '/certificates': typeof CertificatesRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
@@ -145,7 +167,9 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/workshops': typeof WorkshopsRoute
+  '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/verify/$no': typeof VerifyNoRoute
   '/events': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
   '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
@@ -157,6 +181,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/accessibility': typeof AccessibilityRoute
   '/blog': typeof BlogRoute
+  '/certificates': typeof CertificatesRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
@@ -165,7 +190,9 @@ export interface FileRoutesById {
   '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/workshops': typeof WorkshopsRoute
+  '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
   '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
@@ -178,6 +205,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/accessibility'
     | '/blog'
+    | '/certificates'
     | '/contact'
     | '/faq'
     | '/gallery'
@@ -186,7 +214,9 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/workshops'
+    | '/admin/certificates'
     | '/events/$slug'
+    | '/verify/$no'
     | '/events/'
     | '/events/robo-spark/judge'
     | '/events/robo-spark/missions'
@@ -197,6 +227,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/accessibility'
     | '/blog'
+    | '/certificates'
     | '/contact'
     | '/faq'
     | '/gallery'
@@ -205,7 +236,9 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/workshops'
+    | '/admin/certificates'
     | '/events/$slug'
+    | '/verify/$no'
     | '/events'
     | '/events/robo-spark/judge'
     | '/events/robo-spark/missions'
@@ -216,6 +249,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/accessibility'
     | '/blog'
+    | '/certificates'
     | '/contact'
     | '/faq'
     | '/gallery'
@@ -224,7 +258,9 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/workshops'
+    | '/admin/certificates'
     | '/events/$slug'
+    | '/verify/$no'
     | '/events/'
     | '/events/robo-spark/judge'
     | '/events/robo-spark/missions'
@@ -236,6 +272,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccessibilityRoute: typeof AccessibilityRoute
   BlogRoute: typeof BlogRoute
+  CertificatesRoute: typeof CertificatesRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   GalleryRoute: typeof GalleryRoute
@@ -244,7 +281,9 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
   WorkshopsRoute: typeof WorkshopsRoute
+  AdminCertificatesRoute: typeof AdminCertificatesRoute
   EventsSlugRoute: typeof EventsSlugRoute
+  VerifyNoRoute: typeof VerifyNoRoute
   EventsIndexRoute: typeof EventsIndexRoute
   EventsRoboSparkJudgeRoute: typeof EventsRoboSparkJudgeRoute
   EventsRoboSparkMissionsRoute: typeof EventsRoboSparkMissionsRoute
@@ -279,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/blog'
       fullPath: '/blog'
       preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certificates': {
+      id: '/certificates'
+      path: '/certificates'
+      fullPath: '/certificates'
+      preLoaderRoute: typeof CertificatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -337,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkshopsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/certificates': {
+      id: '/admin/certificates'
+      path: '/admin/certificates'
+      fullPath: '/admin/certificates'
+      preLoaderRoute: typeof AdminCertificatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/': {
       id: '/events/'
       path: '/events'
@@ -349,6 +402,13 @@ declare module '@tanstack/react-router' {
       path: '/events/$slug'
       fullPath: '/events/$slug'
       preLoaderRoute: typeof EventsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$no': {
+      id: '/verify/$no'
+      path: '/verify/$no'
+      fullPath: '/verify/$no'
+      preLoaderRoute: typeof VerifyNoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events/robo-spark/judge': {
@@ -380,6 +440,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccessibilityRoute: AccessibilityRoute,
   BlogRoute: BlogRoute,
+  CertificatesRoute: CertificatesRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   GalleryRoute: GalleryRoute,
@@ -388,7 +449,9 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
   WorkshopsRoute: WorkshopsRoute,
+  AdminCertificatesRoute: AdminCertificatesRoute,
   EventsSlugRoute: EventsSlugRoute,
+  VerifyNoRoute: VerifyNoRoute,
   EventsIndexRoute: EventsIndexRoute,
   EventsRoboSparkJudgeRoute: EventsRoboSparkJudgeRoute,
   EventsRoboSparkMissionsRoute: EventsRoboSparkMissionsRoute,
