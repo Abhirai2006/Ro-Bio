@@ -3,9 +3,12 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handleJudgeApi, type JudgeEnv } from "./server/judge-api";
+import { handleCertApi, type CertEnv } from "./server/cert-api";
 
 // The Robo Spark score sheet. Cloudflare needs the Durable Object class exported from the Worker's main file.
 export { JudgeScores } from "./server/judge-store";
+// The Robo Spark certificates (names, emails and numbers). Same reason: the class must be exported here.
+export { CertStore } from "./server/cert-store";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -55,7 +58,7 @@ const CSP = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data:",
+  "img-src 'self' data: blob:", // blob: lets a certificate be drawn onto a canvas for the PNG download
   "frame-src https://www.google.com https://maps.google.com", // the venue map on Contact and Bot Forge
   "connect-src 'self'",
   "object-src 'none'",
@@ -86,6 +89,8 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       if (new URL(request.url).pathname.startsWith("/api/judge/")) return withSecurityHeaders(await handleJudgeApi(request, env as JudgeEnv));
+      if (new URL(request.url).pathname.startsWith("/api/certificates/"))
+        return withSecurityHeaders(await handleCertApi(request, env as CertEnv));
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
