@@ -79,7 +79,13 @@ function EventPage() {
           {e.about && <p className="max-w-2xl text-lg">{e.about}</p>}
           {e.slug === "robo-spark" && (
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/events/robo-spark/present" className="border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-hard">
+              <Link
+                to="/certificates"
+                className="border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-hard"
+              >
+                Get your certificate
+              </Link>
+              <Link to="/events/robo-spark/present" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
                 Open the presentation
               </Link>
               <Link to="/events/robo-spark/missions" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
