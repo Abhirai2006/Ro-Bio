@@ -12,14 +12,14 @@ _Unauthorised innovation in progress!_
 
 <br />
 
-<a href="https://ro-bio.robiohub2026.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.robiohub2026.workers.dev-725DFF?style=flat" /></a>
+<a href="https://ro-bio.hub-muse.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.hub--muse.workers.dev-725DFF?style=flat" /></a>
 <a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=flat" /></a>
 <a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=flat" /></a>
 <img alt="Tests" src="https://img.shields.io/badge/tests-65_passing-725DFF?style=flat" />
 
 <br /><br />
 
-[Visit the site](https://ro-bio.robiohub2026.workers.dev) | [Try the robot arm](#try-it-now) | [Play Robo Sumo](#try-it-now) | [Meet the team](https://ro-bio.robiohub2026.workers.dev/team)
+[Visit the site](https://ro-bio.hub-muse.workers.dev) | [Try the robot arm](#try-it-now) | [Play Robo Sumo](#try-it-now) | [Meet the team](https://ro-bio.hub-muse.workers.dev/team)
 
 <br />
 
@@ -238,7 +238,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 ## Privacy and security
 
-- **No accounts, no forms, no analytics, no cookies, no tracking scripts.** The [Privacy Policy](https://ro-bio.robiohub2026.workers.dev/privacy) lists the few settings kept in your own browser.
+- **No accounts, no forms, no analytics, no cookies, no tracking scripts.** The [Privacy Policy](https://ro-bio.hub-muse.workers.dev/privacy) lists the few settings kept in your own browser.
 - **Two outside services.** Fonts load from Google Fonts, and the venue map on the Contact and Bot Forge pages is a Google Maps embed. The Privacy Policy explains both.
 - Every page is sent with a strict Content Security Policy and security headers ([`src/server.ts`](src/server.ts)). Clickjacking, MIME sniffing, and camera, microphone and location access are blocked.
 
@@ -248,7 +248,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 - **A bug:** tell us the page, the device and what you expected. Open an issue on GitHub, or send a message on [Instagram](https://www.instagram.com/ro_bio_hub/).
 - **An idea for a game, a page or a robot:** open an issue with a short description. Club members can then talk it through with the coordinators.
-- **A question about the club:** the [FAQ](https://ro-bio.robiohub2026.workers.dev/faq) and the [Contact page](https://ro-bio.robiohub2026.workers.dev/contact) are the quickest way to an answer.
+- **A question about the club:** the [FAQ](https://ro-bio.hub-muse.workers.dev/faq) and the [Contact page](https://ro-bio.hub-muse.workers.dev/contact) are the quickest way to an answer.
 
 <br />
 
@@ -267,7 +267,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 **RO-BIO**, a robotics and biomedical club for every branch, Mysore University School of Engineering
 
-[Website](https://ro-bio.robiohub2026.workers.dev) | [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) | [LinkedIn](https://www.linkedin.com/in/ro-bio-hub-606b5840b/) | [Contact](https://ro-bio.robiohub2026.workers.dev/contact)
+[Website](https://ro-bio.hub-muse.workers.dev) | [Instagram @ro_bio_hub](https://www.instagram.com/ro_bio_hub/) | [LinkedIn](https://www.linkedin.com/in/ro-bio-hub-606b5840b/) | [Contact](https://ro-bio.hub-muse.workers.dev/contact)
 
 <sub>Built by students. The text, design, logo and artwork belong to RO-BIO and its creators.</sub>
 
