@@ -45,9 +45,9 @@ export const NAME_MAX = 60;
  * fits best; any size works, it is scaled to fit and sits on the line.
  */
 export const SIGNATURES: { left: string | null; centre: string | null; right: string | null } = {
-  left: null,
-  centre: null,
-  right: null,
+  left: "sign-archana.png",
+  centre: "sign-nithin.png",
+  right: "sign-kumara.png",
 };
 
 /** The three people who sign every certificate, left to right. */
@@ -106,6 +106,29 @@ export function cleanPersonName(raw: unknown): string {
     .trim();
 }
 
+/**
+ * A name typed all in capitals (or all in small letters) becomes Title Case: "NISHANTH SAUKAR M"
+ * becomes "Nishanth Saukar M". Initials stay capitals ("HK", "K. S."), and a name that already
+ * mixes capitals and small letters is kept exactly as typed.
+ */
+export function tidyNameCase(name: string): string {
+  if (/[a-z]/.test(name) && /[A-Z]/.test(name)) return name;
+  return name
+    .toLowerCase()
+    .split(" ")
+    .map((word) =>
+      word
+        .split(/([-'])/)
+        .map((part) => {
+          const letters = part.replace(/[^a-z]/g, "");
+          if (letters.length <= 1 || !/[aeiouy]/.test(letters)) return part.toUpperCase();
+          return part.charAt(0).toUpperCase() + part.slice(1);
+        })
+        .join(""),
+    )
+    .join(" ");
+}
+
 /** The page that proves a certificate is real. Its QR code opens this. */
 export function verifyUrl(no: string): string {
   return `${site.url}/verify/${no}`;
@@ -158,10 +181,13 @@ export function parseCsv(text: string): string[][] {
 
 /** One student row from the form, with anything wrong listed in `problems`. */
 export type FormRow = {
+  kind: CertKind;
   /** The row number as the spreadsheet shows it (the heading is row 1). */
   line: number;
   email: string;
   name: string;
+  /** The name as it was typed, when it was changed to Title Case. */
+  typed?: string;
   team: number | null;
   branch: string;
   problems: string[];
@@ -179,11 +205,16 @@ const heading = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 /**
  * Reads the CSV that Google Forms gives (Responses, Download responses). Finds the columns by their
  * heading and keeps only email, name, team and branch. The phone number and the feedback are dropped.
+ * Names typed all in capitals are put in Title Case (see tidyNameCase).
+ * With kind "coordinator" it reads the coordinator form instead: no team, and the role line is
+ * COORDINATOR_ROLE. It refuses a sheet with a team column, so the student form cannot be
+ * published as coordinators by mistake.
  */
 export function readFormCsv(
   text: string,
   branches: readonly string[] = BRANCHES,
-): { rows: FormRow[]; missing: string[] } {
+  kind: CertKind = "student",
+): { rows: FormRow[]; missing: string[]; wrongForm?: string } {
   const all = parseCsv(text);
   const head = (all[0] ?? []).map(heading);
   const find = (want: string) => {
@@ -196,8 +227,15 @@ export function readFormCsv(
     team: find(COLUMNS.team),
     branch: find(COLUMNS.branch),
   };
+  const coord = kind === "coordinator";
+  if (coord && at.team >= 0)
+    return {
+      rows: [],
+      missing: [],
+      wrongForm: "This is the student form (it has a Team number column). Upload it in box 1.",
+    };
   const missing = Object.entries(at)
-    .filter(([, i]) => i < 0)
+    .filter(([k, i]) => i < 0 && !(coord && k === "team"))
     .map(([k]) => `"${COLUMNS[k as keyof typeof COLUMNS]}"`);
   if (missing.length) return { rows: [], missing };
 
@@ -206,7 +244,8 @@ export function readFormCsv(
   const rows = all.slice(1).map((cells, i): FormRow => {
     const line = i + 2;
     const email = cleanEmail(cells[at.email]);
-    const name = cleanPersonName(cells[at.name]);
+    const typed = cleanPersonName(cells[at.name]);
+    const name = tidyNameCase(typed);
     const teamText = (cells[at.team] ?? "").trim();
     const teamDigits = /^(?:team\s*)?(\d{1,3})$/i.exec(teamText)?.[1];
     const teamNo = teamDigits ? Number(teamDigits) : NaN;
@@ -216,12 +255,21 @@ export function readFormCsv(
     const problems: string[] = [];
     if (!isEmail(email)) problems.push("no valid email");
     if (!name) problems.push("no name");
-    if (team === null) problems.push(`team not 1 to ${MAX_TEAM}`);
+    if (!coord && team === null) problems.push(`team not 1 to ${MAX_TEAM}`);
     if (!branch) problems.push("branch not in the list");
     const first = isEmail(email) ? seen.get(email) : undefined;
     if (first !== undefined) problems.push(`same email as line ${first}`);
     else if (isEmail(email)) seen.set(email, line);
-    return { line, email, name, team, branch: branch || branchText, problems };
+    return {
+      kind,
+      line,
+      email,
+      name,
+      ...(name !== typed ? { typed } : {}),
+      team: coord ? null : team,
+      branch: branch || branchText,
+      problems,
+    };
   });
   return { rows, missing: [] };
 }
@@ -231,11 +279,11 @@ export function formRowsToCerts(rows: FormRow[]): NewCert[] {
   return rows
     .filter((r) => !r.problems.length)
     .map((r) => ({
-      kind: "student",
+      kind: r.kind,
       name: r.name,
-      team: r.team,
+      team: r.kind === "student" ? r.team : null,
       branch: r.branch,
-      role: "",
+      role: r.kind === "coordinator" ? COORDINATOR_ROLE : "",
       email: r.email,
     }));
 }
