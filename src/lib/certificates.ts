@@ -107,22 +107,36 @@ export function cleanPersonName(raw: unknown): string {
 }
 
 /**
- * A name typed all in capitals (or all in small letters) becomes Title Case: "NISHANTH SAUKAR M"
- * becomes "Nishanth Saukar M". Initials stay capitals ("HK", "K. S."), and a name that already
- * mixes capitals and small letters is kept exactly as typed.
+ * Puts capitals where a name needs them, as the club agreed:
+ * - a word typed all in capitals, of three letters or more, becomes Title Case: "NISHANTH" -> "Nishanth";
+ * - a word that starts with a small letter gets a capital: "padhma" -> "Padhma", "deSouza" -> "DeSouza";
+ * - initials (one or two letters, or three with no vowel) are capitals: "k" -> "K", "hs" -> "HS", "yl" -> "YL";
+ * - anything else is left exactly as typed, so "Rohan H Kashyap" stays as it is.
+ * Spelling is never changed. Hyphens and apostrophes split a word: "mary-ann" -> "Mary-Ann".
  */
 export function tidyNameCase(name: string): string {
-  if (/[a-z]/.test(name) && /[A-Z]/.test(name)) return name;
+  const isInitial = (letters: string) =>
+    letters.length <= 2 || (letters.length === 3 && !/[aeiou]/.test(letters));
   return name
-    .toLowerCase()
     .split(" ")
     .map((word) =>
       word
         .split(/([-'])/)
         .map((part) => {
-          const letters = part.replace(/[^a-z]/g, "");
-          if (letters.length <= 1 || !/[aeiouy]/.test(letters)) return part.toUpperCase();
-          return part.charAt(0).toUpperCase() + part.slice(1);
+          const letters = part.replace(/[^A-Za-z]/g, "");
+          if (!letters) return part;
+          const lower = letters.toLowerCase();
+          const allCaps = letters === letters.toUpperCase();
+          if (allCaps && letters.length >= 3 && /[aeiouAEIOU]/.test(letters))
+            return part.replace(
+              /[A-Za-z]+/g,
+              (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+            );
+          if (/^[a-z]/.test(part)) {
+            if (isInitial(lower)) return part.toUpperCase();
+            return part.charAt(0).toUpperCase() + part.slice(1);
+          }
+          return part;
         })
         .join(""),
     )
