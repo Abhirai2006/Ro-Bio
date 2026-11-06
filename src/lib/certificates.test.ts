@@ -12,6 +12,7 @@ import {
   mailMergeCsv,
   parseCsv,
   readFormCsv,
+  tidyNameCase,
   validateCert,
   verifyUrl,
   type AdminCert,
@@ -81,6 +82,7 @@ describe("CSV", () => {
     expect(rows).toHaveLength(1);
     const r = rows[0]!;
     expect(r).toEqual({
+      kind: "student",
       line: 2,
       email: "asha@example.com",
       name: "Asha K",
@@ -142,6 +144,78 @@ describe("CSV", () => {
       expect(rows[0]?.branch).toBe(b);
       expect(rows[0]?.problems).toEqual([]);
     }
+  });
+});
+
+describe("name case", () => {
+  it("turns names typed in capitals into Title Case and keeps initials", () => {
+    expect(tidyNameCase("NISHANTH SAUKAR M")).toBe("Nishanth Saukar M");
+    expect(tidyNameCase("A V SPANDANA")).toBe("A V Spandana");
+    expect(tidyNameCase("VARUN ARAS GOWDA HK")).toBe("Varun Aras Gowda HK");
+    expect(tidyNameCase("VIREN BIDDAPPA K. A.")).toBe("Viren Biddappa K. A.");
+    expect(tidyNameCase("PREETHAM GOWDA SR")).toBe("Preetham Gowda SR");
+    expect(tidyNameCase("MARY-ANN O'BRIEN")).toBe("Mary-Ann O'Brien");
+    expect(tidyNameCase("ananya patil")).toBe("Ananya Patil");
+  });
+
+  it("keeps a name that already mixes capitals and small letters", () => {
+    expect(tidyNameCase("Rohan H Kashyap")).toBe("Rohan H Kashyap");
+    expect(tidyNameCase("Ananya deSouza")).toBe("Ananya deSouza");
+  });
+
+  it("is applied when reading the form and shows how it was typed", () => {
+    const { rows } = readFormCsv(
+      `${HEAD}\nt,n@example.com,NISHANTH SAUKAR M,4,Computer Science & Design,,,,,\nt,a@example.com,Asha K,5,Computer Science & Design,,,,,`,
+    );
+    expect(rows[0]).toMatchObject({ name: "Nishanth Saukar M", typed: "NISHANTH SAUKAR M" });
+    expect(rows[1]?.name).toBe("Asha K");
+    expect(rows[1] && "typed" in rows[1]).toBe(false);
+  });
+});
+
+describe("coordinator form", () => {
+  const COORD =
+    "Timestamp,Email Address,Full name (as it should appear on your certificate),Branch,Phone number (optional),How did coordinating Robo Spark go for you?,What went well?,What could we do better next time?,Would you like to coordinate future RO-BIO events?";
+
+  it("reads coordinators without a team and gives them the coordinator role", () => {
+    const csv = `${COORD}\nt,Ravi@Example.com,RAVI KUMAR,Computer Science & Engineering,9000000001,5,"All, really",,Yes\nt,x@example.com,Xavier,Mechanical,,4,,,No`;
+    const { rows, missing } = readFormCsv(csv, BRANCHES, "coordinator");
+    expect(missing).toEqual([]);
+    expect(rows[0]).toMatchObject({
+      kind: "coordinator",
+      email: "ravi@example.com",
+      name: "Ravi Kumar",
+      team: null,
+      problems: [],
+    });
+    expect(rows[1]?.problems).toEqual(["branch not in the list"]);
+    expect(formRowsToCerts(rows)).toEqual([
+      {
+        kind: "coordinator",
+        name: "Ravi Kumar",
+        team: null,
+        branch: "Computer Science & Engineering",
+        role: COORDINATOR_ROLE,
+        email: "ravi@example.com",
+      },
+    ]);
+    expect(JSON.stringify(rows)).not.toContain("9000000001");
+  });
+
+  it("refuses the student form in the coordinator box", () => {
+    const r = readFormCsv(
+      `${HEAD}\nt,a@example.com,A,1,"${BRANCHES[0]}",,,,,`,
+      BRANCHES,
+      "coordinator",
+    );
+    expect(r.rows).toEqual([]);
+    expect(r.wrongForm).toMatch(/student form/);
+  });
+
+  it("still needs the team column for students", () => {
+    expect(readFormCsv(`${COORD}\nt,a@example.com,A,"${BRANCHES[0]}",,,,,`).missing).toEqual([
+      '"team number"',
+    ]);
   });
 });
 
