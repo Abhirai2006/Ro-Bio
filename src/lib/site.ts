@@ -1,7 +1,7 @@
 // Real club facts supplied by the club. Edit here, not in components.
 export const site = {
   name: "RO-BIO",
-  url: "https://ro-bio.robiohub2026.workers.dev", // change this when a custom domain is connected
+  url: "https://ro-bio.hub-muse.workers.dev", // change this when a custom domain is connected
   tagline: "Unauthorised innovation in progress!",
   // The department the club's faculty come from. RO-BIO itself is open to students of every branch: see `openTo`.
   branch: "Biomedical and Robotic Engineering",
