@@ -10,6 +10,7 @@ import {
   MAX_TEAM,
   readFormCsv,
   type AdminCert,
+  type CertKind,
   type FormRow,
   type NewCert,
 } from "@/lib/certificates";
@@ -200,7 +201,8 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
       <h1 className="mt-3 text-4xl font-black">Certificates</h1>
       <NoteBox note={note} />
       <div className="mt-8 space-y-10">
-        <Upload call={call} byEmail={byEmail} onDone={refresh} />
+        <Upload kind="student" call={call} byEmail={byEmail} onDone={refresh} />
+        <Upload kind="coordinator" call={call} byEmail={byEmail} onDone={refresh} />
         <AddCoordinator call={call} onDone={refresh} />
         <AllCerts certs={certs} call={call} onChange={refresh} />
       </div>
@@ -211,10 +213,12 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
 type Call = <T>(path: string, init?: RequestInit) => Promise<T>;
 
 function Upload({
+  kind,
   call,
   byEmail,
   onDone,
 }: {
+  kind: CertKind;
   call: Call;
   byEmail: Map<string, AdminCert>;
   onDone: () => Promise<void>;
@@ -230,7 +234,8 @@ function Upload({
     setRows(null);
     if (!f) return;
     setFile(f.name);
-    const { rows, missing } = readFormCsv(await f.text());
+    const { rows, missing, wrongForm } = readFormCsv(await f.text(), BRANCHES, kind);
+    if (wrongForm) return setNote({ kind: "err", text: wrongForm });
     if (missing.length)
       return setNote({
         kind: "err",
@@ -243,8 +248,11 @@ function Upload({
   useEffect(() => {
     const f = picker.current?.files?.[0];
     if (f) void read(f);
+    // Only once, when the page starts: later picks go through onChange.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const student = kind === "student";
   const good = rows ? formRowsToCerts(rows) : [];
   const bad = rows ? rows.filter((r) => r.problems.length).length : 0;
 
@@ -265,7 +273,7 @@ function Upload({
       }
       setNote({
         kind: "ok",
-        text: `Done: ${added} new certificate${added === 1 ? "" : "s"}, ${updated} updated. Students can now find theirs on /certificates.`,
+        text: `Done: ${added} new certificate${added === 1 ? "" : "s"}, ${updated} updated. ${student ? "Students" : "Coordinators"} can now find theirs on /certificates.`,
       });
       setRows(null);
       await onDone();
@@ -277,12 +285,19 @@ function Upload({
   };
 
   return (
-    <Window tag="1. STUDENTS" title="Upload the form responses">
+    <Window
+      tag={student ? "1. STUDENTS" : "2. COORDINATORS"}
+      title={
+        student ? "Upload the student form responses" : "Upload the coordinator form responses"
+      }
+    >
       <p className="mt-1 text-sm text-muted-foreground">
-        In the Google Form: Responses, the three dots, Download responses (.csv). Only the email,
-        name, team and branch are kept; phone numbers and feedback are never sent. Uploading again
-        is safe: a student who already has a certificate keeps the same number and gets the new
-        details.
+        In the Google Form{student ? "" : " for coordinators"}: Responses, the three dots, Download
+        responses (.csv). Only the email, name, {student ? "team " : ""}and branch are kept; phone
+        numbers and feedback are never sent. Names typed all in capitals are put in Title Case (the
+        table shows how they were typed). Uploading again is safe: anyone who already has a
+        certificate keeps the same number and gets the new details.
+        {!student && " Everyone in this sheet gets a Certificate of Appreciation."}
       </p>
       <label className="mt-4 block">
         <span className="font-bold">Form responses (.csv)</span>
@@ -316,25 +331,34 @@ function Upload({
             <table className="w-full text-left text-sm">
               <thead className="sticky top-0 bg-secondary">
                 <tr>
-                  {["Line", "Name", "Email", "Team", "Branch", "Status"].map((h) => (
-                    <th key={h} className="px-2 py-1.5 font-pixel text-[10px]">
-                      {h.toUpperCase()}
-                    </th>
-                  ))}
+                  {["Line", "Name", "Email", ...(student ? ["Team"] : []), "Branch", "Status"].map(
+                    (h) => (
+                      <th key={h} className="px-2 py-1.5 font-pixel text-[10px]">
+                        {h.toUpperCase()}
+                      </th>
+                    ),
+                  )}
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r) => {
-                  const old = byEmail.get(`student ${r.email}`);
+                  const old = byEmail.get(`${kind} ${r.email}`);
                   return (
                     <tr
                       key={r.line}
                       className={`border-t border-border ${r.problems.length ? "bg-destructive/15 text-destructive" : ""}`}
                     >
                       <td className="px-2 py-1 font-mono">{r.line}</td>
-                      <td className="px-2 py-1">{r.name}</td>
+                      <td className="px-2 py-1">
+                        {r.name}
+                        {r.typed && (
+                          <span className="block text-xs text-muted-foreground">
+                            typed: {r.typed}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-2 py-1 font-mono text-xs">{r.email}</td>
-                      <td className="px-2 py-1">{r.team ?? ""}</td>
+                      {student && <td className="px-2 py-1">{r.team ?? ""}</td>}
                       <td className="px-2 py-1">{r.branch}</td>
                       <td className="px-2 py-1 font-bold">
                         {r.problems.length
@@ -405,7 +429,7 @@ function AddCoordinator({ call, onDone }: { call: Call; onDone: () => Promise<vo
   };
 
   return (
-    <Window tag="2. COORDINATORS" title="Add a coordinator">
+    <Window tag="3. ONE COORDINATOR" title="Add one coordinator by hand">
       <p className="mt-1 text-sm text-muted-foreground">
         Gives a Certificate of Appreciation. The same email again updates that coordinator instead
         of adding a second one.
@@ -491,7 +515,7 @@ function AllCerts({
   };
 
   return (
-    <Window tag="3. ALL CERTIFICATES" title={`All certificates (${certs.length})`}>
+    <Window tag="4. ALL CERTIFICATES" title={`All certificates (${certs.length})`}>
       <div className="mt-3 flex flex-wrap items-end gap-3">
         <label className="block min-w-[14rem] flex-1">
           <span className="font-bold">Search</span>
