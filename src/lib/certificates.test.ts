@@ -49,7 +49,7 @@ describe("certificate numbers", () => {
 
   it("points the QR at the verify page", () => {
     expect(verifyUrl("RS26-017-0042")).toBe(
-      "https://ro-bio.robiohub2026.workers.dev/verify/RS26-017-0042",
+      "https://ro-bio.hub-muse.workers.dev/verify/RS26-017-0042",
     );
   });
 });
@@ -158,9 +158,16 @@ describe("name case", () => {
     expect(tidyNameCase("ananya patil")).toBe("Ananya Patil");
   });
 
-  it("keeps a name that already mixes capitals and small letters", () => {
+  it("capitalises small-letter words in mixed names and keeps the rest as typed", () => {
+    expect(tidyNameCase("Sriram k hungund")).toBe("Sriram K Hungund");
+    expect(tidyNameCase("Bibi hajira")).toBe("Bibi Hajira");
+    expect(tidyNameCase("Chiranth yl")).toBe("Chiranth YL");
+    expect(tidyNameCase("Sanika hs")).toBe("Sanika HS");
+    expect(tidyNameCase("Shuchi. m. l")).toBe("Shuchi. M. L");
+    expect(tidyNameCase("Ananya deSouza")).toBe("Ananya DeSouza");
     expect(tidyNameCase("Rohan H Kashyap")).toBe("Rohan H Kashyap");
-    expect(tidyNameCase("Ananya deSouza")).toBe("Ananya deSouza");
+    expect(tidyNameCase("Tejaswini. V")).toBe("Tejaswini. V");
+    expect(tidyNameCase("Ananya Patil")).toBe("Ananya Patil");
   });
 
   it("is applied when reading the form and shows how it was typed", () => {
@@ -318,7 +325,7 @@ describe("mail merge sheet", () => {
       "Computer Science & Engineering",
       "",
       "RS26-017-0042",
-      "https://ro-bio.robiohub2026.workers.dev/verify/RS26-017-0042",
+      "https://ro-bio.hub-muse.workers.dev/verify/RS26-017-0042",
     ]);
     expect(rows[2]?.[1]).toBe("'=Ravi");
     expect(rows[2]?.[5]).toBe(COORDINATOR_ROLE);
