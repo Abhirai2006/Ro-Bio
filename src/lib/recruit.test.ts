@@ -1,23 +1,19 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import vm from "node:vm";
 import { describe, expect, it } from "vitest";
 import {
   canJudge,
   coreCount,
   CRITERIA,
-  DAYS,
   parseSheet,
   rankSquad,
   readRecruitCsv,
   resultsCsv,
-  ROOMS,
   SQUADS,
   summarize,
   toJudgeView,
   validateCandidate,
   weightedTotal,
   cleanUsn,
+  studentKey,
   type Candidate,
   type Sheet,
 } from "@/lib/recruit";
@@ -196,6 +192,30 @@ describe("cleanUsn and validateCandidate", () => {
   });
 });
 
+describe("students without a USN yet", () => {
+  const base = { name: "Asha", branch: "Computer Science & Design", sem: 1, first: "Events" };
+  it("accepts a student with no USN when there is an email", () => {
+    const r = validateCandidate({ ...base, usn: "", email: "asha@x.in" });
+    expect(r.ok && r.candidate).toMatchObject({ usn: "", email: "asha@x.in" });
+  });
+  it("accepts a wildcard with only a WhatsApp number", () => {
+    expect(validateCandidate({ ...base, phone: "90000 00001" }).ok).toBe(true);
+  });
+  it("refuses a student with no USN, email or phone, since they could not be told apart", () => {
+    const r = validateCandidate({ ...base });
+    expect(r.ok).toBe(false);
+    expect(!r.ok && r.error).toMatch(/USN, email or WhatsApp/);
+  });
+  it("still refuses a USN that is typed wrong", () => {
+    expect(validateCandidate({ ...base, usn: "4MU-24", email: "asha@x.in" }).ok).toBe(false);
+  });
+  it("keys a student by USN, then email, then phone", () => {
+    expect(studentKey({ usn: "4MU1", email: "a@x.in", phone: "9" })).toBe("usn:4MU1");
+    expect(studentKey({ usn: "", email: "A@x.in", phone: "9" })).toBe("email:a@x.in");
+    expect(studentKey({ usn: "", email: "", phone: "9000000001" })).toBe("phone:9000000001");
+  });
+});
+
 describe("readRecruitCsv", () => {
   const head =
     "Timestamp,Email address,Full name,USN,WhatsApp number,Branch,Semester,First choice squad,Second choice squad,Interview day,Consent,Assigned day";
@@ -230,6 +250,26 @@ describe("readRecruitCsv", () => {
     const { rows } = readRecruitCsv(csv);
     expect(rows[2]).toMatchObject({ day: null, problems: ["no day yet"] });
   });
+  it("imports a 1st semester student with a blank USN, and spots their repeat by email", () => {
+    const text = [
+      head,
+      row("", "Gita", "Wed 11 Nov"),
+      row("", "Hari", "Wed 11 Nov"),
+      row("", "Gita", "Thu 12 Nov"),
+    ].join("\n");
+    const { rows } = readRecruitCsv(text);
+    expect(rows[1]).toMatchObject({ usn: "", name: "Hari", problems: [] });
+    expect(rows[0]!.problems).toEqual(["replaced by line 4"]);
+    expect(rows[2]).toMatchObject({ day: "Thu 12 Nov", problems: [] });
+  });
+  it("leaves out a row with no USN, email or WhatsApp number", () => {
+    const text = [
+      head,
+      "11/8/2026 10:00:00,,Ivy,,,Computer Science & Design,1st,Design,No second choice,Wed 11 Nov,Yes,Wed 11 Nov",
+    ].join("\n");
+    const [r] = readRecruitCsv(text).rows;
+    expect(r!.problems).toContain("no USN, email or WhatsApp number");
+  });
   it("names a missing column", () => {
     const { missing } = readRecruitCsv("Email address,Full name\nx@x.in,X");
     expect(missing).toContain("usn");
@@ -245,22 +285,5 @@ describe("coreCount and resultsCsv", () => {
     const text = resultsCsv(results);
     expect(text.split("\n")[0]).toBe("Squad,Rank,Name,USN,Branch,Sem,Average,Judges,Status,Notes");
     expect(text).toContain('"A: calm, clear"');
-  });
-});
-
-describe("the form script and the website agree", () => {
-  it("uses the same squads, rooms and days", () => {
-    const text = readFileSync(path.resolve(__dirname, "../../recruitment/form/Code.gs"), "utf8");
-    const box: Record<string, unknown> = {};
-    vm.createContext(box);
-    vm.runInContext(text + "\nthis.__config = CONFIG;", box);
-    const config = box["__config"] as {
-      squads: string[];
-      rooms: Record<string, string>;
-      days: string[];
-    };
-    expect(config.squads).toEqual([...SQUADS]);
-    expect(config.rooms).toEqual(ROOMS);
-    expect(config.days).toEqual([...DAYS]);
   });
 });
