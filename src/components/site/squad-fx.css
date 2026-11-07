@@ -1,0 +1,310 @@
+/* Motion over the squad illustrations (see src/lib/squad-fx.ts). Light effects use screen blending,
+   so they brighten the picture under them the way real light does. */
+.sfx-layer * {
+  transform-box: view-box;
+}
+.sfx-screen {
+  mix-blend-mode: screen;
+}
+
+/* Sparkles: grow, turn a little, fade. */
+.sfx-spark {
+  opacity: 0;
+  animation: sfx-spark 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes sfx-spark {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+  40% {
+    opacity: 0;
+    transform: scale(0.4) rotate(90deg);
+  }
+}
+
+/* Technical: LED strips breathe through violet, blue and pink. */
+.sfx-strip {
+  fill: none;
+  stroke-linecap: round;
+  stroke: #725dff;
+  opacity: 0.85;
+  animation: sfx-rgb 6s linear infinite;
+}
+.sfx-strip-core {
+  opacity: 0.9;
+}
+@keyframes sfx-rgb {
+  0%,
+  100% {
+    stroke: #725dff;
+  }
+  33% {
+    stroke: #6294ff;
+  }
+  66% {
+    stroke: #ff5cb8;
+  }
+}
+.sfx-fan {
+  animation: sfx-fan 2.8s ease-in-out infinite;
+}
+@keyframes sfx-fan {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+.sfx-ring {
+  opacity: 0;
+  animation: sfx-ring 2.7s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes sfx-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.2);
+  }
+}
+.sfx-scanline {
+  animation: sfx-scanline 3.2s linear infinite;
+}
+@keyframes sfx-scanline {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(210px);
+  }
+}
+
+/* Events: a light runs the route, then the Stage box glows. */
+.sfx-route {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14 86;
+  stroke-dashoffset: 14;
+  animation: sfx-route 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes sfx-route {
+  0% {
+    stroke-dashoffset: 14;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  70% {
+    stroke-dashoffset: -86;
+    opacity: 1;
+  }
+  78%,
+  100% {
+    stroke-dashoffset: -86;
+    opacity: 0;
+  }
+}
+.sfx-stage {
+  opacity: 0;
+  animation: sfx-stage 4s ease-out infinite;
+}
+@keyframes sfx-stage {
+  0%,
+  66% {
+    opacity: 0;
+  }
+  74% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.sfx-sweep {
+  animation: sfx-sweep 7s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes sfx-sweep {
+  0%,
+  15% {
+    transform: skewX(-18deg) translateX(0);
+  }
+  65%,
+  100% {
+    transform: skewX(-18deg) translateX(900px);
+  }
+}
+
+/* Social media: megaphone waves, camera flash, recording dot, QR scans. */
+.sfx-wave {
+  opacity: 0;
+  animation: sfx-wave 1.65s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@keyframes sfx-wave {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+.sfx-flash {
+  opacity: 0;
+  animation: sfx-flash 4.5s ease-out infinite;
+}
+@keyframes sfx-flash {
+  0%,
+  86% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  88% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+.sfx-rec {
+  animation: sfx-rec 1.2s steps(2, jump-none) infinite;
+}
+@keyframes sfx-rec {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+.sfx-qr {
+  opacity: 0;
+  animation: sfx-qr 6s ease-out infinite;
+}
+@keyframes sfx-qr {
+  0% {
+    opacity: 0;
+  }
+  4%,
+  20% {
+    opacity: 1;
+  }
+  26%,
+  100% {
+    opacity: 0;
+  }
+}
+.sfx-qr-line {
+  animation: sfx-qr-line 6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes sfx-qr-line {
+  0% {
+    transform: translateY(0);
+  }
+  10% {
+    transform: translateY(var(--qr));
+  }
+  20%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* Design: twinkling string lights, monitor sheen, 3D printer nozzle. */
+.sfx-bulb {
+  animation: sfx-bulb 3s ease-in-out infinite;
+}
+@keyframes sfx-bulb {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+.sfx-sheen {
+  animation: sfx-sheen 6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+@keyframes sfx-sheen {
+  0%,
+  20% {
+    transform: skewX(-20deg) translateX(0);
+  }
+  70%,
+  100% {
+    transform: skewX(-20deg) translateX(620px);
+  }
+}
+.sfx-nozzle {
+  animation: sfx-nozzle 0.9s ease-in-out infinite alternate;
+}
+@keyframes sfx-nozzle {
+  from {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+/* Team pages: cards rise in one after another; the squad picture glides between pages. */
+.team-rise {
+  animation: team-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes team-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+::view-transition-group(*) {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sfx-layer *,
+  .team-rise {
+    animation: none !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .sfx-spark,
+  .sfx-ring,
+  .sfx-wave,
+  .sfx-flash,
+  .sfx-qr,
+  .sfx-route,
+  .sfx-stage {
+    opacity: 0 !important;
+  }
+}
