@@ -22,7 +22,7 @@ function Page() {
       <p>This policy covers the RO-BIO website, the site of RO-BIO, a student club for every branch at {site.college}, Mysuru. It is written in plain language on purpose.</p>
 
       <h2>The short version</h2>
-      <p>We do not ask you for personal information on this site. There are no accounts, forms, comments or newsletters. We do not use analytics or advertising trackers, and the site does not set cookies. The only exception is the Google map on the Contact and Bot Forge pages, which comes from Google.</p>
+      <p>We do not ask visitors for personal information on this site. There are no accounts, public forms, comments or newsletters. We do not use analytics or advertising trackers, and the site does not set cookies. The only exception is the Google map on the Contact and Bot Forge pages, which comes from Google.</p>
 
       <h2>What our hosting provider sees</h2>
       <p>The site is served by Cloudflare. When you open a page, Cloudflare processes technical details such as your IP address, browser type, the page you asked for and the time, so it can deliver the site and protect it from abuse. RO-BIO does not use this to identify or profile visitors.</p>
@@ -35,6 +35,7 @@ function Page() {
         <li><strong>robio-robo</strong> (local storage): remembers if you chose to rest or hide Robo, the robot that roams the site. It stays until you clear your browser data.</li>
       </ul>
       <p>None of these contains personal information, and none is sent to us.</p>
+      <p>Club judges and admins who use the recruitment pages also store <strong>robio-recruit-judge</strong> (local storage: the judge's name, squad and passcode, so they stay signed in), <strong>robio-recruit-drafts</strong> (local storage: marks not saved yet) and <strong>robio-recruit-admin</strong> (session storage: the admin passcode until the tab closes). Signing out removes them.</p>
 
       <h2>Other companies involved</h2>
       <ul>
@@ -47,6 +48,10 @@ function Page() {
 
       <h2>Information about our people</h2>
       <p>The Team page shows the name, semester and branch of each core team member. The Contact and event pages show the names and phone numbers of event coordinators so visitors can ask about events. Anyone listed can ask us to correct or remove their details at any time.</p>
+
+      <h2>Core member recruitment</h2>
+      <p>Students who apply to join the core team fill in a Google Form run by the club. Google handles the form under its own privacy policy. We then copy the answers into a private part of this site so our judges can mark interviews: name, USN, email address, WhatsApp number, branch, semester, squad choices and interview day, plus the judges' marks and short notes.</p>
+      <p>Only the club's admins and interview judges can see this, behind passcodes. Judges see a student's name, USN, branch, semester and squad, never their email or phone number. We use it only to choose new members and to tell applicants their results. We delete it from this site after recruitment ends, and you can ask us to delete yours sooner.</p>
 
       <h2>If we add registration later</h2>
       <p>Bot Forge registration is not open yet. Before we collect any personal information, we will update this policy to say what we collect, why, who can see it and how long we keep it.</p>
