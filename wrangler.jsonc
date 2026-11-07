@@ -10,14 +10,18 @@
   // The judge passcode is a secret named JUDGE_PASSCODE, added in the dashboard: Settings, Variables and Secrets.
   // Robo Spark certificates (CERT_STORE): names, emails and numbers live only in this SQLite store.
   // The admin passcode is a secret named CERT_ADMIN_PASSCODE, added the same way as JUDGE_PASSCODE.
+  // Core member recruitment (RECRUIT_STORE): applicants and judges' marks live only in this SQLite store.
+  // Its two secrets, added the same way: RECRUIT_ADMIN_PASSCODE and RECRUIT_JUDGE_PASSCODE.
   "durable_objects": {
     "bindings": [
       { "name": "JUDGE_SCORES", "class_name": "JudgeScores" },
-      { "name": "CERT_STORE", "class_name": "CertStore" }
+      { "name": "CERT_STORE", "class_name": "CertStore" },
+      { "name": "RECRUIT_STORE", "class_name": "RecruitStore" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["JudgeScores"] },
-    { "tag": "v2", "new_sqlite_classes": ["CertStore"] }
+    { "tag": "v2", "new_sqlite_classes": ["CertStore"] },
+    { "tag": "v3", "new_sqlite_classes": ["RecruitStore"] }
   ]
 }
