@@ -332,7 +332,8 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
                     <span className="min-w-0 flex-1">
                       <b className="block">{s.name}</b>
                       <span className="block text-sm text-muted-foreground">
-                        <span className="font-mono">{s.usn}</span>, {s.branch}, sem {s.sem}
+                        <span className="font-mono">{s.usn || "no USN yet"}</span>, {s.branch}, sem{" "}
+                        {s.sem}
                         {teacher ? `, ${s.first}` : ""}
                       </span>
                     </span>
@@ -487,7 +488,8 @@ function MarkCard({
     >
       <h2 className="text-xl font-black">{student.name}</h2>
       <p className="text-sm text-muted-foreground">
-        <span className="font-mono">{student.usn}</span>, {student.branch}, sem {student.sem}
+        <span className="font-mono">{student.usn || "no USN yet"}</span>, {student.branch}, sem{" "}
+        {student.sem}
       </p>
       <div className="mt-4 grid gap-4">
         {CRITERIA.map((c, i) => {
