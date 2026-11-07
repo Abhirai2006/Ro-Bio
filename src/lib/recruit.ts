@@ -167,19 +167,27 @@ export function validateCandidate(
   if (!raw || typeof raw !== "object")
     return { ok: false, error: "Send the student as an object." };
   const b = raw as Record<string, unknown>;
-  const usn = cleanUsn(b["usn"]);
-  if (!usn) return { ok: false, error: "USN must be 4 to 20 letters and numbers." };
+  const typedUsn = typeof b["usn"] === "string" ? b["usn"].trim() : "";
+  const usn = cleanUsn(typedUsn);
+  if (typedUsn && !usn) return { ok: false, error: "USN must be 4 to 20 letters and numbers." };
   const name = tidyNameCase(cleanPersonName(b["name"]));
-  if (!name) return { ok: false, error: `Type a name for ${usn}.` };
+  if (!name) return { ok: false, error: "Type the student's name." };
+  const who = usn || name;
   const email = cleanEmail(b["email"]);
   if (email && !isEmail(email))
-    return { ok: false, error: `The email for ${usn} does not look right.` };
+    return { ok: false, error: `The email for ${who} does not look right.` };
+  const phone = cleanPhone(b["phone"]);
+  if (!usn && !email && !phone)
+    return {
+      ok: false,
+      error: `Give ${who} a USN, email or WhatsApp number, so they can be told apart from others.`,
+    };
   const branch = typeof b["branch"] === "string" ? b["branch"].trim() : "";
   if (!(BRANCHES as readonly string[]).includes(branch))
-    return { ok: false, error: `Pick a branch from the list for ${usn}.` };
+    return { ok: false, error: `Pick a branch from the list for ${who}.` };
   const sem = Number(b["sem"]);
-  if (sem !== 1 && sem !== 3) return { ok: false, error: `Semester must be 1 or 3 for ${usn}.` };
-  if (!isSquad(b["first"])) return { ok: false, error: `Pick a first choice squad for ${usn}.` };
+  if (sem !== 1 && sem !== 3) return { ok: false, error: `Semester must be 1 or 3 for ${who}.` };
+  if (!isSquad(b["first"])) return { ok: false, error: `Pick a first choice squad for ${who}.` };
   const first = b["first"];
   const second = isSquad(b["second"]) && b["second"] !== first ? b["second"] : null;
   const day = isDay(b["day"]) ? b["day"] : null;
@@ -189,7 +197,7 @@ export function validateCandidate(
       usn,
       name,
       email,
-      phone: cleanPhone(b["phone"]),
+      phone,
       branch,
       sem,
       first,
@@ -198,6 +206,17 @@ export function validateCandidate(
       wildcard: b["wildcard"] === true,
     },
   };
+}
+
+/**
+ * How a student is recognised when the form is imported again: by USN, or, for 1st semester students who
+ * have no USN yet, by email, then by WhatsApp number. "" when there is nothing to go on.
+ */
+export function studentKey(c: Pick<NewCandidate, "usn" | "email" | "phone">): string {
+  if (c.usn) return `usn:${c.usn}`;
+  if (c.email) return `email:${c.email.toLowerCase()}`;
+  if (c.phone) return `phone:${c.phone}`;
+  return "";
 }
 
 export type CsvRow = NewCandidate & { line: number; problems: string[] };
@@ -255,9 +274,11 @@ export function readRecruitCsv(text: string): { rows: CsvRow[]; missing: string[
     const second = isSquad(secondText) && secondText !== firstText ? secondText : null;
     const day = isDay(dayText) ? dayText : null;
     const problems: string[] = [];
-    if (!usn) problems.push(typedUsn ? `USN "${typedUsn}" is not letters and numbers` : "no USN");
+    if (typedUsn && !usn) problems.push(`USN "${typedUsn}" is not letters and numbers`);
     if (!name) problems.push("no name");
     if (email && !isEmail(email)) problems.push("email does not look right");
+    if (!usn && !email && !cleanPhone(cell(cells, at.phone)))
+      problems.push("no USN, email or WhatsApp number");
     if (!branch) problems.push("branch not in the list");
     if (!semDigit) problems.push("semester not 1st or 3rd");
     if (!first) problems.push("no first choice squad");
@@ -278,9 +299,9 @@ export function readRecruitCsv(text: string): { rows: CsvRow[]; missing: string[
     };
   });
   const lastLine = new Map<string, number>();
-  for (const r of rows) if (r.usn) lastLine.set(r.usn, r.line);
+  for (const r of rows) if (studentKey(r)) lastLine.set(studentKey(r), r.line);
   for (const r of rows) {
-    const last = r.usn ? lastLine.get(r.usn) : undefined;
+    const last = studentKey(r) ? lastLine.get(studentKey(r)) : undefined;
     if (last !== undefined && last !== r.line) r.problems.push(`replaced by line ${last}`);
   }
   return { rows, missing: [] };
