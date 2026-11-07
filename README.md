@@ -144,7 +144,7 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 <img src="docs/screenshots/team.jpg" alt="The team page with flip cards" width="100%" />
 
-**The team page** starts with the Head of Department and the faculty coordinator, then the President, Vice President and every squad. Each card flips to show more.
+**The team page** starts with the Head of Department and the faculty coordinator, then the office bearers (President, Vice President and Secretary) and every squad. Each card flips to show more.
 
 <br />
 
