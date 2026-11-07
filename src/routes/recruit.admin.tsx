@@ -53,6 +53,8 @@ const savePass = (p: string) => {
 };
 
 type Note = { kind: "ok" | "err"; text: string } | null;
+/** Shown where a 1st semester student has no USN yet. */
+const NO_USN = "no USN yet";
 type Call = <T>(path: string, init?: RequestInit) => Promise<T>;
 
 function NoteBox({ note }: { note: Note }) {
@@ -364,7 +366,7 @@ function Import({
                     <tr key={r.line} className={stop ? "bg-destructive/10" : ""}>
                       <td className={td}>{r.line}</td>
                       <td className={td}>{r.name}</td>
-                      <td className={`${td} font-mono`}>{r.usn}</td>
+                      <td className={`${td} font-mono`}>{r.usn || NO_USN}</td>
                       <td className={td}>{r.branch}</td>
                       <td className={td}>{r.sem}</td>
                       <td className={td}>{r.first}</td>
@@ -471,7 +473,7 @@ function StudentForm({
         <p className="mt-1 text-sm text-muted-foreground">
           {editing
             ? "To move a student to their second choice squad, change their first choice here. Marks already given stay with them."
-            : "For anyone who did not fill in the form. They are marked as a wildcard."}
+            : "For anyone who did not fill in the form. They are marked as a wildcard. A student with no USN yet needs an email or WhatsApp number instead."}
         </p>
         <form onSubmit={(e) => void save(e)} className="mt-4 grid gap-4 sm:grid-cols-2">
           <label>
@@ -485,10 +487,9 @@ function StudentForm({
             />
           </label>
           <label>
-            <span className="font-bold">USN</span>
+            <span className="font-bold">USN (leave blank if they have none yet)</span>
             <input
               id={id("usn")}
-              required
               className={`${input} font-mono uppercase`}
               value={form.usn}
               onChange={set("usn")}
@@ -734,7 +735,9 @@ function Results({
                   <td className={`${td} tabular-nums`}>{i + 1}</td>
                   <td className={td}>
                     <b>{c.name}</b>
-                    <span className="block font-mono text-xs text-muted-foreground">{c.usn}</span>
+                    <span className="block font-mono text-xs text-muted-foreground">
+                      {c.usn || NO_USN}
+                    </span>
                     {c.wildcard && (
                       <span className="font-pixel text-[10px] text-primary">WILDCARD</span>
                     )}
@@ -861,7 +864,7 @@ function AllStudents({
                     <span className="ml-1 font-pixel text-[10px] text-primary">WILDCARD</span>
                   )}
                 </td>
-                <td className={`${td} font-mono`}>{c.usn}</td>
+                <td className={`${td} font-mono`}>{c.usn || NO_USN}</td>
                 <td className={td}>{c.branch}</td>
                 <td className={td}>{c.sem}</td>
                 <td className={td}>{c.first}</td>
