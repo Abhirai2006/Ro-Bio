@@ -144,7 +144,7 @@ export function currentSem(announcedSem: number) {
 const m = (name: string, sem: number, dept = "BMRE", head = false, role?: string): Member => ({ name, sem, dept, head, role });
 
 export const coreTeam: Squad[] = [
-  { title: "President and Vice President", members: [m("Thushar K L", 6, "BMRE", false, "President"), m("Shloka D Raj", 4, "BMRE", false, "Vice President")] },
+  { title: "Office Bearers", members: [m("Thushar K L", 6, "BMRE", false, "President"), m("Shloka D Raj", 4, "BMRE", false, "Vice President"), m("Abhishek Rai A", 4, "AIML", false, "Secretary")] },
   {
     title: "Projects",
     members: [m("Anagha A Raichurkar", 6, "BMRE", true), m("Ananya R", 6), m("Bhoomika S", 6), m("Varsha Yogesh", 4, "CS&D"), m("Rohan", 4, "CS&D"), m("Shivprasad", 6, "AIML")],
@@ -155,11 +155,11 @@ export const coreTeam: Squad[] = [
   },
   {
     title: "Technical",
-    members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica", 4), m("Abhishek Rai A", 4, "AIML")],
+    members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica", 4)],
   },
   {
     title: "Social Media and Outreach",
-    members: [m("Sumith S", 4, "BMRE", true), m("Deekshitha H", 6), m("Amina Aslam", 6), m("Kulsum", 4, "AIML"), m("Siddharth A", 4, "CS&D"), m("Siddharth", 4), m("Deeksha B H", 4), m("Nishanth Raj", 4, "CS&D")],
+    members: [m("Sumith S", 4, "BMRE", true), m("Kulsum", 4, "AIML"), m("Siddharth A", 4, "CS&D"), m("Siddharth", 4), m("Deeksha B H", 4), m("Nishanth Raj", 4, "CS&D")],
   },
   { title: "Design", members: [m("Viren Biddappa", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham Gowda S R", 4)] },
 ];
