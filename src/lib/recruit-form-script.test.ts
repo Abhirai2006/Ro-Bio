@@ -1,16 +1,19 @@
-// Tests the pure helpers inside the Google Apps Script file (recruitment/form/Code.gs).
-// Apps Script cannot run here, so the file is loaded into a plain JavaScript sandbox.
-import { readFileSync } from "node:fs";
+// Tests the Google Apps Script that builds the recruitment form. The script is not kept in this repo
+// (the club keeps it with its other recruitment papers), so these tests run only when a copy sits at
+// recruitment/form/Code.gs, and are skipped otherwise. Apps Script cannot run here, so the file is
+// loaded into a plain JavaScript sandbox with small stand-ins for Google's services.
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { describe, expect, it } from "vitest";
+import { DAYS, ROOMS, SQUADS } from "@/lib/recruit";
 
 const file = path.resolve(__dirname, "../../recruitment/form/Code.gs");
-const text = readFileSync(file, "utf8");
+const present = existsSync(file);
+const text = present ? readFileSync(file, "utf8") : "";
 const box: Record<string, unknown> = {};
 vm.createContext(box);
-vm.runInContext(text, box);
-
+if (present) vm.runInContext(text, box);
 /** A tiny stand-in for one Google Sheet tab: a grid of cells, 1-based like Apps Script. */
 class FakeSheet {
   cells: unknown[][];
@@ -120,7 +123,7 @@ const emailFor = box["emailFor"] as Fn<
   { subject: string; body: string }
 >;
 
-describe("recruitment form script", () => {
+describe.skipIf(!present)("recruitment form script", () => {
   it("sends each squad to its room", () => {
     expect(roomFor("Design")).toBe("G-07");
     expect(roomFor("Technical")).toBe("G-07");
@@ -232,5 +235,114 @@ describe("recruitment form script", () => {
   it("never mentions supporting members and uses no long dashes", () => {
     expect(text.toLowerCase()).not.toContain("supporting");
     expect(text).not.toMatch(/[\u2013\u2014]/);
+  });
+});
+
+/** Runs setup() against stand-ins for Google Forms, Sheets and triggers, and returns every form question made. */
+function runSetup() {
+  type Call = [string, unknown[]];
+  const chain = (calls: Call[], over: Record<string, unknown> = {}): unknown => {
+    const proxy: unknown = new Proxy(
+      {},
+      {
+        get: (_t, prop: string) =>
+          prop in over
+            ? over[prop]
+            : (...args: unknown[]) => {
+                calls.push([prop, args]);
+                return proxy;
+              },
+      },
+    );
+    return proxy;
+  };
+  const items: { kind: string; calls: Call[] }[] = [];
+  const addItem = (kind: string) => () => {
+    const it = { kind, calls: [] as Call[] };
+    items.push(it);
+    return chain(it.calls);
+  };
+  const form = chain([], {
+    addTextItem: addItem("text"),
+    addListItem: addItem("list"),
+    addMultipleChoiceItem: addItem("choice"),
+    addCheckboxItem: addItem("checkbox"),
+    getPublishedUrl: () => "https://forms.test/f",
+    getId: () => "form-id",
+  });
+  const resp = new FakeSheet("Form Responses 1", HEAD);
+  const sheet1 = new FakeSheet("Sheet1", []);
+  const tabs: unknown[] = [resp, sheet1];
+  const ss = {
+    getId: () => "sheet-id",
+    getUrl: () => "https://sheets.test/s",
+    getSheets: () => tabs,
+    getSheetByName: (n: string) => (n === "Sheet1" ? sheet1 : null),
+    deleteSheet: () => tabs.splice(tabs.indexOf(sheet1), 1),
+    insertSheet: () => chain([]),
+  };
+  const props = new Map<string, string>();
+  Object.assign(box, {
+    FormApp: {
+      create: () => form,
+      createTextValidation: () => chain([]),
+      EmailCollectionType: { RESPONDER_INPUT: "RESPONDER_INPUT" },
+      DestinationType: { SPREADSHEET: "SPREADSHEET" },
+    },
+    SpreadsheetApp: { create: () => ss, flush: () => undefined },
+    ScriptApp: { newTrigger: () => chain([]) },
+    PropertiesService: {
+      getScriptProperties: () => ({
+        getProperty: (k: string) => props.get(k) ?? null,
+        setProperty: (k: string, v: string) => props.set(k, v),
+      }),
+    },
+    Logger: { log: () => undefined },
+  });
+  (box["setup"] as () => void)();
+  const titled = (title: string) =>
+    items.find((i) => i.calls.some(([m, a]) => m === "setTitle" && a[0] === title));
+  const required = (title: string) =>
+    titled(title)?.calls.find(([m]) => m === "setRequired")?.[1][0];
+  return { items, titled, required, props, resp };
+}
+
+describe.skipIf(!present)("setting up the form", () => {
+  it("builds every question and remembers the form", () => {
+    const { titled, props } = runSetup();
+    for (const t of [
+      "Full name",
+      "USN",
+      "WhatsApp number",
+      "Branch",
+      "Semester",
+      "First choice squad",
+      "Second choice squad",
+      "Interview day",
+      "Consent",
+    ])
+      expect(titled(t), t).toBeTruthy();
+    expect(props.get("formId")).toBe("form-id");
+  });
+
+  it("does not require a USN, because 1st semester students do not have one yet", () => {
+    const { required, titled } = runSetup();
+    expect(required("USN")).toBe(false);
+    const help = titled("USN")!.calls.find(([m]) => m === "setHelpText")?.[1][0];
+    expect(String(help)).toMatch(/1st semester/);
+    expect(required("Full name")).toBe(true);
+  });
+});
+
+describe.skipIf(!present)("the form script and the website agree", () => {
+  it("uses the same squads, rooms and days", () => {
+    const config = vm.runInContext("CONFIG", box) as {
+      squads: string[];
+      rooms: Record<string, string>;
+      days: string[];
+    };
+    expect(config.squads).toEqual([...SQUADS]);
+    expect(config.rooms).toEqual(ROOMS);
+    expect(config.days).toEqual([...DAYS]);
   });
 });
