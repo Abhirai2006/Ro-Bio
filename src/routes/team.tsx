@@ -12,7 +12,7 @@ export const Route = createFileRoute("/team")({
       {
         name: "description",
         content:
-          "The RO-BIO team: Head of Department Dr. Nithin S K, faculty coordinator Archana G, President Thushar K L, Vice President Shloka D Raj and every squad.",
+          "The RO-BIO team: Head of Department Dr. Nithin S K, faculty coordinator Archana G, President Thushar K L, Vice President Shloka D Raj, Secretary Abhishek Rai A and every squad.",
       },
       { property: "og:title", content: "Team | RO-BIO" },
       { property: "og:description", content: "The people who keep RO-BIO running." },
