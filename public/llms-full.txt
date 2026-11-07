@@ -67,6 +67,11 @@ No. There are no accounts, forms or analytics, and the site itself sets no cooki
 - [Bot Forge](https://ro-bio.hub-muse.workers.dev/events/bot-forge): Bot Forge, date coming soon: Robo Sumo, Robot Race.
 - [Robo Spark](https://ro-bio.hub-muse.workers.dev/events/robo-spark): Robo Spark, Tue, 3 Nov 2026, 11:45 am to 1:00 pm: Icebreaker, Group discussion on a robotics problem, Teams present on the podium.
 - [Team](https://ro-bio.hub-muse.workers.dev/team): The 30 students on the core team.
+- [Projects squad](https://ro-bio.hub-muse.workers.dev/team/projects): Turns ideas into working robots, from the first sketch on the whiteboard to a tested prototype.
+- [Events squad](https://ro-bio.hub-muse.workers.dev/team/events): Plans and runs RO-BIO's events: the layout, the schedule, the crew and the volunteers.
+- [Technical squad](https://ro-bio.hub-muse.workers.dev/team/technical): Builds and debugs the club's electronics, code and this website.
+- [Social Media and Outreach squad](https://ro-bio.hub-muse.workers.dev/team/social-media): Tells the campus what RO-BIO is up to, on Instagram, on LinkedIn and on the ground.
+- [Design squad](https://ro-bio.hub-muse.workers.dev/team/design): Makes the club's posters, visuals and the look of everything RO-BIO puts out.
 - [Workshops](https://ro-bio.hub-muse.workers.dev/workshops): Workshops for members and students (content coming soon).
 - [Projects](https://ro-bio.hub-muse.workers.dev/projects): Projects built by the club.
 - [Gallery](https://ro-bio.hub-muse.workers.dev/gallery): Photos from the club.
