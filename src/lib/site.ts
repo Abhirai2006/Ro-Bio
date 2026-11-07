@@ -134,7 +134,15 @@ export function todayInIndia(now = new Date()) {
 
 /** Core team, from the club's selection announcement. `sem` is the semester at announcement time. */
 export type Member = { name: string; sem: number; dept: string; head?: boolean; role?: string | undefined };
-export type Squad = { title: string; members: Member[] };
+/** A squad. The five working squads have their own page at /team/<slug>; Office Bearers stay on /team. */
+export type Squad = {
+  title: string;
+  members: Member[];
+  /** The squad page address, like "technical" for /team/technical. */
+  slug?: "projects" | "events" | "technical" | "social-media" | "design";
+  /** One line under the squad name. */
+  about?: string;
+};
 
 /** Everyone has moved up one semester since the announcement. */
 export function currentSem(announcedSem: number) {
@@ -147,22 +155,52 @@ export const coreTeam: Squad[] = [
   { title: "Office Bearers", members: [m("Thushar K L", 6, "BMRE", false, "President"), m("Shloka D Raj", 4, "BMRE", false, "Vice President"), m("Abhishek Rai A", 4, "AIML", false, "Secretary")] },
   {
     title: "Projects",
+    slug: "projects",
+    about:
+      "Turns ideas into working robots, from the first sketch on the whiteboard to a tested prototype.",
     members: [m("Anagha A Raichurkar", 6, "BMRE", true), m("Ananya R", 6), m("Bhoomika S", 6), m("Varsha Yogesh", 4, "CS&D"), m("Rohan", 4, "CS&D"), m("Shivprasad", 6, "AIML")],
   },
   {
     title: "Events",
+    slug: "events",
+    about: "Plans and runs RO-BIO's events: the layout, the schedule, the crew and the volunteers.",
     members: [m("Tejaswini V", 6, "BMRE", true), m("Kartik Kushalappa", 6), m("Abhijna Samanth", 6), m("Tejaswini", 4), m("Srishant", 4), m("Harshini", 4)],
   },
   {
     title: "Technical",
+    slug: "technical",
+    about: "Builds and debugs the club's electronics, code and this website.",
     members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica", 4)],
   },
   {
     title: "Social Media and Outreach",
+    slug: "social-media",
+    about: "Tells the campus what RO-BIO is up to, on Instagram, on LinkedIn and on the ground.",
     members: [m("Sumith S", 4, "BMRE", true), m("Kulsum", 4, "AIML"), m("Siddharth A", 4, "CS&D"), m("Siddharth", 4), m("Deeksha B H", 4), m("Nishanth Raj", 4, "CS&D")],
   },
-  { title: "Design", members: [m("Viren Biddappa", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham Gowda S R", 4)] },
+  { title: "Design", slug: "design", about: "Makes the club's posters, visuals and the look of everything RO-BIO puts out.", members: [m("Viren Biddappa", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham Gowda S R", 4)] },
 ];
+
+/**
+ * Photos for the team pages, by name exactly as it appears above (or in `faculty`).
+ * Files live in public/team/people/ as square WebP pictures. Anyone without a photo shows initials.
+ */
+export const teamPhotos: Record<string, string> = {
+  "Dr. Nithin S K": "/team/people/nithin-s-k.webp",
+  "Archana G": "/team/people/archana-g.webp",
+  "Abhishek Rai A": "/team/people/abhishek-rai-a.webp",
+  "Brunda H S": "/team/people/brunda-h-s.webp",
+  "Pushkal Sai A": "/team/people/pushkal-sai-a.webp",
+  "Deeksha B H": "/team/people/deeksha-b-h.webp",
+  "Preetham Gowda S R": "/team/people/preetham-gowda-s-r.webp",
+};
+
+/** LinkedIn profile links, by name. Only people who gave one in the team form are listed. */
+export const teamLinkedIn: Record<string, string> = {};
+
+/** The five squads that have their own page, in the order the team page shows them. */
+export const squadPages = () =>
+  coreTeam.filter((s): s is Squad & { slug: NonNullable<Squad["slug"]> } => !!s.slug);
 
 /** How many people are on the core team, counted from the list above. */
 export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
