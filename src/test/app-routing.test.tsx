@@ -14,4 +14,10 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("matches a squad page for /team/technical, separate from /team", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    expect(router.matchRoutes("/team/technical").at(-1)?.routeId).toBe("/team_/$squad");
+    expect(router.matchRoutes("/team").at(-1)?.routeId).toBe("/team");
+  });
 });
