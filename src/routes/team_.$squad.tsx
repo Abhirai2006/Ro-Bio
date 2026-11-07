@@ -50,6 +50,7 @@ function SquadPage() {
           key={squad.slug}
           slug={squad.slug}
           fx
+          interactive
           priority
           className="mt-4 border-2 border-border shadow-hard"
         />
@@ -81,7 +82,7 @@ function SquadPage() {
                 viewTransition
                 className="group block border-2 border-border bg-card shadow-hard"
               >
-                <SquadArt slug={o.slug} className="border-b-2 border-border" />
+                <SquadArt slug={o.slug} fx className="border-b-2 border-border" />
                 <p className="p-3 font-display font-bold group-hover:text-primary">{o.title} →</p>
               </Link>
             </li>
