@@ -6,8 +6,8 @@ import { sqliteState } from "@/test/sqlite-state";
 const ADMIN = "admin-pass";
 const JUDGE = "judge-pass";
 
-function setup(env: Partial<RecruitEnv> = {}) {
-  const store = new RecruitStore(sqliteState(), {});
+function setup(env: Partial<RecruitEnv> = {}, state = sqliteState()) {
+  const store = new RecruitStore(state, {});
   const full: RecruitEnv = {
     RECRUIT_STORE: {
       idFromName: () => ({ toString: () => "core-2026" }),
@@ -211,5 +211,96 @@ describe("admin", () => {
       (await call("admin", "all", { method: "DELETE", body: { confirm: "DELETE" } })).status,
     ).toBe(200);
     expect((await call("admin", "list")).data["candidates"]).toEqual([]);
+  });
+});
+
+describe("1st semester students without a USN", () => {
+  const noUsn = (name: string, email: string, extra: Record<string, unknown> = {}) =>
+    student("", "Events", { name, email, ...extra });
+  type Row = { id: number; usn: string; name: string; email: string; day: string };
+  const rowsOf = async (call: ReturnType<typeof setup>["call"]) =>
+    (await call("admin", "list")).data["candidates"] as unknown as Row[];
+
+  it("adds two students who both have no USN", async () => {
+    const { call } = setup();
+    const r = await call("admin", "add", {
+      method: "POST",
+      body: { rows: [noUsn("Gita", "gita@x.in"), noUsn("Hari", "hari@x.in")] },
+    });
+    expect(r.data).toMatchObject({ added: 2, updated: 0 });
+    expect((await rowsOf(call)).map((c) => c.usn)).toEqual(["", ""]);
+  });
+
+  it("recognises them by email when the sheet is imported again", async () => {
+    const { call } = setup();
+    await call("admin", "add", { method: "POST", body: { rows: [noUsn("Gita", "gita@x.in")] } });
+    const r = await call("admin", "add", {
+      method: "POST",
+      body: { rows: [noUsn("Gita R", "GITA@x.in", { day: "Thu 12 Nov" })] },
+    });
+    expect(r.data).toMatchObject({ added: 0, updated: 1 });
+    const rows = await rowsOf(call);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ name: "Gita R", day: "Thu 12 Nov" });
+  });
+
+  it("fills in the USN when they get one later, keeping their marks", async () => {
+    const { call } = setup();
+    await call("admin", "add", { method: "POST", body: { rows: [noUsn("Gita", "gita@x.in")] } });
+    const [gita] = await rowsOf(call);
+    await call("judge", "sheet", marks(gita!.id, "Archana", "Teacher"));
+    await call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("4MU26CS050", "Events", { name: "Gita", email: "gita@x.in" })] },
+    });
+    const rows = await rowsOf(call);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: gita!.id, usn: "4MU26CS050" });
+    expect((await call("admin", "list")).data["sheets"]).toHaveLength(1);
+  });
+
+  it("keeps a USN already known when a later import leaves it blank", async () => {
+    const { call } = setup();
+    await call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("4MU26CS050", "Events", { email: "gita@x.in" })] },
+    });
+    await call("admin", "add", { method: "POST", body: { rows: [noUsn("Gita", "gita@x.in")] } });
+    expect((await rowsOf(call))[0]).toMatchObject({ usn: "4MU26CS050" });
+  });
+
+  it("shows judges a student with no USN", async () => {
+    const { call } = setup();
+    await call("admin", "add", { method: "POST", body: { rows: [noUsn("Gita", "gita@x.in")] } });
+    const r = await call("judge", "candidates?squad=Events&judge=X");
+    expect(r.data["candidates"]).toMatchObject([{ name: "Gita", usn: "" }]);
+  });
+});
+
+describe("upgrading a store made by the first version", () => {
+  it("keeps the students and marks already saved in the old table", async () => {
+    const state = sqliteState();
+    const sql = state.storage.sql;
+    sql.exec(
+      "CREATE TABLE candidates (id INTEGER PRIMARY KEY AUTOINCREMENT, usn TEXT NOT NULL UNIQUE, name TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', branch TEXT NOT NULL, sem INTEGER NOT NULL, first TEXT NOT NULL, second TEXT, day TEXT, wildcard INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'undecided', added_at INTEGER NOT NULL)",
+    );
+    sql.exec(
+      "CREATE TABLE sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge))",
+    );
+    sql.exec(
+      "INSERT INTO candidates (id, usn, name, email, phone, branch, sem, first, day, wildcard, status, added_at) VALUES (7, '4MU24A001', 'Old Student', 'old@x.in', '', 'Computer Science & Design', 3, 'Events', 'Wed 11 Nov', 1, 'core', 1)",
+    );
+    sql.exec("INSERT INTO sheets VALUES (7, 'Archana', 'Teacher', '[3,3,3,3,3]', '', 1)");
+    const { call } = setup({}, state);
+    const list = (await call("admin", "list")).data;
+    expect(list["candidates"]).toMatchObject([
+      { id: 7, usn: "4MU24A001", status: "core", wildcard: true },
+    ]);
+    expect(list["sheets"]).toMatchObject([{ candidateId: 7, judge: "Archana" }]);
+    const r = await call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("", "Events", { name: "New", email: "new@x.in" })] },
+    });
+    expect(r.data).toMatchObject({ added: 1 });
   });
 });
