@@ -6,7 +6,7 @@ import type { Candidate, NewCandidate, Sheet, Status } from "@/lib/recruit";
 
 type CandidateRow = {
   id: number;
-  usn: string;
+  usn: string | null;
   name: string;
   email: string;
   phone: string;
@@ -33,7 +33,7 @@ const FAIL_LIMIT = 15;
 
 const toCandidate = (r: CandidateRow): Candidate => ({
   id: r.id,
-  usn: r.usn,
+  usn: r.usn ?? "",
   name: r.name,
   email: r.email,
   phone: r.phone,
@@ -55,14 +55,31 @@ const toSheet = (r: SheetRow): Sheet => ({
   updatedAt: r.updated_at,
 });
 
+// One row per applicant. The USN may be empty (NULL): 1st semester students often have none yet.
+const APPLICANTS =
+  "CREATE TABLE IF NOT EXISTS applicants (id INTEGER PRIMARY KEY AUTOINCREMENT, usn TEXT UNIQUE, name TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', branch TEXT NOT NULL, sem INTEGER NOT NULL, first TEXT NOT NULL, second TEXT, day TEXT, wildcard INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'undecided', added_at INTEGER NOT NULL)";
+const COLUMNS =
+  "id, usn, name, email, phone, branch, sem, first, second, day, wildcard, status, added_at";
+
 export class RecruitStore extends DurableObject {
   constructor(ctx: DurableObjectState, env: unknown) {
     super(ctx, env);
     void ctx.blockConcurrencyWhile(() => {
       const sql = ctx.storage.sql;
-      sql.exec(
-        "CREATE TABLE IF NOT EXISTS candidates (id INTEGER PRIMARY KEY AUTOINCREMENT, usn TEXT NOT NULL UNIQUE, name TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', branch TEXT NOT NULL, sem INTEGER NOT NULL, first TEXT NOT NULL, second TEXT, day TEXT, wildcard INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'undecided', added_at INTEGER NOT NULL)",
-      );
+      sql.exec(APPLICANTS);
+      // The first version kept students in "candidates", where a USN was required. Move anyone saved
+      // there into "applicants" with the same ids, so judges' marks stay attached, then drop the old table.
+      const old = sql
+        .exec<{ n: number }>(
+          "SELECT COUNT(*) AS n FROM sqlite_master WHERE type = 'table' AND name = 'candidates'",
+        )
+        .one();
+      if (old.n > 0) {
+        sql.exec(
+          `INSERT OR IGNORE INTO applicants (${COLUMNS}) SELECT id, NULLIF(usn, ''), name, email, phone, branch, sem, first, second, day, wildcard, status, added_at FROM candidates`,
+        );
+        sql.exec("DROP TABLE candidates");
+      }
       sql.exec(
         "CREATE TABLE IF NOT EXISTS sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge))",
       );
@@ -73,44 +90,80 @@ export class RecruitStore extends DurableObject {
 
   list(): Candidate[] {
     return this.ctx.storage.sql
-      .exec<CandidateRow>("SELECT * FROM candidates ORDER BY first, name")
+      .exec<CandidateRow>("SELECT * FROM applicants ORDER BY first, name")
       .toArray()
       .map(toCandidate);
   }
 
   get(id: number): Candidate | null {
     const rows = this.ctx.storage.sql
-      .exec<CandidateRow>("SELECT * FROM candidates WHERE id = ?", id)
+      .exec<CandidateRow>("SELECT * FROM applicants WHERE id = ?", id)
       .toArray();
     return rows[0] ? toCandidate(rows[0]) : null;
   }
 
-  /** Adds students, or updates the form fields of students already here (matched by USN). Status is kept. */
+  /** The id of a student already here: matched by USN, then by email, then by WhatsApp number. */
+  private find(c: NewCandidate): number | null {
+    const sql = this.ctx.storage.sql;
+    const one = (q: string, v: string) => sql.exec<{ id: number }>(q, v).toArray()[0]?.id ?? null;
+    return (
+      (c.usn ? one("SELECT id FROM applicants WHERE usn = ?", c.usn) : null) ??
+      (c.email
+        ? one(
+            "SELECT id FROM applicants WHERE lower(email) = lower(?) ORDER BY id LIMIT 1",
+            c.email,
+          )
+        : null) ??
+      (c.phone && !c.usn && !c.email
+        ? one("SELECT id FROM applicants WHERE phone = ? ORDER BY id LIMIT 1", c.phone)
+        : null)
+    );
+  }
+
+  /**
+   * Adds students, or updates the form fields of students already here (see find). Status is kept, and so
+   * is a USN already known when the new answers leave it blank. Throws if a USN belongs to someone else.
+   */
   add(rows: NewCandidate[]): { added: number; updated: number } {
     const sql = this.ctx.storage.sql;
     let added = 0;
     let updated = 0;
     const now = Date.now();
     for (const c of rows) {
-      const known =
-        sql.exec<{ id: number }>("SELECT id FROM candidates WHERE usn = ?", c.usn).toArray()
-          .length > 0;
-      sql.exec(
-        "INSERT INTO candidates (usn, name, email, phone, branch, sem, first, second, day, wildcard, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (usn) DO UPDATE SET name = excluded.name, email = excluded.email, phone = excluded.phone, branch = excluded.branch, sem = excluded.sem, first = excluded.first, second = excluded.second, day = excluded.day, wildcard = MAX(candidates.wildcard, excluded.wildcard)",
-        c.usn,
-        c.name,
-        c.email,
-        c.phone,
-        c.branch,
-        c.sem,
-        c.first,
-        c.second,
-        c.day,
-        c.wildcard ? 1 : 0,
-        now,
-      );
-      if (known) updated++;
-      else added++;
+      const id = this.find(c);
+      if (id !== null) {
+        sql.exec(
+          "UPDATE applicants SET usn = COALESCE(?, usn), name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = MAX(wildcard, ?) WHERE id = ?",
+          c.usn || null,
+          c.name,
+          c.email,
+          c.phone,
+          c.branch,
+          c.sem,
+          c.first,
+          c.second,
+          c.day,
+          c.wildcard ? 1 : 0,
+          id,
+        );
+        updated++;
+      } else {
+        sql.exec(
+          "INSERT INTO applicants (usn, name, email, phone, branch, sem, first, second, day, wildcard, added_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+          c.usn || null,
+          c.name,
+          c.email,
+          c.phone,
+          c.branch,
+          c.sem,
+          c.first,
+          c.second,
+          c.day,
+          c.wildcard ? 1 : 0,
+          now,
+        );
+        added++;
+      }
     }
     return { added, updated };
   }
@@ -118,8 +171,8 @@ export class RecruitStore extends DurableObject {
   /** Changes one student's details. Returns null when there is no such student. Throws if the USN is taken. */
   edit(id: number, c: NewCandidate): Candidate | null {
     const n = this.ctx.storage.sql.exec(
-      "UPDATE candidates SET usn = ?, name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = ? WHERE id = ?",
-      c.usn,
+      "UPDATE applicants SET usn = ?, name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = ? WHERE id = ?",
+      c.usn || null,
       c.name,
       c.email,
       c.phone,
@@ -138,12 +191,12 @@ export class RecruitStore extends DurableObject {
   remove(id: number): boolean {
     const sql = this.ctx.storage.sql;
     sql.exec("DELETE FROM sheets WHERE candidate_id = ?", id);
-    return sql.exec("DELETE FROM candidates WHERE id = ?", id).rowsWritten > 0;
+    return sql.exec("DELETE FROM applicants WHERE id = ?", id).rowsWritten > 0;
   }
 
   setStatus(id: number, status: Status): boolean {
     return (
-      this.ctx.storage.sql.exec("UPDATE candidates SET status = ? WHERE id = ?", status, id)
+      this.ctx.storage.sql.exec("UPDATE applicants SET status = ? WHERE id = ?", status, id)
         .rowsWritten > 0
     );
   }
@@ -197,7 +250,7 @@ export class RecruitStore extends DurableObject {
   wipe(): void {
     const sql = this.ctx.storage.sql;
     sql.exec("DELETE FROM sheets");
-    sql.exec("DELETE FROM candidates");
+    sql.exec("DELETE FROM applicants");
     sql.exec("DELETE FROM settings");
   }
 
