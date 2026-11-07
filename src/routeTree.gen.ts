@@ -25,6 +25,8 @@ import { Route as WorkshopsRouteImport } from './routes/workshops'
 import { Route as AdminCertificatesRouteImport } from './routes/admin.certificates'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
+import { Route as RecruitAdminRouteImport } from './routes/recruit.admin'
+import { Route as RecruitJudgeRouteImport } from './routes/recruit.judge'
 import { Route as VerifyNoRouteImport } from './routes/verify.$no'
 import { Route as EventsRoboSparkJudgeRouteImport } from './routes/events.robo-spark.judge'
 import { Route as EventsRoboSparkMissionsRouteImport } from './routes/events.robo-spark.missions'
@@ -110,6 +112,16 @@ const EventsSlugRoute = EventsSlugRouteImport.update({
   path: '/events/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RecruitAdminRoute = RecruitAdminRouteImport.update({
+  id: '/recruit/admin',
+  path: '/recruit/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecruitJudgeRoute = RecruitJudgeRouteImport.update({
+  id: '/recruit/judge',
+  path: '/recruit/judge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyNoRoute = VerifyNoRouteImport.update({
   id: '/verify/$no',
   path: '/verify/$no',
@@ -147,6 +159,8 @@ export interface FileRoutesByFullPath {
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/recruit/admin': typeof RecruitAdminRoute
+  '/recruit/judge': typeof RecruitJudgeRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
@@ -169,6 +183,8 @@ export interface FileRoutesByTo {
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/recruit/admin': typeof RecruitAdminRoute
+  '/recruit/judge': typeof RecruitJudgeRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
@@ -192,6 +208,8 @@ export interface FileRoutesById {
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/recruit/admin': typeof RecruitAdminRoute
+  '/recruit/judge': typeof RecruitJudgeRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
@@ -216,6 +234,8 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/admin/certificates'
     | '/events/$slug'
+    | '/recruit/admin'
+    | '/recruit/judge'
     | '/verify/$no'
     | '/events/'
     | '/events/robo-spark/judge'
@@ -238,6 +258,8 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/admin/certificates'
     | '/events/$slug'
+    | '/recruit/admin'
+    | '/recruit/judge'
     | '/verify/$no'
     | '/events'
     | '/events/robo-spark/judge'
@@ -260,6 +282,8 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/admin/certificates'
     | '/events/$slug'
+    | '/recruit/admin'
+    | '/recruit/judge'
     | '/verify/$no'
     | '/events/'
     | '/events/robo-spark/judge'
@@ -283,6 +307,8 @@ export interface RootRouteChildren {
   WorkshopsRoute: typeof WorkshopsRoute
   AdminCertificatesRoute: typeof AdminCertificatesRoute
   EventsSlugRoute: typeof EventsSlugRoute
+  RecruitAdminRoute: typeof RecruitAdminRoute
+  RecruitJudgeRoute: typeof RecruitJudgeRoute
   VerifyNoRoute: typeof VerifyNoRoute
   EventsIndexRoute: typeof EventsIndexRoute
   EventsRoboSparkJudgeRoute: typeof EventsRoboSparkJudgeRoute
@@ -404,6 +430,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EventsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/recruit/admin': {
+      id: '/recruit/admin'
+      path: '/recruit/admin'
+      fullPath: '/recruit/admin'
+      preLoaderRoute: typeof RecruitAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recruit/judge': {
+      id: '/recruit/judge'
+      path: '/recruit/judge'
+      fullPath: '/recruit/judge'
+      preLoaderRoute: typeof RecruitJudgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify/$no': {
       id: '/verify/$no'
       path: '/verify/$no'
@@ -451,6 +491,8 @@ const rootRouteChildren: RootRouteChildren = {
   WorkshopsRoute: WorkshopsRoute,
   AdminCertificatesRoute: AdminCertificatesRoute,
   EventsSlugRoute: EventsSlugRoute,
+  RecruitAdminRoute: RecruitAdminRoute,
+  RecruitJudgeRoute: RecruitJudgeRoute,
   VerifyNoRoute: VerifyNoRoute,
   EventsIndexRoute: EventsIndexRoute,
   EventsRoboSparkJudgeRoute: EventsRoboSparkJudgeRoute,
