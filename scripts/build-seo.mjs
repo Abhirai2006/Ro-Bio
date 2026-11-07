@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 try {
-  const { site, events, coreTeam, coreTeamSize, formatDate, eventDate, faculty } = await import("../src/lib/site.ts");
+  const { site, events, coreTeam, coreTeamSize, formatDate, eventDate, faculty, squadPages } = await import("../src/lib/site.ts");
   const { buildFaqs } = await import("../src/lib/faq-build.ts");
   const faqs = buildFaqs(site, events, formatDate, coreTeamSize);
   const bf = events.find((e) => e.slug === "bot-forge");
@@ -16,6 +16,7 @@ try {
     ["/events", "Events", "Events run by RO-BIO."],
     ...events.map((e) => [`/events/${e.slug}`, e.title, `${e.title}, ${e.date ? eventDate(e) : "date coming soon"}${e.time ? `, ${e.time}` : ""}: ${e.activities.map((a) => a.name).join(", ")}.`]),
     ["/team", "Team", `The ${coreTeamSize} students on the core team.`],
+    ...squadPages().map((q) => [`/team/${q.slug}`, `${q.title} squad`, q.about]),
     ["/workshops", "Workshops", `Workshops for members and students${soon("workshops")}.`],
     ["/projects", "Projects", `Projects built by the club${soon("projects")}.`],
     ["/gallery", "Gallery", `Photos from the club${soon("gallery")}.`],
