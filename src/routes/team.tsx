@@ -22,6 +22,9 @@ export const Route = createFileRoute("/team")({
   component: Team,
 });
 
+/** Centres the short last row: the fifth tile on two-column screens, the fourth and fifth on three. */
+const tileStart = ["", "", "", "lg:col-start-2", "md:col-start-2 lg:col-start-auto"];
+
 const officeBearers = coreTeam.find((s) => s.title === "Office Bearers");
 
 function Team() {
@@ -68,22 +71,23 @@ function Team() {
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Five squads keep the club running. Open one to meet the people in it.
         </p>
-        <ul className="mt-6 grid gap-6 md:grid-cols-2">
+        {/* Every squad gets the same size tile: two or three to a row, the last row centred. */}
+        <ul className="mt-6 grid auto-rows-fr gap-6 md:grid-cols-4 lg:grid-cols-6">
           {squads.map((sq, i) => {
             const head = sq.members.find((m) => m.head);
             return (
-              <li key={sq.slug} className={i === 0 ? "md:col-span-2" : ""}>
+              <li key={sq.slug} className={`md:col-span-2 ${tileStart[i] ?? ""}`}>
                 <Link
                   to="/team/$squad"
                   params={{ squad: sq.slug }}
                   viewTransition
-                  className="group block border-2 border-border bg-card shadow-hard transition-[box-shadow,translate] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--ink)] focus-visible:-translate-y-0.5"
+                  className="group flex h-full flex-col border-2 border-border bg-card shadow-hard transition-[box-shadow,translate] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--ink)] focus-visible:-translate-y-0.5"
                 >
-                  <SquadArt slug={sq.slug} className="border-b-2 border-border" />
-                  <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 p-4">
+                  <SquadArt slug={sq.slug} fx className="border-b-2 border-border" />
+                  <div className="flex flex-1 flex-col justify-between gap-3 p-4">
                     <div>
                       <h3 className="font-display text-2xl font-black">{sq.title}</h3>
-                      <p className="mt-1 max-w-xl text-muted-foreground">{sq.about}</p>
+                      <p className="mt-1 text-muted-foreground">{sq.about}</p>
                     </div>
                     <p className="font-mono text-sm">
                       {head ? `Head: ${head.name} · ` : ""}
