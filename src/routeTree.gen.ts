@@ -27,6 +27,7 @@ import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as RecruitAdminRouteImport } from './routes/recruit.admin'
 import { Route as RecruitJudgeRouteImport } from './routes/recruit.judge'
+import { Route as TeamSquadRouteImport } from './routes/team_.$squad'
 import { Route as VerifyNoRouteImport } from './routes/verify.$no'
 import { Route as EventsRoboSparkJudgeRouteImport } from './routes/events.robo-spark.judge'
 import { Route as EventsRoboSparkMissionsRouteImport } from './routes/events.robo-spark.missions'
@@ -122,6 +123,11 @@ const RecruitJudgeRoute = RecruitJudgeRouteImport.update({
   path: '/recruit/judge',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TeamSquadRoute = TeamSquadRouteImport.update({
+  id: '/team_/$squad',
+  path: '/team/$squad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyNoRoute = VerifyNoRouteImport.update({
   id: '/verify/$no',
   path: '/verify/$no',
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/events/$slug': typeof EventsSlugRoute
   '/recruit/admin': typeof RecruitAdminRoute
   '/recruit/judge': typeof RecruitJudgeRoute
+  '/team/$squad': typeof TeamSquadRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/events/$slug': typeof EventsSlugRoute
   '/recruit/admin': typeof RecruitAdminRoute
   '/recruit/judge': typeof RecruitJudgeRoute
+  '/team/$squad': typeof TeamSquadRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/events/$slug': typeof EventsSlugRoute
   '/recruit/admin': typeof RecruitAdminRoute
   '/recruit/judge': typeof RecruitJudgeRoute
+  '/team_/$squad': typeof TeamSquadRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
@@ -236,6 +245,7 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/recruit/admin'
     | '/recruit/judge'
+    | '/team/$squad'
     | '/verify/$no'
     | '/events/'
     | '/events/robo-spark/judge'
@@ -260,6 +270,7 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/recruit/admin'
     | '/recruit/judge'
+    | '/team/$squad'
     | '/verify/$no'
     | '/events'
     | '/events/robo-spark/judge'
@@ -284,6 +295,7 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/recruit/admin'
     | '/recruit/judge'
+    | '/team_/$squad'
     | '/verify/$no'
     | '/events/'
     | '/events/robo-spark/judge'
@@ -309,6 +321,7 @@ export interface RootRouteChildren {
   EventsSlugRoute: typeof EventsSlugRoute
   RecruitAdminRoute: typeof RecruitAdminRoute
   RecruitJudgeRoute: typeof RecruitJudgeRoute
+  TeamSquadRoute: typeof TeamSquadRoute
   VerifyNoRoute: typeof VerifyNoRoute
   EventsIndexRoute: typeof EventsIndexRoute
   EventsRoboSparkJudgeRoute: typeof EventsRoboSparkJudgeRoute
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecruitJudgeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/team_/$squad': {
+      id: '/team_/$squad'
+      path: '/team/$squad'
+      fullPath: '/team/$squad'
+      preLoaderRoute: typeof TeamSquadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify/$no': {
       id: '/verify/$no'
       path: '/verify/$no'
@@ -493,6 +513,7 @@ const rootRouteChildren: RootRouteChildren = {
   EventsSlugRoute: EventsSlugRoute,
   RecruitAdminRoute: RecruitAdminRoute,
   RecruitJudgeRoute: RecruitJudgeRoute,
+  TeamSquadRoute: TeamSquadRoute,
   VerifyNoRoute: VerifyNoRoute,
   EventsIndexRoute: EventsIndexRoute,
   EventsRoboSparkJudgeRoute: EventsRoboSparkJudgeRoute,
