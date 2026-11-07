@@ -18,8 +18,24 @@ const sparkle = (x: number, y: number, r: number, color: string, delay: number, 
 const glowDefs = (id: string) =>
   `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>`;
 
-/** TECHNICAL: the RGB LED strips breathe through the club colours, PC fans glow, sparks on the board. */
-function technical(k: string) {
+/** Steam curling up from a coffee cup whose lid is centred on x, y. */
+const steam = (x: number, y: number, delay: number) =>
+  [0, 1, 2]
+    .map(
+      (i) =>
+        `<path class="sfx-steam" d="M${x - 10 + i * 10} ${y - 6} c-12 -16 12 -26 0 -42 c-10 -14 8 -22 2 -34" fill="none" stroke="${WHITE}" stroke-width="5" stroke-linecap="round" style="transform-origin:${x}px ${y}px;animation-delay:${delay + i * 0.9}s"/>`,
+    )
+    .join("");
+
+/** The code on the laptop scrolls: two copies of the panel, one under the other, slide up for ever. */
+const CODE_PANEL = "M78 606 L178 600 L186 766 L86 772Z";
+const CODE_H = 166;
+
+/**
+ * TECHNICAL: the RGB LED strips breathe through the club colours, PC fans glow, sparks on the board,
+ * the laptop's code scrolls and the coffee is still hot.
+ */
+function technical(k: string, art: string) {
   const strips = [
     "M0 48 L366 60",
     "M432 38 L920 100 L1600 6",
@@ -59,9 +75,21 @@ function technical(k: string) {
   return (
     `<defs>${glowDefs(`${k}b`)}<radialGradient id="${k}fan"><stop offset="0" stop-color="${WHITE}" stop-opacity=".9"/><stop offset=".45" stop-color="${PINK}" stop-opacity=".55"/><stop offset="1" stop-color="${VIOLET}" stop-opacity="0"/></radialGradient>` +
     `<linearGradient id="${k}scan" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${LENS}" stop-opacity="0"/><stop offset=".5" stop-color="${LENS}" stop-opacity=".35"/><stop offset="1" stop-color="${LENS}" stop-opacity="0"/></linearGradient>` +
-    `<clipPath id="${k}mon"><path d="M1186 456 L1378 460 L1374 600 L1188 596Z"/></clipPath></defs>` +
+    `<clipPath id="${k}mon"><path d="M1186 456 L1378 460 L1374 600 L1188 596Z"/></clipPath>` +
     `<g class="sfx-screen">${strips}${fans}</g>` +
+    `<clipPath id="${k}code"><path d="${CODE_PANEL}"/></clipPath></defs>` +
     `<g clip-path="url(#${k}mon)"><rect class="sfx-scanline" x="1180" y="420" width="210" height="46" fill="url(#${k}scan)"/></g>` +
+    (art
+      ? `<g clip-path="url(#${k}code)"><g class="sfx-code" style="--code:-${CODE_H}px">` +
+        [0, CODE_H]
+          .map(
+            (dy) =>
+              `<g transform="translate(0 ${dy})"><image href="${art}" width="1600" height="900" clip-path="url(#${k}code)"/></g>`,
+          )
+          .join("") +
+        `</g></g>`
+      : "") +
+    `<g class="sfx-screen">${steam(578, 704, 0)}${steam(1186, 666, 1.4)}</g>` +
     rings +
     sparks
   );
@@ -101,30 +129,46 @@ const SCRIBBLE_LEN = (() => {
   return Math.ceil(len);
 })();
 const DRAW_S = 7.5;
+/** One round: draw the four sketches, let them sit, fade them out, and start again. */
+const CYCLE_S = 13;
 
 function projects(k: string, ink: string, still: boolean) {
-  const reveal = still
-    ? `<image href="${ink}" x="735" y="58" width="695" height="757"/>`
-    : `<defs><mask id="${k}m" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="900">` +
-      `<path d="${SCRIBBLE}" fill="none" stroke="#fff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="${SCRIBBLE_LEN}" stroke-dashoffset="${SCRIBBLE_LEN}">` +
-      `<animate attributeName="stroke-dashoffset" from="${SCRIBBLE_LEN}" to="0" begin="0.5s" dur="${DRAW_S}s" fill="freeze" calcMode="linear"/></path></mask></defs>` +
-      `<image href="${ink}" x="735" y="58" width="695" height="757" mask="url(#${k}m)"/>` +
-      // the pencil: its tip sits on the path
-      `<g opacity="0"><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.04;0.96;1" begin="0.5s" dur="${DRAW_S}s" fill="freeze"/>` +
-      `<animateMotion path="${SCRIBBLE}" begin="0.5s" dur="${DRAW_S}s" fill="freeze" calcMode="linear"/>` +
-      `<g transform="rotate(-38)"><path d="M0 0 L10 -26 L-10 -26Z" fill="#f3d9b1" stroke="#232046" stroke-width="3" stroke-linejoin="round"/>` +
-      `<path d="M0 0 L4 -10 L-4 -10Z" fill="#232046"/>` +
-      `<rect x="-10" y="-120" width="20" height="94" fill="${VIOLET}" stroke="#232046" stroke-width="3"/>` +
-      `<rect x="-10" y="-136" width="20" height="16" fill="#c9c9d6" stroke="#232046" stroke-width="3"/>` +
-      `<rect x="-10" y="-152" width="20" height="16" rx="5" fill="${PINK}" stroke="#232046" stroke-width="3"/></g></g>`;
-  const glints = still
-    ? ""
-    : [
-        sparkle(1000, 680, 14, LILAC, DRAW_S + 0.6, 2.8),
-        sparkle(1366, 748, 12, LENS, DRAW_S + 1.4, 2.8),
-        sparkle(802, 266, 10, PINK, DRAW_S + 2.2, 2.8),
-      ].join("");
-  return reveal + glints;
+  if (still) return `<image href="${ink}" x="735" y="58" width="695" height="757"/>`;
+  const d = (DRAW_S / CYCLE_S).toFixed(4);
+  const fade0 = ((CYCLE_S - 1.6) / CYCLE_S).toFixed(4);
+  const fade1 = ((CYCLE_S - 0.4) / CYCLE_S).toFixed(4);
+  const loop = `begin="0.5s" dur="${CYCLE_S}s" repeatCount="indefinite"`;
+  const reveal =
+    `<defs><mask id="${k}m" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="900">` +
+    `<path d="${SCRIBBLE}" fill="none" stroke="#fff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="${SCRIBBLE_LEN}" stroke-dashoffset="${SCRIBBLE_LEN}">` +
+    `<animate attributeName="stroke-dashoffset" values="${SCRIBBLE_LEN};0;0" keyTimes="0;${d};1" ${loop}/></path></mask></defs>` +
+    `<image href="${ink}" x="735" y="58" width="695" height="757" mask="url(#${k}m)">` +
+    `<animate attributeName="opacity" values="1;1;0;0" keyTimes="0;${fade0};${fade1};1" ${loop}/></image>` +
+    // the pencil: its tip sits on the path while it draws, then it lifts away until the next round
+    `<g opacity="0"><animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.01;${(DRAW_S / CYCLE_S - 0.01).toFixed(4)};${d};1" ${loop}/>` +
+    `<animateMotion path="${SCRIBBLE}" keyPoints="0;1;1" keyTimes="0;${d};1" calcMode="linear" ${loop}/>` +
+    `<g transform="rotate(-38)"><path d="M0 0 L10 -26 L-10 -26Z" fill="#f3d9b1" stroke="#232046" stroke-width="3" stroke-linejoin="round"/>` +
+    `<path d="M0 0 L4 -10 L-4 -10Z" fill="#232046"/>` +
+    `<rect x="-10" y="-120" width="20" height="94" fill="${VIOLET}" stroke="#232046" stroke-width="3"/>` +
+    `<rect x="-10" y="-136" width="20" height="16" fill="#c9c9d6" stroke="#232046" stroke-width="3"/>` +
+    `<rect x="-10" y="-152" width="20" height="16" rx="5" fill="${PINK}" stroke="#232046" stroke-width="3"/></g></g>`;
+  // Magic at the tip of the presenter's wand: it rides along with the wand (see squad-rigs.ts).
+  const tip =
+    `<g data-track="wand-tip"><circle class="sfx-tip" cx="806" cy="256" r="22" fill="url(#${k}tip)" style="transform-origin:806px 256px"/>` +
+    sparkle(806, 256, 15, LILAC, 0.2, 1.8) +
+    sparkle(818, 240, 9, PINK, 0.9, 1.8) +
+    sparkle(792, 246, 8, LENS, 1.4, 1.8) +
+    `</g>`;
+  const glints = [
+    sparkle(1000, 680, 14, LILAC, DRAW_S + 0.6, 2.8),
+    sparkle(1366, 748, 12, LENS, DRAW_S + 1.4, 2.8),
+  ].join("");
+  return (
+    `<defs><radialGradient id="${k}tip"><stop offset="0" stop-color="${WHITE}" stop-opacity=".95"/><stop offset=".4" stop-color="${LILAC}" stop-opacity=".6"/><stop offset="1" stop-color="${LILAC}" stop-opacity="0"/></radialGradient></defs>` +
+    reveal +
+    glints +
+    tip
+  );
 }
 
 /** EVENTS: a light runs the visitor route on the layout board, Entrance to Stage, then the Stage box lights up. */
@@ -181,45 +225,84 @@ function social(k: string) {
   );
 }
 
-/** DESIGN: the string lights twinkle, the stylus leaves a sparkle trail, the 3D printer prints, the monitor shines. */
+/** DESIGN: string lights twinkle, the monitor picks a poster layout, the stylus and print nozzle glow. */
 const BULBS: [number, number][] = [
-  [524, 69],
-  [525, 148],
-  [525, 232],
-  [691, 40],
-  [757, 53],
-  [846, 17],
-  [1206, 17],
-  [1293, 69],
-  [1389, 85],
-  [1492, 75],
-  [1576, 29],
+  [47, 106],
+  [114, 84],
+  [173, 49],
+  [219, 11],
+  [284, 55],
+  [356, 69],
+  [440, 46],
+  [494, 13],
+  [555, 25],
+  [556, 89],
+  [554, 158],
+  [555, 219],
+  [555, 285],
+  [614, 34],
+  [642, 87],
+  [689, 130],
+  [743, 139],
+  [814, 109],
+  [867, 62],
+  [908, 6],
+  [1049, 56],
+  [1103, 108],
+  [1173, 151],
+  [1252, 164],
+  [1337, 158],
+  [1406, 121],
+  [1471, 62],
+  [1513, 16],
+];
+/** The four layout options on the monitor; a highlight hops between them. */
+const TILES: [number, number, number, number][] = [
+  [522, 377, 92, 70],
+  [617, 372, 90, 70],
+  [524, 452, 91, 70],
+  [621, 445, 89, 72],
 ];
 function design(k: string) {
   const bulbs = BULBS.map(
     ([x, y], i) =>
-      `<circle class="sfx-bulb" cx="${x}" cy="${y}" r="26" fill="url(#${k}bulb)" style="transform-origin:${x}px ${y}px;animation-delay:-${(i * 0.83) % 3}s"/>`,
+      `<circle class="sfx-bulb" cx="${x}" cy="${y}" r="22" fill="url(#${k}bulb)" style="transform-origin:${x}px ${y}px;animation-delay:-${((i * 0.83) % 3).toFixed(2)}s"/>`,
+  ).join("");
+  const picks = TILES.map(
+    ([x, y, w, h], i) =>
+      `<rect class="sfx-pick" x="${x - 3}" y="${y - 3}" width="${w + 6}" height="${h + 6}" rx="5" fill="${LILAC}" fill-opacity=".18" stroke="${VIOLET}" stroke-width="4" style="animation-delay:${i * 1.5}s"/>`,
   ).join("");
   return (
     `<defs><radialGradient id="${k}bulb"><stop offset="0" stop-color="${WHITE}" stop-opacity=".95"/><stop offset=".3" stop-color="${LILAC}" stop-opacity=".7"/><stop offset="1" stop-color="${LILAC}" stop-opacity="0"/></radialGradient>` +
-    `<radialGradient id="${k}nozzle"><stop offset="0" stop-color="${WHITE}"/><stop offset=".4" stop-color="${LENS}" stop-opacity=".8"/><stop offset="1" stop-color="${LENS}" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="${k}nozzle"><stop offset="0" stop-color="${WHITE}"/><stop offset=".4" stop-color="#ffb347" stop-opacity=".8"/><stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/></radialGradient>` +
     `<linearGradient id="${k}sheen" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${WHITE}" stop-opacity="0"/><stop offset=".5" stop-color="${WHITE}" stop-opacity=".45"/><stop offset="1" stop-color="${WHITE}" stop-opacity="0"/></linearGradient>` +
-    `<clipPath id="${k}mon"><path d="M444 312 L778 306 L780 566 L448 572Z"/></clipPath></defs>` +
+    `<clipPath id="${k}mon"><path d="M503 352 L724 344 L728 545 L505 560Z"/></clipPath></defs>` +
     `<g class="sfx-screen">${bulbs}</g>` +
-    `<g clip-path="url(#${k}mon)"><rect class="sfx-sheen" x="300" y="290" width="120" height="300" fill="url(#${k}sheen)" transform="skewX(-20)"/></g>` +
-    `<circle class="sfx-nozzle" cx="1305" cy="546" r="18" fill="url(#${k}nozzle)" style="transform-origin:1305px 546px"/>` +
-    sparkle(312, 694, 12, LILAC, 0.1, 1.8) +
-    sparkle(336, 680, 8, PINK, 0.7, 1.8) +
-    sparkle(292, 708, 9, LENS, 1.3, 1.8)
+    picks +
+    `<g clip-path="url(#${k}mon)"><rect class="sfx-sheen" x="360" y="330" width="90" height="250" fill="url(#${k}sheen)" transform="skewX(-20)"/></g>` +
+    // These two ride along with the print head and the stylus (see squad-rigs.ts).
+    `<g data-track="nozzle"><circle class="sfx-nozzle" cx="1186" cy="524" r="12" fill="url(#${k}nozzle)" style="transform-origin:1186px 524px"/></g>` +
+    `<g data-track="stylus-tip">` +
+    sparkle(412, 664, 11, LILAC, 0.1, 1.8) +
+    sparkle(426, 652, 7, PINK, 0.7, 1.8) +
+    sparkle(400, 676, 8, LENS, 1.3, 1.8) +
+    `</g>`
   );
 }
 
 /** The effect layer for one squad, as SVG markup in the 1600 x 900 frame. */
-export function squadFx(slug: SquadSlug, opts: { ink?: string; still?: boolean } = {}): string {
+export function squadFx(
+  slug: SquadSlug,
+  opts: {
+    ink?: string;
+    still?: boolean;
+    /** the squad's own picture, for effects made from it */ art?: string;
+  } = {},
+): string {
   const k = `sfx-${slug}`;
   switch (slug) {
     case "technical":
-      return technical(k);
+      return technical(k, opts.art ?? "");
     case "projects":
       return projects(k, opts.ink ?? "", !!opts.still);
     case "events":
