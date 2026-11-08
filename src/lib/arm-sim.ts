@@ -39,15 +39,22 @@ export function minJerk(t: number) {
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const wrap = (a: number) => a - TAU * Math.round(a / TAU);
 /** The angle equal to `a` (modulo `period`) that is closest to `near`. */
-const nearest = (a: number, near: number, period: number) => (period ? a + period * Math.round((near - a) / period) : a);
+const nearest = (a: number, near: number, period: number) =>
+  period ? a + period * Math.round((near - a) / period) : a;
 
 /** Where each joint is in space, worked out from the joint angles. */
 export function forward(j: Joints) {
-  const a1 = j.shoulder, a2 = a1 + j.elbow, a3 = a2 + j.wrist;
-  const er = ARM.upper * Math.cos(a1), eh = ARM.shoulderY + ARM.upper * Math.sin(a1);
-  const wr = er + ARM.fore * Math.cos(a2), wh = eh + ARM.fore * Math.sin(a2);
-  const gr = wr + ARM.tool * Math.cos(a3), gh = wh + ARM.tool * Math.sin(a3);
-  const s = Math.sin(j.yaw), c = Math.cos(j.yaw);
+  const a1 = j.shoulder,
+    a2 = a1 + j.elbow,
+    a3 = a2 + j.wrist;
+  const er = ARM.upper * Math.cos(a1),
+    eh = ARM.shoulderY + ARM.upper * Math.sin(a1);
+  const wr = er + ARM.fore * Math.cos(a2),
+    wh = eh + ARM.fore * Math.sin(a2);
+  const gr = wr + ARM.tool * Math.cos(a3),
+    gh = wh + ARM.tool * Math.sin(a3);
+  const s = Math.sin(j.yaw),
+    c = Math.cos(j.yaw);
   const at = (r: number, h: number): Vec3 => ({ x: r * s, y: h, z: r * c });
   return { elbow: at(er, eh), wrist: at(wr, wh), grip: at(gr, gh), pitch: a3 };
 }
@@ -59,23 +66,57 @@ export function forward(j: Joints) {
 export function inverse(p: Vec3, roll: number) {
   const yaw = Math.atan2(p.x, p.z);
   const r = Math.hypot(p.x, p.z);
-  const dr = r, dh = p.y + ARM.tool - ARM.shoulderY; // wrist centre, straight above the grip point
-  const max = ARM.upper + ARM.fore - 1e-4, min = Math.abs(ARM.upper - ARM.fore) + 0.02;
+  const dr = r,
+    dh = p.y + ARM.tool - ARM.shoulderY; // wrist centre, straight above the grip point
+  const max = ARM.upper + ARM.fore - 1e-4,
+    min = Math.abs(ARM.upper - ARM.fore) + 0.02;
   const raw = Math.hypot(dr, dh);
   const d = clamp(raw, min, max);
   const c2 = clamp((d * d - ARM.upper ** 2 - ARM.fore ** 2) / (2 * ARM.upper * ARM.fore), -1, 1);
   const elbow = -Math.acos(c2);
-  const shoulder = Math.atan2(dh, dr) + Math.atan2(ARM.fore * Math.sin(-elbow), ARM.upper + ARM.fore * Math.cos(elbow));
+  const shoulder =
+    Math.atan2(dh, dr) +
+    Math.atan2(ARM.fore * Math.sin(-elbow), ARM.upper + ARM.fore * Math.cos(elbow));
   const wrist = -Math.PI / 2 - shoulder - elbow;
-  return { joints: { yaw, shoulder, elbow, wrist, roll }, reachable: raw <= max && raw >= min && r > 0.1 };
+  return {
+    joints: { yaw, shoulder, elbow, wrist, roll },
+    reachable: raw <= max && raw >= min && r > 0.1,
+  };
 }
 
 export type Kind = "glass" | "rubber" | "ball";
 
 /** `half` is half the width the fingers close on, `h` half the height, `foot` the radius it takes up on the table. */
-export const SAMPLE: Record<Kind, { label: string; half: number; h: number; foot: number; bounce: number; slide: number; sym: number }> = {
-  glass: { label: "Glass vial", half: 0.017, h: 0.036, foot: 0.018, bounce: 0.1, slide: 3.5, sym: 0 },
-  rubber: { label: "Rubber block", half: 0.021, h: 0.024, foot: 0.027, bounce: 0.55, slide: 3, sym: Math.PI / 2 },
+export const SAMPLE: Record<
+  Kind,
+  {
+    label: string;
+    half: number;
+    h: number;
+    foot: number;
+    bounce: number;
+    slide: number;
+    sym: number;
+  }
+> = {
+  glass: {
+    label: "Glass vial",
+    half: 0.017,
+    h: 0.036,
+    foot: 0.018,
+    bounce: 0.1,
+    slide: 3.5,
+    sym: 0,
+  },
+  rubber: {
+    label: "Rubber block",
+    half: 0.021,
+    h: 0.024,
+    foot: 0.027,
+    bounce: 0.55,
+    slide: 3,
+    sym: Math.PI / 2,
+  },
   ball: { label: "Ball", half: 0.026, h: 0.026, foot: 0.026, bounce: 0.45, slide: 0.22, sym: 0 },
 };
 
@@ -124,10 +165,20 @@ type Seg =
 type Step = () => Seg;
 
 // Each joint starts and finishes at a slightly different moment, the way a shoulder leads and a wrist follows.
-const STAGGER: Record<JointName, [number, number]> = { yaw: [0, 0.92], shoulder: [0, 1], elbow: [0.04, 1], wrist: [0.1, 1], roll: [0.12, 0.96] };
+const STAGGER: Record<JointName, [number, number]> = {
+  yaw: [0, 0.92],
+  shoulder: [0, 1],
+  elbow: [0.04, 1],
+  wrist: [0.1, 1],
+  roll: [0.12, 0.96],
+};
 
 function jointMove(from: Joints, to: Joints): Seg {
-  const target = { ...to, yaw: from.yaw + wrap(to.yaw - from.yaw), roll: from.roll + wrap(to.roll - from.roll) };
+  const target = {
+    ...to,
+    yaw: from.yaw + wrap(to.yaw - from.yaw),
+    roll: from.roll + wrap(to.roll - from.roll),
+  };
   let T = 0.6;
   for (const k of JOINTS) {
     const [a, b] = STAGGER[k];
@@ -138,7 +189,14 @@ function jointMove(from: Joints, to: Joints): Seg {
 
 function lineMove(from: Vec3, to: Vec3, roll: number, speed: number): Seg {
   const dist = Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z);
-  return { kind: "line", from: { ...from }, to: { ...to }, roll, T: Math.max(0.35, (1.875 * dist) / speed), t: 0 };
+  return {
+    kind: "line",
+    from: { ...from },
+    to: { ...to },
+    roll,
+    T: Math.max(0.35, (1.875 * dist) / speed),
+    t: 0,
+  };
 }
 
 /** Pull a spot on the bench back inside what the arm can reach. */
@@ -146,12 +204,15 @@ export function reachable(x: number, z: number) {
   z = Math.max(-0.12, z);
   const r = Math.hypot(x, z);
   const s = r > 0.42 ? 0.42 / r : r < 0.16 ? 0.16 / Math.max(r, 1e-6) : 1;
-  return { x: clamp(x * s, TABLE.minX + 0.03, TABLE.maxX - 0.03), z: clamp(z * s, TABLE.minZ + 0.03, TABLE.maxZ - 0.03) };
+  return {
+    x: clamp(x * s, TABLE.minX + 0.03, TABLE.maxX - 0.03),
+    z: clamp(z * s, TABLE.minZ + 0.03, TABLE.maxZ - 0.03),
+  };
 }
 
 /** A tiny seeded random generator, so the glass breaks the same way in tests. */
 function rng(seed: number) {
-  return () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  return () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
 }
 
 export type Mode = "tap" | "manual";
@@ -278,7 +339,10 @@ export class ArmSim {
   get overSample(): Kind | null {
     if (this.mode !== "manual" || this.held) return null;
     const g = this.gripPos;
-    return this.samples.find((o) => !o.broken && Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind))?.kind ?? null;
+    return (
+      this.samples.find((o) => !o.broken && Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind))
+        ?.kind ?? null
+    );
   }
 
   get gripClosed() {
@@ -287,7 +351,11 @@ export class ArmSim {
 
   /** The arm is running a planned move. */
   get busy() {
-    return this.picks.length > 0 || !!this.current?.length || (this.seg !== null && this.seg.kind !== "done");
+    return (
+      this.picks.length > 0 ||
+      !!this.current?.length ||
+      (this.seg !== null && this.seg.kind !== "done")
+    );
   }
 
   /** The arm has something in its fingers and is waiting to be told where it goes. */
@@ -317,10 +385,15 @@ export class ArmSim {
     // The free slot is chosen when this pick starts, after the ones queued before it have landed.
     const dest = (): Vec3 => {
       if (back) return { ...HOMES[kind] };
-      const slot = SLOTS.find((x) => !this.samples.some((o) => o !== s && Math.abs(o.p.x - x) < 0.04 && inTray(o.p)));
+      const slot = SLOTS.find(
+        (x) => !this.samples.some((o) => o !== s && Math.abs(o.p.x - x) < 0.04 && inTray(o.p)),
+      );
       return { x: slot ?? TRAY.x, y: 0, z: TRAY.z };
     };
-    this.picks.push([...this.pickUp(s), ...this.putDown(s, dest, back && kind === "rubber" ? 0.35 : 0, true)]);
+    this.picks.push([
+      ...this.pickUp(s),
+      ...this.putDown(s, dest, back && kind === "rubber" ? 0.35 : 0, true),
+    ]);
     this.settled = 0;
     return true;
   }
@@ -359,7 +432,13 @@ export class ArmSim {
   point(x: number, z: number) {
     if (this.mode !== "tap" || this.held || this.busy) return;
     const p = { ...reachable(x, z), y: 0.16 };
-    this.picks.push([() => ((this.status = "MOVING"), jointMove(this.q, inverse(p, nearest(Math.atan2(p.x, p.z), this.q.roll, Math.PI)).joints)), () => this.set("READY")]);
+    this.picks.push([
+      () => (
+        (this.status = "MOVING"),
+        jointMove(this.q, inverse(p, nearest(Math.atan2(p.x, p.z), this.q.roll, Math.PI)).joints)
+      ),
+      () => this.set("READY"),
+    ]);
     this.settled = 0;
   }
 
@@ -367,9 +446,20 @@ export class ArmSim {
   private freeSpot(s: Sample, p: { x: number; z: number }) {
     const k = SAMPLE[s.kind];
     const snap = () => {
-      if (Math.abs(p.x - TRAY.x) < TRAY.w / 2 + TRAY.wall + k.foot && Math.abs(p.z - TRAY.z) < TRAY.d / 2 + TRAY.wall + k.foot) {
-        p.x = clamp(p.x, TRAY.x - TRAY.w / 2 + k.foot + 0.003, TRAY.x + TRAY.w / 2 - k.foot - 0.003);
-        p.z = clamp(p.z, TRAY.z - TRAY.d / 2 + k.foot + 0.003, TRAY.z + TRAY.d / 2 - k.foot - 0.003);
+      if (
+        Math.abs(p.x - TRAY.x) < TRAY.w / 2 + TRAY.wall + k.foot &&
+        Math.abs(p.z - TRAY.z) < TRAY.d / 2 + TRAY.wall + k.foot
+      ) {
+        p.x = clamp(
+          p.x,
+          TRAY.x - TRAY.w / 2 + k.foot + 0.003,
+          TRAY.x + TRAY.w / 2 - k.foot - 0.003,
+        );
+        p.z = clamp(
+          p.z,
+          TRAY.z - TRAY.d / 2 + k.foot + 0.003,
+          TRAY.z + TRAY.d / 2 - k.foot - 0.003,
+        );
       }
     };
     snap();
@@ -377,9 +467,12 @@ export class ArmSim {
       for (const o of this.samples) {
         if (o === s || o.broken) continue;
         const min = k.foot + SAMPLE[o.kind].foot + 0.006;
-        const dx = p.x - o.p.x, dz = p.z - o.p.z, d = Math.hypot(dx, dz);
+        const dx = p.x - o.p.x,
+          dz = p.z - o.p.z,
+          d = Math.hypot(dx, dz);
         if (d >= min) continue;
-        const nx = d > 1e-6 ? dx / d : 1, nz = d > 1e-6 ? dz / d : 0;
+        const nx = d > 1e-6 ? dx / d : 1,
+          nz = d > 1e-6 ? dz / d : 0;
         p.x = o.p.x + nx * min;
         p.z = o.p.z + nz * min;
       }
@@ -398,13 +491,16 @@ export class ArmSim {
   /** Reach over the sample, go straight down, close the fingers on it and lift it to carrying height. */
   private pickUp(s: Sample): Step[] {
     const k = SAMPLE[s.kind];
-    let grasp: Vec3 = { x: 0, y: 0, z: 0 }, roll = 0;
+    let grasp: Vec3 = { x: 0, y: 0, z: 0 },
+      roll = 0;
     return [
       () => {
         this.gripTarget = ARM.open; // the fingers open on the way, like a hand opening as it reaches
         grasp = { x: s.p.x, y: s.p.y + gripAbove(s.kind), z: s.p.z };
         // Turn the fingers to face the block's flat sides with the smallest twist; round things need no twist.
-        roll = k.sym ? nearest(Math.atan2(grasp.x, grasp.z) - s.yaw, this.q.roll, k.sym) : this.q.roll;
+        roll = k.sym
+          ? nearest(Math.atan2(grasp.x, grasp.z) - s.yaw, this.q.roll, k.sym)
+          : this.q.roll;
         this.status = "MOVING";
         return jointMove(this.q, inverse({ ...grasp, y: grasp.y + APPROACH }, roll).joints);
       },
@@ -429,12 +525,17 @@ export class ArmSim {
       () => {
         dest = where();
         const above = { x: dest.x, y: CARRY_Y, z: dest.z };
-        const r = k.sym ? nearest(Math.atan2(above.x, above.z) + s.rel - yaw, this.q.roll, k.sym) : this.q.roll;
+        const r = k.sym
+          ? nearest(Math.atan2(above.x, above.z) + s.rel - yaw, this.q.roll, k.sym)
+          : this.q.roll;
         this.status = "CARRY";
         return jointMove(this.q, inverse(above, r).joints);
       },
       ...this.lower(s, () => dest),
-      () => (home && !this.picks.length ? jointMove(this.q, inverse(READY, nearest(0, this.q.roll, k.sym || Math.PI)).joints) : { kind: "done" }),
+      () =>
+        home && !this.picks.length
+          ? jointMove(this.q, inverse(READY, nearest(0, this.q.roll, k.sym || Math.PI)).joints)
+          : { kind: "done" },
       () => this.set("READY"),
     ];
   }
@@ -447,7 +548,12 @@ export class ArmSim {
         const d = where();
         const floor = inTray(d) ? TRAY.foam : this.topUnder(s, d);
         this.status = "PLACING";
-        return lineMove(forward(this.q).grip, { x: d.x, y: floor + k.h - s.off.y + 0.003, z: d.z }, this.q.roll, 0.26);
+        return lineMove(
+          forward(this.q).grip,
+          { x: d.x, y: floor + k.h - s.off.y + 0.003, z: d.z },
+          this.q.roll,
+          0.26,
+        );
       },
       () => ((this.status = "RELEASE"), { kind: "grip", close: false }),
       () => this.set(inTray(s.p) ? "PLACED IN TRAY" : "PLACED", true),
@@ -462,7 +568,12 @@ export class ArmSim {
   private topUnder(s: Sample, p: { x: number; z: number }) {
     let floor = 0;
     for (const o of this.samples)
-      if (o !== s && !o.broken && Math.hypot(o.p.x - p.x, o.p.z - p.z) < SAMPLE[o.kind].foot + SAMPLE[s.kind].foot) floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
+      if (
+        o !== s &&
+        !o.broken &&
+        Math.hypot(o.p.x - p.x, o.p.z - p.z) < SAMPLE[o.kind].foot + SAMPLE[s.kind].foot
+      )
+        floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
     return floor;
   }
 
@@ -496,10 +607,17 @@ export class ArmSim {
     else this.seg = null;
     this.moveFingers(dt);
     const g = forward(this.q).grip;
-    this.gripVel = { x: (g.x - this.gripPos.x) / dt, y: (g.y - this.gripPos.y) / dt, z: (g.z - this.gripPos.z) / dt };
+    this.gripVel = {
+      x: (g.x - this.gripPos.x) / dt,
+      y: (g.y - this.gripPos.y) / dt,
+      z: (g.z - this.gripPos.z) / dt,
+    };
     this.gripPos = g;
     this.follow(dt);
-    const still = this.physics(dt) && JOINTS.every((k) => Math.abs(this.q[k] - before[k]) < 1e-7) && Math.abs(this.grip - this.gripTarget) < 1e-6;
+    const still =
+      this.physics(dt) &&
+      JOINTS.every((k) => Math.abs(this.q[k] - before[k]) < 1e-7) &&
+      Math.abs(this.grip - this.gripTarget) < 1e-6;
     this.settled = still && !this.busy ? this.settled + 1 : 0;
   }
 
@@ -530,7 +648,14 @@ export class ArmSim {
       } else if (s.kind === "line") {
         s.t = Math.min(s.T, s.t + dt);
         const e = minJerk(s.t / s.T);
-        this.q = inverse({ x: s.from.x + (s.to.x - s.from.x) * e, y: s.from.y + (s.to.y - s.from.y) * e, z: s.from.z + (s.to.z - s.from.z) * e }, s.roll).joints;
+        this.q = inverse(
+          {
+            x: s.from.x + (s.to.x - s.from.x) * e,
+            y: s.from.y + (s.to.y - s.from.y) * e,
+            z: s.from.z + (s.to.z - s.from.z) * e,
+          },
+          s.roll,
+        ).joints;
       } else if (s.kind === "wait") {
         s.t += dt;
       } else if (s.kind === "grip") {
@@ -551,12 +676,19 @@ export class ArmSim {
   private runCarry(dt: number) {
     const s = this.held!;
     const t = { x: this.aim.x, y: CARRY_Y, z: this.aim.z };
-    const P = this.carryP, V = this.carryV;
-    const dx = t.x - P.x, dy = t.y - P.y, dz = t.z - P.z, d = Math.hypot(dx, dy, dz);
+    const P = this.carryP,
+      V = this.carryV;
+    const dx = t.x - P.x,
+      dy = t.y - P.y,
+      dz = t.z - P.z,
+      d = Math.hypot(dx, dy, dz);
     // Close to the base the same speed would swing the base round too fast, so it slows down there, like a real cobot.
     const top = Math.min(CARRY.speed, 1.9 * Math.hypot(P.x, P.z));
     const want = d > 1e-6 ? Math.min(top, Math.sqrt(2 * CARRY.brake * d), CARRY.settle * d) / d : 0;
-    const ax = dx * want - V.x, ay = dy * want - V.y, az = dz * want - V.z, a = Math.hypot(ax, ay, az);
+    const ax = dx * want - V.x,
+      ay = dy * want - V.y,
+      az = dz * want - V.z,
+      a = Math.hypot(ax, ay, az);
     const lim = a > CARRY.accel * dt ? (CARRY.accel * dt) / a : 1;
     V.x += ax * lim;
     V.y += ay * lim;
@@ -564,15 +696,28 @@ export class ArmSim {
     P.x += V.x * dt;
     P.y += V.y * dt;
     P.z += V.z * dt;
-    const roll = nearest(Math.atan2(P.x, P.z) + s.rel - this.carryBeta, this.q.roll, SAMPLE[s.kind].sym || TAU);
+    const roll = nearest(
+      Math.atan2(P.x, P.z) + s.rel - this.carryBeta,
+      this.q.roll,
+      SAMPLE[s.kind].sym || TAU,
+    );
     const want2 = inverse(P, roll).joints;
     want2.yaw = this.q.yaw + wrap(want2.yaw - this.q.yaw);
-    for (const k of JOINTS) this.q[k] += clamp(want2[k] - this.q[k], -MAX_SPEED[k] * dt, MAX_SPEED[k] * dt);
+    for (const k of JOINTS)
+      this.q[k] += clamp(want2[k] - this.q[k], -MAX_SPEED[k] * dt, MAX_SPEED[k] * dt);
     this.status = this.dropAt ? "CARRY" : "HOLDING";
     const drop = this.dropAt;
-    if (drop && Math.hypot(P.x - drop.x, P.z - drop.z) < 0.002 && Math.abs(P.y - CARRY_Y) < 0.002 && Math.hypot(V.x, V.y, V.z) < 0.01) {
+    if (
+      drop &&
+      Math.hypot(P.x - drop.x, P.z - drop.z) < 0.002 &&
+      Math.abs(P.y - CARRY_Y) < 0.002 &&
+      Math.hypot(V.x, V.y, V.z) < 0.01
+    ) {
       this.dropAt = null;
-      this.picks.push([...this.lower(s, () => ({ x: drop.x, y: 0, z: drop.z })), () => this.set("READY")]);
+      this.picks.push([
+        ...this.lower(s, () => ({ x: drop.x, y: 0, z: drop.z })),
+        () => this.set("READY"),
+      ]);
     }
   }
 
@@ -581,18 +726,29 @@ export class ArmSim {
    * and stops smoothly. It will not go through the bench, the tray walls or another sample.
    */
   private runJog(dt: number) {
-    const P = this.carryP, V = this.carryV, c = this.jogCmd;
+    const P = this.carryP,
+      V = this.carryV,
+      c = this.jogCmd;
     const want = { x: c.x * JOG.speed, y: c.y * JOG.lift, z: c.z * JOG.speed };
     // Limit the change in velocity as a whole vector, so it always pushes the way you pressed, never off at an angle.
-    const dx = want.x - V.x, dy = want.y - V.y, dz = want.z - V.z, dv = Math.hypot(dx, dy, dz);
+    const dx = want.x - V.x,
+      dy = want.y - V.y,
+      dz = want.z - V.z,
+      dv = Math.hypot(dx, dy, dz);
     const k = dv > JOG.accel * dt ? (JOG.accel * dt) / dv : 1;
-    for (const [a, d] of [["x", dx], ["y", dy], ["z", dz]] as const) {
+    for (const [a, d] of [
+      ["x", dx],
+      ["y", dy],
+      ["z", dz],
+    ] as const) {
       V[a] += d * k;
       P[a] += V[a] * dt;
     }
     // At the edge of reach (or right by the base) it slides along the edge instead of sticking to it.
     const r = reachable(P.x, P.z);
-    const nx = r.x - P.x, nz = r.z - P.z, n = Math.hypot(nx, nz);
+    const nx = r.x - P.x,
+      nz = r.z - P.z,
+      n = Math.hypot(nx, nz);
     if (n > 1e-9) {
       const into = (V.x * nx + V.z * nz) / n;
       if (into < 0) {
@@ -614,14 +770,18 @@ export class ArmSim {
     const h = this.held;
     if (!h) {
       // Over the rubber block, the wrist turns the fingers to face its flat sides.
-      const under = this.samples.find((o) => !o.broken && SAMPLE[o.kind].sym && Math.hypot(o.p.x - P.x, o.p.z - P.z) < capture(o.kind));
+      const under = this.samples.find(
+        (o) =>
+          !o.broken && SAMPLE[o.kind].sym && Math.hypot(o.p.x - P.x, o.p.z - P.z) < capture(o.kind),
+      );
       if (under) this.jogBeta = under.yaw;
     }
     const period = h ? SAMPLE[h.kind].sym || TAU : SAMPLE.rubber.sym;
     const roll = nearest(Math.atan2(P.x, P.z) + (h?.rel ?? 0) - this.jogBeta, this.q.roll, period);
     const want2 = inverse(P, roll).joints;
     want2.yaw = this.q.yaw + wrap(want2.yaw - this.q.yaw);
-    for (const k of JOINTS) this.q[k] += clamp(want2[k] - this.q[k], -MAX_SPEED[k] * dt, MAX_SPEED[k] * dt);
+    for (const k of JOINTS)
+      this.q[k] += clamp(want2[k] - this.q[k], -MAX_SPEED[k] * dt, MAX_SPEED[k] * dt);
     if (this.closing && Math.abs(this.grip - this.gripTarget) < 1e-5) {
       this.closing = false;
       this.status = this.held ? "GRIPPED" : "MISSED";
@@ -640,7 +800,12 @@ export class ArmSim {
       const k = SAMPLE[h.kind];
       let floor = over(k.foot);
       for (const o of this.samples)
-        if (o !== h && !o.broken && Math.hypot(o.p.x - P.x, o.p.z - P.z) < k.foot + SAMPLE[o.kind].foot) floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
+        if (
+          o !== h &&
+          !o.broken &&
+          Math.hypot(o.p.x - P.x, o.p.z - P.z) < k.foot + SAMPLE[o.kind].foot
+        )
+          floor = Math.max(floor, o.p.y + SAMPLE[o.kind].h);
       return floor + k.h - h.off.y + 0.002; // off.y: how far the sample sits below the grip point
     }
     const span = this.grip + 0.008; // how far the fingers reach out to each side
@@ -649,7 +814,8 @@ export class ArmSim {
       if (o.broken) continue;
       const d = Math.hypot(o.p.x - P.x, o.p.z - P.z);
       if (d < capture(o.kind)) continue; // centred: the open fingers go down either side of it
-      if (d < SAMPLE[o.kind].foot + span) lo = Math.max(lo, o.p.y + SAMPLE[o.kind].h + ARM.fingerLen / 2 + 0.004);
+      if (d < SAMPLE[o.kind].foot + span)
+        lo = Math.max(lo, o.p.y + SAMPLE[o.kind].h + ARM.fingerLen / 2 + 0.004);
     }
     return lo;
   }
@@ -659,7 +825,10 @@ export class ArmSim {
     if (this.held) return SAMPLE[this.held.kind].half;
     const g = forward(this.q).grip;
     const s = this.samples.find(
-      (o) => !o.broken && Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind) && Math.abs(o.p.y + gripAbove(o.kind) - g.y) < SAMPLE[o.kind].h * 0.8 + 0.01,
+      (o) =>
+        !o.broken &&
+        Math.hypot(o.p.x - g.x, o.p.z - g.z) < capture(o.kind) &&
+        Math.abs(o.p.y + gripAbove(o.kind) - g.y) < SAMPLE[o.kind].h * 0.8 + 0.01,
     );
     this.squeeze = s ?? null;
     return s ? SAMPLE[s.kind].half : 0.004;
@@ -706,7 +875,10 @@ export class ArmSim {
     const k = SAMPLE[s.kind];
     for (const o of this.samples) {
       if (o === s || o.held || o.broken) continue;
-      if (Math.hypot(o.p.x - s.p.x, o.p.z - s.p.z) < (SAMPLE[o.kind].foot + k.foot) * 0.6 && o.p.y < s.p.y) {
+      if (
+        Math.hypot(o.p.x - s.p.x, o.p.z - s.p.z) < (SAMPLE[o.kind].foot + k.foot) * 0.6 &&
+        o.p.y < s.p.y
+      ) {
         const top = o.p.y + SAMPLE[o.kind].h;
         if (top > floor) {
           floor = top;
@@ -783,9 +955,14 @@ export class ArmSim {
     s.queued = false;
     const rand = this.random;
     for (let i = 0; i < 14; i++) {
-      const a = rand() * TAU, sp = 0.25 + rand() * 0.6;
+      const a = rand() * TAU,
+        sp = 0.25 + rand() * 0.6;
       this.shards.push({
-        p: { x: s.p.x + Math.cos(a) * 0.01, y: 0.012 + rand() * 0.03, z: s.p.z + Math.sin(a) * 0.01 },
+        p: {
+          x: s.p.x + Math.cos(a) * 0.01,
+          y: 0.012 + rand() * 0.03,
+          z: s.p.z + Math.sin(a) * 0.01,
+        },
         v: { x: Math.cos(a) * sp, y: 0.4 + rand() * 0.8, z: Math.sin(a) * sp },
         axis: { x: rand() - 0.5, y: rand() - 0.5, z: rand() - 0.5 },
         ang: rand() * TAU,
@@ -810,10 +987,12 @@ export class ArmSim {
       s.v.z *= -0.4;
     }
     if (s.p.y - k.h >= TRAY.rim) return;
-    const hw = TRAY.w / 2, hd = TRAY.d / 2;
+    const hw = TRAY.w / 2,
+      hd = TRAY.d / 2;
     if (inTray(prev)) {
       // inside the tray: the walls keep it in
-      const lx = hw - r, lz = hd - r;
+      const lx = hw - r,
+        lz = hd - r;
       if (Math.abs(s.p.x - TRAY.x) > lx) {
         s.p.x = TRAY.x + Math.sign(s.p.x - TRAY.x) * lx;
         s.v.x *= -0.3;
@@ -824,8 +1003,10 @@ export class ArmSim {
       }
     } else {
       // outside: it bumps into the outer wall instead of passing through
-      const ox = hw + TRAY.wall + r, oz = hd + TRAY.wall + r;
-      const dx = s.p.x - TRAY.x, dz = s.p.z - TRAY.z;
+      const ox = hw + TRAY.wall + r,
+        oz = hd + TRAY.wall + r;
+      const dx = s.p.x - TRAY.x,
+        dz = s.p.z - TRAY.z;
       if (Math.abs(dx) < ox && Math.abs(dz) < oz) {
         if (ox - Math.abs(dx) < oz - Math.abs(dz)) {
           s.p.x = TRAY.x + Math.sign(dx || 1) * ox;
@@ -842,13 +1023,19 @@ export class ArmSim {
     const loose = this.samples.filter((s) => !s.held && !s.broken);
     for (let i = 0; i < loose.length; i++)
       for (let j = i + 1; j < loose.length; j++) {
-        const a = loose[i]!, b = loose[j]!;
-        const ka = SAMPLE[a.kind], kb = SAMPLE[b.kind];
+        const a = loose[i]!,
+          b = loose[j]!;
+        const ka = SAMPLE[a.kind],
+          kb = SAMPLE[b.kind];
         if (Math.abs(a.p.y - b.p.y) >= ka.h + kb.h - 0.004) continue; // one is resting on the other
-        const dx = b.p.x - a.p.x, dz = b.p.z - a.p.z;
-        const d = Math.hypot(dx, dz), min = ka.foot + kb.foot;
+        const dx = b.p.x - a.p.x,
+          dz = b.p.z - a.p.z;
+        const d = Math.hypot(dx, dz),
+          min = ka.foot + kb.foot;
         if (d >= min) continue;
-        const nx = d ? dx / d : 1, nz = d ? dz / d : 0, push = (min - d) / 2;
+        const nx = d ? dx / d : 1,
+          nz = d ? dz / d : 0,
+          push = (min - d) / 2;
         a.p.x -= nx * push;
         a.p.z -= nz * push;
         b.p.x += nx * push;
