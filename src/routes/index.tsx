@@ -5,14 +5,25 @@ import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
 import { FocusAreas } from "@/components/site/FocusAreas";
-import { contacts, coreTeamSize, daysBetween, eventDate, nextEvent, site, todayInIndia, type ClubEvent } from "@/lib/site";
+import {
+  contacts,
+  coreTeamSize,
+  daysBetween,
+  eventDate,
+  nextEvent,
+  site,
+  todayInIndia,
+  type ClubEvent,
+} from "@/lib/site";
 
 /** "Robo Spark, Tue, 3 Nov 2026" or "Bot Forge, date coming soon". */
 const whenLine = (e: ClubEvent) => `${e.title}, ${e.date ? eventDate(e) : "date coming soon"}`;
 
 /** What the "Registration" chip says, or nothing for an event with nothing to register for. */
 const registrationChip = (e: ClubEvent) =>
-  e.registration === "none" ? null : `REGISTRATION: ${e.registration === "open" ? "OPEN" : e.registration === "closed" ? "CLOSED" : "COMING SOON"}`;
+  e.registration === "none"
+    ? null
+    : `REGISTRATION: ${e.registration === "open" ? "OPEN" : e.registration === "closed" ? "CLOSED" : "COMING SOON"}`;
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,13 +32,13 @@ export const Route = createFileRoute("/")({
       { title: "RO-BIO | Robotics and biomedical club for every branch, MUSE Mysuru" },
       {
         name: "description",
-        content:
-          `RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, open to students of every branch. Next up: ${whenLine(nextEvent(todayInIndia()))}.`,
+        content: `RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, open to students of every branch. Next up: ${whenLine(nextEvent(todayInIndia()))}.`,
       },
       { property: "og:title", content: "RO-BIO | Unauthorised innovation in progress!" },
       {
         property: "og:description",
-        content: "A robotics and biomedical engineering club for every branch, Mysore University School of Engineering.",
+        content:
+          "A robotics and biomedical engineering club for every branch, Mysore University School of Engineering.",
       },
     ],
   }),
@@ -40,11 +51,21 @@ function Hero() {
   const next = nextEvent(today ?? todayInIndia());
   const daysLeft = today && next.date ? daysBetween(today, next.date) : null;
   return (
-    <section className="blueprint relative overflow-hidden border-b-2 border-border" aria-label="Intro">
+    <section
+      className="blueprint relative overflow-hidden border-b-2 border-border"
+      aria-label="Intro"
+    >
       <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 md:grid-cols-[1.05fr_1fr] md:py-20">
         <div>
           <div className="flex items-center gap-3">
-            <img src={logoUrl} alt="RO-BIO logo" width={56} height={56} className="h-14 w-14 rounded-full border-2 border-border bg-paper object-cover shadow-hard" fetchPriority="high" />
+            <img
+              src={logoUrl}
+              alt="RO-BIO logo"
+              width={56}
+              height={56}
+              className="h-14 w-14 rounded-full border-2 border-border bg-paper object-cover shadow-hard"
+              fetchPriority="high"
+            />
             <p className="font-pixel text-[11px] leading-5 text-primary">
               ROBOTICS + BIOMEDICAL · EVERY BRANCH
               <br />
@@ -58,23 +79,40 @@ function Hero() {
             Where circuits meet cells. Robots, sensors and the human body, built by students.
           </p>
           <p className="mt-4 inline-block hazard p-[3px]">
-            <span className="block bg-paper px-3 py-1.5 font-pixel text-[11px] text-ink">⚠ {site.tagline.toUpperCase()}</span>
+            <span className="block bg-paper px-3 py-1.5 font-pixel text-[11px] text-ink">
+              ⚠ {site.tagline.toUpperCase()}
+            </span>
           </p>
           <p className="mt-4 font-mono text-sm text-muted-foreground">
             At {next.title}: <Typed words={next.activities.map((a) => a.name)} />
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <Link to="/events/$slug" params={{ slug: next.slug }} className="rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5">
+            <Link
+              to="/events/$slug"
+              params={{ slug: next.slug }}
+              className="rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5"
+            >
               {next.date ? `${next.title}, ${eventDate(next)}` : `${next.title}: coming soon`}
             </Link>
-            <Link to="/team" className="rounded-full border-2 border-border bg-card px-6 py-3 font-bold transition-transform hover:-translate-y-0.5">
+            <Link
+              to="/team"
+              className="rounded-full border-2 border-border bg-card px-6 py-3 font-bold transition-transform hover:-translate-y-0.5"
+            >
               Meet the core team
             </Link>
           </div>
           <dl className="mt-8 grid max-w-md grid-cols-3 gap-2 font-mono text-[12px]">
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">T MINUS</dt>
-              <dd className="text-lg font-bold">{!next.date ? "SOON" : daysLeft === null || daysLeft < 0 ? "..." : daysLeft === 0 ? "TODAY" : `${daysLeft}d`}</dd>
+              <dd className="text-lg font-bold">
+                {!next.date
+                  ? "SOON"
+                  : daysLeft === null || daysLeft < 0
+                    ? "..."
+                    : daysLeft === 0
+                      ? "TODAY"
+                      : `${daysLeft}d`}
+              </dd>
             </div>
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">MEMBERS</dt>
@@ -82,16 +120,22 @@ function Hero() {
             </div>
             <div className="border-2 border-border bg-card p-2">
               <dt className="text-muted-foreground">UPTIME</dt>
-              <dd className="text-[11px] font-bold leading-tight"><Uptime /></dd>
+              <dd className="text-[11px] font-bold leading-tight">
+                <Uptime />
+              </dd>
             </div>
           </dl>
         </div>
         <div className="grid gap-6">
-          <div data-robo-avoid data-thought="That arm works out five joint angles, live, every time it moves.">
+          <div
+            data-robo-avoid
+            data-thought="That arm works out five joint angles, live, every time it moves."
+          >
             <RobotArm />
             <p className="mt-3 text-sm text-muted-foreground">
-              Tap the vial, the block or the ball, then tap where it should go. The arm reaches over, grips it, carries it and puts it
-              down gently, moving the way your own arm does. Or switch to Manual and drive it yourself with the buttons, like a real robot.
+              Tap the vial, the block or the ball, then tap where it should go. The arm reaches
+              over, grips it, carries it and puts it down gently, moving the way your own arm does.
+              Or switch to Manual and drive it yourself with the buttons, like a real robot.
             </p>
           </div>
         </div>
@@ -115,8 +159,9 @@ function Index() {
             Students from every branch of MUSE, building robots together.
           </h2>
           <p className="text-lg text-muted-foreground">
-            RO-BIO started on 20 May 2026 at {site.college}. {coreTeamSize} of us so far. Most Saturdays, people
-            from real companies come to campus and teach us things you don't get from a textbook.
+            RO-BIO started on 20 May 2026 at {site.college}. {coreTeamSize} of us so far. Most
+            Saturdays, people from real companies come to campus and teach us things you don't get
+            from a textbook.
           </p>
         </div>
       </section>
@@ -169,18 +214,28 @@ function Index() {
           <p className="font-pixel text-xs">SATURDAYS AT RO-BIO</p>
           <h2 className="mt-2 text-3xl font-black">Real engineers, in our classroom.</h2>
           <p className="mt-3 max-w-xl">
-            Most Saturdays, people from companies like L&amp;T come to campus to teach practical skills. The full list
-            goes up here as we collect it.
+            Most Saturdays, people from companies like L&amp;T come to campus to teach practical
+            skills. The full list goes up here as we collect it.
           </p>
-          <Link to="/workshops" className="mt-5 inline-block border-2 border-ink bg-paper px-4 py-2 font-bold">
+          <Link
+            to="/workshops"
+            className="mt-5 inline-block border-2 border-ink bg-paper px-4 py-2 font-bold"
+          >
             Workshops
           </Link>
         </div>
         <div className="border-2 border-border bg-lilac p-6 text-ink">
           <p className="font-pixel text-xs">SAY HI</p>
           <p className="mt-2 font-display text-xl font-extrabold">{site.instagramHandle}</p>
-          <p className="mt-2 text-sm">Photos, event news and the odd blooper reel live on Instagram.</p>
-          <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-5 inline-block border-2 border-ink bg-paper px-4 py-2 font-bold">
+          <p className="mt-2 text-sm">
+            Photos, event news and the odd blooper reel live on Instagram.
+          </p>
+          <a
+            href={site.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-5 inline-block border-2 border-ink bg-paper px-4 py-2 font-bold"
+          >
             Open Instagram
           </a>
         </div>
@@ -193,7 +248,10 @@ function Index() {
             <li key={c.name} className="border-2 border-border p-4">
               <p className="text-xs text-muted-foreground">{c.role}</p>
               <p className="font-display text-lg font-bold">{c.name}</p>
-              <a href={`tel:+91${c.phone}`} className="font-mono text-primary underline underline-offset-4">
+              <a
+                href={`tel:+91${c.phone}`}
+                className="font-mono text-primary underline underline-offset-4"
+              >
                 {c.phone}
               </a>
             </li>
