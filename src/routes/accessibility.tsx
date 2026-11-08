@@ -7,9 +7,17 @@ export const Route = createFileRoute("/accessibility")({
   head: () => ({
     meta: [
       { title: "Accessibility Statement | RO-BIO" },
-      { name: "description", content: "How accessible the RO-BIO website is, what works, what does not yet, and how to tell us about problems." },
+      {
+        name: "description",
+        content:
+          "How accessible the RO-BIO website is, what works, what does not yet, and how to tell us about problems.",
+      },
       { property: "og:title", content: "Accessibility Statement | RO-BIO" },
-      { property: "og:description", content: "How accessible the RO-BIO website is, what works, what does not yet, and how to tell us about problems." },
+      {
+        property: "og:description",
+        content:
+          "How accessible the RO-BIO website is, what works, what does not yet, and how to tell us about problems.",
+      },
     ],
     links: [canonical("/accessibility")],
   }),
@@ -19,33 +27,77 @@ export const Route = createFileRoute("/accessibility")({
 function Page() {
   return (
     <LegalPage label="LEGAL / ACCESSIBILITY" title="Accessibility Statement">
-      <p>We want everyone to be able to use the RO-BIO website. We aim to meet WCAG 2.2 level AA. We have not had a formal accessibility audit yet, so please treat the points below as our honest current picture.</p>
+      <p>
+        We want everyone to be able to use the RO-BIO website. We aim to meet WCAG 2.2 level AA. We
+        have not had a formal accessibility audit yet, so please treat the points below as our
+        honest current picture.
+      </p>
 
       <h2>What works</h2>
       <ul>
         <li>A skip link lets keyboard users jump past the header to the main content.</li>
         <li>Pages use headings, landmarks and text alternatives for images and graphics.</li>
         <li>There is a light and a dark theme.</li>
-        <li>If your device asks for reduced motion, the intro is skipped, Robo stops roaming and travelling between pages, and the typed text, the shaking in Robo Sumo and the decorative animations stop or are cut back.</li>
-        <li>The intro on the first visit has a "Skip intro" button and also closes with Esc or Enter. It never traps you.</li>
-        <li>The address is always written out as text under the venue map, with a link that opens it in Google Maps.</li>
-        <li>The robot arm on the home page works without a mouse. The buttons under it put each sample in the tray. While the arm holds something, the arrow keys move it and Enter puts it down. In Manual mode the arrow keys move the gripper, W raises it, S lowers it and Space grips and lets go; every on-screen button also works with Enter or Space. Its key moments, like a grip or a placement, are announced to screen readers.</li>
-        <li>Robo Sumo can be played with the arrow keys or W, A, S and D, or with the on-screen buttons on a touch screen. Its messages are announced to screen readers.</li>
-        <li>Robo, the robot that roams the site, announces what it says to screen readers. A "Rest Robo" button is always on screen at the bottom right and stops Robo moving. "Hide" removes Robo completely, and the choice is remembered. Robo can be opened with the keyboard: it is a button at the end of each page.</li>
+        <li>
+          If your device asks for reduced motion, the intro is skipped, Robo stops roaming and
+          travelling between pages, and the typed text, the shaking in Robo Sumo and the decorative
+          animations stop or are cut back.
+        </li>
+        <li>
+          The intro on the first visit has a "Skip intro" button and also closes with Esc or Enter.
+          It never traps you.
+        </li>
+        <li>
+          The address is always written out as text under the venue map, with a link that opens it
+          in Google Maps.
+        </li>
+        <li>
+          The robot arm on the home page works without a mouse. The buttons under it put each sample
+          in the tray. While the arm holds something, the arrow keys move it and Enter puts it down.
+          In Manual mode the arrow keys move the gripper, W raises it, S lowers it and Space grips
+          and lets go; every on-screen button also works with Enter or Space. Its key moments, like
+          a grip or a placement, are announced to screen readers.
+        </li>
+        <li>
+          Robo Sumo can be played with the arrow keys or W, A, S and D, or with the on-screen
+          buttons on a touch screen. Its messages are announced to screen readers.
+        </li>
+        <li>
+          Robo, the robot that roams the site, announces what it says to screen readers. A "Rest
+          Robo" button is always on screen at the bottom right and stops Robo moving. "Hide" removes
+          Robo completely, and the choice is remembered. Robo can be opened with the keyboard: it is
+          a button at the end of each page.
+        </li>
         <li>Robo never blocks the games. It cannot be clicked while it stands in front of one.</li>
-        <li>The site draws its own pixel pointers: an arrow, Robo's hand on links and buttons, and a gripper on things you can pick up. Text fields keep the text cursor. In high contrast mode they all switch off and your system pointers come back. The small spark where you click is off if your device asks for reduced motion.</li>
+        <li>
+          The site draws its own pixel pointers: an arrow, Robo's hand on links and buttons, and a
+          gripper on things you can pick up. Text fields keep the text cursor. In high contrast mode
+          they all switch off and your system pointers come back. The small spark where you click is
+          off if your device asks for reduced motion.
+        </li>
       </ul>
 
       <h2>What does not work yet</h2>
       <ul>
-        <li>The site's pixel pointers replace the pointer size set in your system. If you use a larger pointer, the site shows its own size instead, except in text fields.</li>
+        <li>
+          The site's pixel pointers replace the pointer size set in your system. If you use a larger
+          pointer, the site shows its own size instead, except in text fields.
+        </li>
         <li>The games need quick reactions and fine control, which not everyone has.</li>
-        <li>The live ECG, the robot companion and the X-ray view are decorative. Their meaning is also given in text, but the visuals themselves are not described in detail.</li>
+        <li>
+          The live ECG, the robot companion and the X-ray view are decorative. Their meaning is also
+          given in text, but the visuals themselves are not described in detail.
+        </li>
         <li>We have not yet checked every colour pairing against WCAG contrast rules.</li>
       </ul>
 
       <h2>Tell us about a problem</h2>
-      <p>If something here stops you from using the site, message us on Instagram, <a href={site.instagram}>{site.instagramHandle}</a>, or ask one of the coordinators on the <a href="/contact">Contact page</a>. Tell us the page, what you tried and what device or assistive technology you use. We will try to fix it quickly.</p>
+      <p>
+        If something here stops you from using the site, message us on Instagram,{" "}
+        <a href={site.instagram}>{site.instagramHandle}</a>, or ask one of the coordinators on the{" "}
+        <a href="/contact">Contact page</a>. Tell us the page, what you tried and what device or
+        assistive technology you use. We will try to fix it quickly.
+      </p>
     </LegalPage>
   );
 }
