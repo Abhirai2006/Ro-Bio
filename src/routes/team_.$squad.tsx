@@ -65,10 +65,11 @@ function SquadPage() {
           className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
           data-robo-quiet
           data-robo-avoid
+          data-robo-say={`members:${squad.slug}`}
         >
           {members.map((m, i) => (
             <li key={m.name + m.sem}>
-              <MemberCard member={m} index={i} />
+              <MemberCard member={m} index={i} squadTitle={squad.title} />
             </li>
           ))}
         </ul>
