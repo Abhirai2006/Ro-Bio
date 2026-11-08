@@ -61,7 +61,11 @@ function SquadPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-12" aria-label={`${squad.title} members`}>
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <ul
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          data-robo-quiet
+          data-robo-avoid
+        >
           {members.map((m, i) => (
             <li key={m.name + m.sem}>
               <MemberCard member={m} index={i} />
