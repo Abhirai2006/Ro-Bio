@@ -3,33 +3,94 @@
 // Standing space matches robo-rig.ts: origin at the pelvis, y down, the floor line at y = 106.
 
 export type WalkPose = {
-  hN: number; kN: number; hF: number; kF: number; // hip and knee, near and far leg
-  sN: number; eN: number; sF: number; eF: number; // shoulder and elbow, near and far arm
-  lean: number; head: number; eye: number; lx: number; // torso lean, head tilt, eye open (0..1), pupil shift
+  hN: number;
+  kN: number;
+  hF: number;
+  kF: number; // hip and knee, near and far leg
+  sN: number;
+  eN: number;
+  sF: number;
+  eF: number; // shoulder and elbow, near and far arm
+  lean: number;
+  head: number;
+  eye: number;
+  lx: number; // torso lean, head tilt, eye open (0..1), pupil shift
 };
 
-export const WALK_IDLE: WalkPose = { hN: 2, kN: 0, hF: -2, kF: 0, sN: 4, eN: 12, sF: -4, eF: 12, lean: 0, head: 0, eye: 1, lx: 1 };
+export const WALK_IDLE: WalkPose = {
+  hN: 2,
+  kN: 0,
+  hF: -2,
+  kF: 0,
+  sN: 4,
+  eN: 12,
+  sF: -4,
+  eF: 12,
+  lean: 0,
+  head: 0,
+  eye: 1,
+  lx: 1,
+};
 
 /** One step of the walk cycle. phase is in radians, amp is 1 for a walk and about 1.55 for a run. */
 export function walkCycle(phase: number, amp = 1): WalkPose {
-  const s = Math.sin(phase), c = Math.cos(phase);
-  const swingN = Math.max(0, c), swingF = Math.max(0, -c); // a leg swings forward while its hip angle is rising
+  const s = Math.sin(phase),
+    c = Math.cos(phase);
+  const swingN = Math.max(0, c),
+    swingF = Math.max(0, -c); // a leg swings forward while its hip angle is rising
   return {
-    hN: 26 * amp * s, hF: -26 * amp * s,
-    kN: 6 + 44 * amp * Math.pow(swingN, 1.4), kF: 6 + 44 * amp * Math.pow(swingF, 1.4),
-    sN: -24 * amp * s, sF: 24 * amp * s,
-    eN: 16 + 16 * amp * Math.max(0, s), eF: 16 + 16 * amp * Math.max(0, -s),
-    lean: 3 + 5 * (amp - 1) * 2, head: -1.5 * amp * Math.cos(phase * 2), eye: 1, lx: 1.2,
+    hN: 26 * amp * s,
+    hF: -26 * amp * s,
+    kN: 6 + 44 * amp * Math.pow(swingN, 1.4),
+    kF: 6 + 44 * amp * Math.pow(swingF, 1.4),
+    sN: -24 * amp * s,
+    sF: 24 * amp * s,
+    eN: 16 + 16 * amp * Math.max(0, s),
+    eF: 16 + 16 * amp * Math.max(0, -s),
+    lean: 3 + 5 * (amp - 1) * 2,
+    head: -1.5 * amp * Math.cos(phase * 2),
+    eye: 1,
+    lx: 1.2,
   };
 }
-export const WALK_JUMP: WalkPose = { hN: 58, kN: 78, hF: 34, kF: 64, sN: -112, eN: 24, sF: -96, eF: 30, lean: 10, head: -6, eye: 1, lx: 1.4 };
-export const WALK_FALL: WalkPose = { hN: 24, kN: 14, hF: -18, kF: 30, sN: -66, eN: 18, sF: -74, eF: 18, lean: 2, head: -4, eye: 1, lx: 1 };
+export const WALK_JUMP: WalkPose = {
+  hN: 58,
+  kN: 78,
+  hF: 34,
+  kF: 64,
+  sN: -112,
+  eN: 24,
+  sF: -96,
+  eF: 30,
+  lean: 10,
+  head: -6,
+  eye: 1,
+  lx: 1.4,
+};
+export const WALK_FALL: WalkPose = {
+  hN: 24,
+  kN: 14,
+  hF: -18,
+  kF: 30,
+  sN: -66,
+  eN: 18,
+  sF: -74,
+  eF: 18,
+  lean: 2,
+  head: -4,
+  eye: 1,
+  lx: 1,
+};
 
-const THIGH = 46, SHIN = 44, SOLE = 9, FLOOR = 106;
+const THIGH = 46,
+  SHIN = 44,
+  SOLE = 9,
+  FLOOR = 106;
 const rad = (d: number) => (d * Math.PI) / 180;
 /** How far to shift the body so the lowest foot always rests exactly on the floor line. */
 export function groundShift(p: WalkPose) {
-  const sole = (h: number, k: number) => 6 + THIGH * Math.cos(rad(h)) + SHIN * Math.cos(rad(h - k)) + SOLE;
+  const sole = (h: number, k: number) =>
+    6 + THIGH * Math.cos(rad(h)) + SHIN * Math.cos(rad(h - k)) + SOLE;
   return FLOOR - Math.max(sole(p.hN, p.kN), sole(p.hF, p.kF));
 }
 
@@ -39,10 +100,16 @@ export function walkTransforms(p: WalkPose, grounded = true): Record<string, str
     root: `translate(0 ${f(grounded ? groundShift(p) : 0)})`,
     torso: `rotate(${f(p.lean)})`,
     head: `translate(0 -92) rotate(${f(p.head)})`,
-    armN: `translate(0 -72) rotate(${f(-p.sN)})`, foreN: `translate(0 38) rotate(${f(-p.eN)})`,
-    armF: `translate(0 -72) rotate(${f(-p.sF)})`, foreF: `translate(0 38) rotate(${f(-p.eF)})`,
-    legN: `translate(0 6) rotate(${f(-p.hN)})`, shinN: `translate(0 46) rotate(${f(p.kN)})`, footN: `translate(0 44) rotate(${f(p.hN - p.kN)})`,
-    legF: `translate(0 6) rotate(${f(-p.hF)})`, shinF: `translate(0 46) rotate(${f(p.kF)})`, footF: `translate(0 44) rotate(${f(p.hF - p.kF)})`,
+    armN: `translate(0 -72) rotate(${f(-p.sN)})`,
+    foreN: `translate(0 38) rotate(${f(-p.eN)})`,
+    armF: `translate(0 -72) rotate(${f(-p.sF)})`,
+    foreF: `translate(0 38) rotate(${f(-p.eF)})`,
+    legN: `translate(0 6) rotate(${f(-p.hN)})`,
+    shinN: `translate(0 46) rotate(${f(p.kN)})`,
+    footN: `translate(0 44) rotate(${f(p.hN - p.kN)})`,
+    legF: `translate(0 6) rotate(${f(-p.hF)})`,
+    shinF: `translate(0 46) rotate(${f(p.kF)})`,
+    footF: `translate(0 44) rotate(${f(p.hF - p.kF)})`,
     lid: `translate(12.5 -32) scale(1 ${f(Math.max(0.001, 1 - p.eye))})`,
     pupil: `translate(${f(p.lx)} 0)`,
   };
@@ -50,7 +117,8 @@ export function walkTransforms(p: WalkPose, grounded = true): Record<string, str
 
 const INK = "#15131c";
 const id = (tf: Record<string, string>, n: string) => `id="rw-${n}" transform="${tf[n]}"`;
-const cap = (w: number, len: number, fill: string) => `<rect x="${-w / 2}" y="${-w / 2 + 1}" width="${w}" height="${len + w - 2}" rx="${w / 2}" fill="${fill}" stroke="${INK}" stroke-width="2"/>`;
+const cap = (w: number, len: number, fill: string) =>
+  `<rect x="${-w / 2}" y="${-w / 2 + 1}" width="${w}" height="${len + w - 2}" rx="${w / 2}" fill="${fill}" stroke="${INK}" stroke-width="2"/>`;
 const joint = (r: number) => `<circle r="${r}" fill="#fffffa" stroke="${INK}" stroke-width="2"/>`;
 
 function arm(side: "N" | "F", tf: Record<string, string>) {
