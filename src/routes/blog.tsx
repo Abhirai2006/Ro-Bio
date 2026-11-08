@@ -8,7 +8,11 @@ export const Route = createFileRoute("/blog")({
     links: [canonical("/blog")],
     meta: [
       { title: "Blog | RO-BIO" },
-      { name: "description", content: "News and write-ups from RO-BIO, the robotics and biomedical club for every branch at MUSE." },
+      {
+        name: "description",
+        content:
+          "News and write-ups from RO-BIO, the robotics and biomedical club for every branch at MUSE.",
+      },
       { property: "og:title", content: "Blog | RO-BIO" },
       { property: "og:description", content: "News and write-ups from RO-BIO." },
     ],
@@ -21,7 +25,10 @@ function Blog() {
     <>
       <PageIntro label="BLOG / LAB NOTES" title="Lab notes." />
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <Pending title="No posts yet">The first write-up will probably be about {nextEvent(todayInIndia()).title}. Check back after it.</Pending>
+        <Pending title="No posts yet">
+          The first write-up will probably be about {nextEvent(todayInIndia()).title}. Check back
+          after it.
+        </Pending>
       </section>
     </>
   );
