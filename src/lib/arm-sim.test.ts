@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { ARM, ArmSim, CARRY_Y, JOINTS, MAX_SPEED, SAMPLE, TRAY, forward, inTray, inverse, minJerk, type Joints, type Kind } from "./arm-sim";
+import {
+  ARM,
+  ArmSim,
+  CARRY_Y,
+  JOINTS,
+  MAX_SPEED,
+  SAMPLE,
+  TRAY,
+  forward,
+  inTray,
+  inverse,
+  minJerk,
+  type Joints,
+  type Kind,
+} from "./arm-sim";
 
 const run = (sim: ArmSim, seconds: number, each?: (sim: ArmSim) => void) => {
   for (let t = 0; t < seconds; t += 1 / 60) {
@@ -51,7 +65,11 @@ describe("tray buttons", () => {
       const sim = new ArmSim();
       settle(sim);
       expect(sim.pick(kind)).toBe(true);
-      let prev: Joints = { ...sim.q }, prevV: Joints | null = null, lowest = Infinity, maxAccel = 0, gripped = false;
+      let prev: Joints = { ...sim.q },
+        prevV: Joints | null = null,
+        lowest = Infinity,
+        maxAccel = 0,
+        gripped = false;
       const dt = 1 / 240;
       for (let t = 0; t < 20 && (sim.busy || sim.moving); t += dt) {
         sim.step(dt);
@@ -114,7 +132,10 @@ describe("tray buttons", () => {
 /** Step the world while checking that every joint moves smoothly: no speed over the limit and no sudden jolts. */
 const smoothRun = (sim: ArmSim, seconds: number) => {
   const dt = 1 / 240;
-  let prev: Joints = { ...sim.q }, prevV: Joints | null = null, maxAccel = 0, lowest = Infinity;
+  let prev: Joints = { ...sim.q },
+    prevV: Joints | null = null,
+    maxAccel = 0,
+    lowest = Infinity;
   for (let t = 0; t < seconds; t += dt) {
     sim.step(dt);
     const v = {} as Joints;
@@ -178,7 +199,9 @@ describe("tap to pick, tap to place", () => {
     sim.place(glass.x, glass.z);
     settle(sim);
     const b = sim.sample("ball").p;
-    expect(Math.hypot(b.x - glass.x, b.z - glass.z)).toBeGreaterThan(SAMPLE.ball.foot + SAMPLE.glass.foot);
+    expect(Math.hypot(b.x - glass.x, b.z - glass.z)).toBeGreaterThan(
+      SAMPLE.ball.foot + SAMPLE.glass.foot,
+    );
     expect(b.y).toBeCloseTo(SAMPLE.ball.h, 3);
   });
 
@@ -209,7 +232,13 @@ describe("carrying", () => {
     settle(sim);
     // a jumpy pointer: big jumps every few frames
     let peak = 0;
-    for (const [x, z] of [[0.1, 0.32], [-0.2, 0.3], [0.2, 0.25], [0.3, 0.05], [0, 0.35]] as const) {
+    for (const [x, z] of [
+      [0.1, 0.32],
+      [-0.2, 0.3],
+      [0.2, 0.25],
+      [0.3, 0.05],
+      [0, 0.35],
+    ] as const) {
       sim.carry(x, z);
       const { maxAccel } = smoothRun(sim, 0.4);
       peak = Math.max(peak, maxAccel);
@@ -269,9 +298,14 @@ describe("manual jogging", () => {
   const jogTo = (sim: ArmSim, x: number, z: number) => {
     for (let i = 0; i < 2000; i++) {
       const g = forward(sim.q).grip;
-      const dx = x - g.x, dz = z - g.z;
+      const dx = x - g.x,
+        dz = z - g.z;
       if (Math.hypot(dx, dz) < 0.004) break;
-      sim.jog(Math.abs(dx) > 0.004 ? Math.sign(dx) * Math.min(1, Math.abs(dx) * 20) : 0, 0, Math.abs(dz) > 0.004 ? Math.sign(dz) * Math.min(1, Math.abs(dz) * 20) : 0);
+      sim.jog(
+        Math.abs(dx) > 0.004 ? Math.sign(dx) * Math.min(1, Math.abs(dx) * 20) : 0,
+        0,
+        Math.abs(dz) > 0.004 ? Math.sign(dz) * Math.min(1, Math.abs(dz) * 20) : 0,
+      );
       sim.step(1 / 120);
     }
     sim.jog(0, 0, 0);
@@ -394,6 +428,8 @@ describe("manual jogging", () => {
     expect(sim.holding).toBe(true);
     sim.place(0.05, 0.32);
     settle(sim);
-    expect(Math.hypot(sim.sample("ball").p.x - 0.05, sim.sample("ball").p.z - 0.32)).toBeLessThan(0.004);
+    expect(Math.hypot(sim.sample("ball").p.x - 0.05, sim.sample("ball").p.z - 0.32)).toBeLessThan(
+      0.004,
+    );
   });
 });
