@@ -10,9 +10,17 @@ export const Route = createFileRoute("/about")({
     links: [canonical("/about")],
     meta: [
       { title: "About RO-BIO | Robotics and biomedical club for every branch" },
-      { name: "description", content: "Who RO-BIO is: a robotics and biomedical engineering club at MUSE, Mysuru, open to students of every branch since 20 May 2026." },
+      {
+        name: "description",
+        content:
+          "Who RO-BIO is: a robotics and biomedical engineering club at MUSE, Mysuru, open to students of every branch since 20 May 2026.",
+      },
       { property: "og:title", content: "About RO-BIO" },
-      { property: "og:description", content: "A robotics and biomedical engineering club at MUSE, Mysuru, open to every branch." },
+      {
+        property: "og:description",
+        content:
+          "A robotics and biomedical engineering club at MUSE, Mysuru, open to every branch.",
+      },
     ],
   }),
   component: About,
@@ -22,19 +30,43 @@ const loops: Loop[] = [
   {
     title: "A robot",
     steps: [
-      { stage: "Sense", part: "Sensor", what: "An IR sensor under a line follower sees where the black line is." },
-      { stage: "Decide", part: "Controller", what: "The microcontroller works out how far off the line the robot has drifted." },
-      { stage: "Act", part: "Motors", what: "One wheel speeds up, the other slows down, and the robot steers back." },
-      { stage: "Feed back", part: "Sensor again", what: "The sensor reads the new position. Smaller error, smaller correction. Round it goes." },
+      {
+        stage: "Sense",
+        part: "Sensor",
+        what: "An IR sensor under a line follower sees where the black line is.",
+      },
+      {
+        stage: "Decide",
+        part: "Controller",
+        what: "The microcontroller works out how far off the line the robot has drifted.",
+      },
+      {
+        stage: "Act",
+        part: "Motors",
+        what: "One wheel speeds up, the other slows down, and the robot steers back.",
+      },
+      {
+        stage: "Feed back",
+        part: "Sensor again",
+        what: "The sensor reads the new position. Smaller error, smaller correction. Round it goes.",
+      },
     ],
   },
   {
     title: "A body",
     steps: [
       { stage: "Sense", part: "Eyes", what: "You see the cup in your hand starting to slip." },
-      { stage: "Decide", part: "Brain", what: "The brain decides to grip harder, in a fraction of a second." },
+      {
+        stage: "Decide",
+        part: "Brain",
+        what: "The brain decides to grip harder, in a fraction of a second.",
+      },
       { stage: "Act", part: "Muscles", what: "The muscles in your hand and forearm tighten." },
-      { stage: "Feed back", part: "Nerves", what: "Touch and stretch receptors report the new grip, so the brain can ease off once the cup is steady." },
+      {
+        stage: "Feed back",
+        part: "Nerves",
+        what: "Touch and stretch receptors report the new grip, so the brain can ease off once the cup is steady.",
+      },
     ],
   },
 ];
@@ -43,10 +75,13 @@ function About() {
   return (
     <>
       <PageIntro label="ABOUT / WHO WE ARE" title="Every branch. Two kinds of machine.">
-        RO-BIO is a {site.focus} club at {site.college}, open to {site.openTo}. We started on 20 May 2026 and we're {coreTeamSize} people
-        right now.
+        RO-BIO is a {site.focus} club at {site.college}, open to {site.openTo}. We started on 20 May
+        2026 and we're {coreTeamSize} people right now.
       </PageIntro>
-      <section className="mx-auto grid max-w-6xl gap-6 px-4 pt-16 md:grid-cols-[1fr_1.3fr]" aria-label="Vision and mission">
+      <section
+        className="mx-auto grid max-w-6xl gap-6 px-4 pt-16 md:grid-cols-[1fr_1.3fr]"
+        aria-label="Vision and mission"
+      >
         <div className="border-2 border-border bg-ink p-6 text-paper shadow-hard-violet">
           <p className="font-pixel text-[11px] text-lilac">OUR VISION</p>
           <p className="mt-3 font-display text-2xl font-bold leading-snug">{vision}</p>
@@ -69,7 +104,8 @@ function About() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-2xl font-black md:text-3xl">Sense, decide, act, feed back.</h2>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          RO-BIO works on both. A line-following robot and a hand holding a cup solve the same kind of problem, so we put them side by side.
+          RO-BIO works on both. A line-following robot and a hand holding a cup solve the same kind
+          of problem, so we put them side by side.
         </p>
         <FeedbackLoops loops={loops} />
       </section>
