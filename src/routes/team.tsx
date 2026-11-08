@@ -31,7 +31,7 @@ function Team() {
       <PageIntro label="TEAM / CREW" title="The people keeping it running." />
       <section className="mx-auto max-w-6xl px-4 py-14">
         <h2 className="text-2xl font-black md:text-3xl">Department and faculty</h2>
-        <ul className="mt-5 grid gap-6 sm:grid-cols-2">
+        <ul className="mt-5 grid gap-6 sm:grid-cols-2" data-robo-quiet data-robo-avoid>
           {faculty.map((c) => (
             <li key={c.name} className="flex border-2 border-border bg-card shadow-hard">
               <Portrait name={c.name} className="w-32 shrink-0 border-r-2 border-border sm:w-40" />
@@ -54,7 +54,11 @@ function Team() {
         {officeBearers && (
           <>
             <h2 className="mt-16 text-2xl font-black md:text-3xl">Office bearers</h2>
-            <ul className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:max-w-3xl">
+            <ul
+              className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:max-w-3xl"
+              data-robo-quiet
+              data-robo-avoid
+            >
               {officeBearers.members.map((m, i) => (
                 <li key={m.name}>
                   <MemberCard member={m} index={i} />
