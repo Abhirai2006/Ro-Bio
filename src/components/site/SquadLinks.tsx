@@ -1,10 +1,90 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { SquadSlug } from "@/lib/squad-fx";
 import { playWarp, prefersStill } from "@/lib/squad-warp";
-import type { Squad } from "@/lib/site";
+import { recruitment, site, teamPhotos, type Squad } from "@/lib/site";
 import "./squad-links.css";
 
 type SquadPage = Squad & { slug: SquadSlug };
+
+/** Up to this many faces sit under a squad's name; the rest are a "+N". */
+const FACES = 6;
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2);
+
+/** A row of small member faces: their photo, or their initials until a photo arrives. Head first. */
+function Faces({ members }: { members: Squad["members"] }) {
+  const ordered = [...members].sort((a, b) => Number(!!b.head) - Number(!!a.head));
+  const shown = ordered.slice(0, FACES);
+  return (
+    <span className="sq-faces" aria-hidden="true">
+      {shown.map((m) => {
+        const photo = teamPhotos[m.name];
+        return (
+          <span key={m.name + m.sem} className="sq-face" title={m.name}>
+            {photo ? (
+              <img src={photo} alt="" width={64} height={64} loading="lazy" decoding="async" />
+            ) : (
+              <span className="font-display">{initials(m.name)}</span>
+            )}
+          </span>
+        );
+      })}
+      {ordered.length > FACES && (
+        <span className="sq-face sq-more font-mono">+{ordered.length - FACES}</span>
+      )}
+    </span>
+  );
+}
+
+/** The last tile on /team: how to join a squad, from `recruitment` in site.ts. */
+function JoinTile() {
+  const open = recruitment.status === "open" && recruitment.formUrl;
+  const line = open
+    ? "Recruitment is open. Pick a squad and apply."
+    : recruitment.status === "closed"
+      ? "This round of recruitment is closed. Follow us to hear about the next one."
+      : `Recruitment opens soon, for ${site.openTo}. Follow us to hear first.`;
+  return (
+    <li>
+      <a
+        href={open ? recruitment.formUrl : site.instagram}
+        target="_blank"
+        rel="noreferrer"
+        className="sq-link sq-join group"
+      >
+        <span className="sq-num font-pixel">+</span>
+        <svg
+          viewBox="0 0 48 48"
+          className="sq-glyph"
+          aria-hidden="true"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        >
+          <path className="sq-plus" d="M24 12v24M12 24h24" />
+        </svg>
+        <span className="sq-body">
+          <span className="sq-title font-display">Join a squad</span>
+          <span className="sq-about">{line}</span>
+          <span className="sq-meta font-mono">
+            {open ? "Apply form" : `Instagram ${site.instagramHandle}`}
+          </span>
+        </span>
+        <span className="sq-go font-pixel" aria-hidden="true">
+          {open ? "APPLY" : "FOLLOW"}
+          <svg viewBox="0 0 16 16" width="16" height="16">
+            <path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          </svg>
+        </span>
+      </a>
+    </li>
+  );
+}
 
 /** A small drawing for each squad, in the club's line style. It moves a little when the row is hovered. */
 function Glyph({ slug }: { slug: SquadSlug }) {
@@ -81,7 +161,7 @@ export function SquadLinks({
 }) {
   const navigate = useNavigate();
   return (
-    <ul className={`sq-links ${compact ? "sq-compact" : ""}`}>
+    <ul className={`sq-links ${compact ? "sq-compact" : ""}`} data-robo-quiet data-robo-avoid>
       {squads.map((sq, i) => {
         const head = sq.members.find((m) => m.head);
         return (
@@ -127,6 +207,7 @@ export function SquadLinks({
                   {head && !compact ? `Head: ${head.name} · ` : ""}
                   {sq.members.length} members
                 </span>
+                {!compact && <Faces members={sq.members} />}
               </span>
               <span className="sq-go font-pixel" aria-hidden="true">
                 OPEN
@@ -143,6 +224,7 @@ export function SquadLinks({
           </li>
         );
       })}
+      {!compact && <JoinTile />}
     </ul>
   );
 }
