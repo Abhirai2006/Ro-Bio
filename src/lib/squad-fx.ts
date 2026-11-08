@@ -1,7 +1,10 @@
-// Motion layers drawn over the design squad's illustrations on each squad page.
-// Every layer uses the same 1600 x 900 frame as the illustration under it, so the effects sit on the
-// real things in the picture (the LED strip, the megaphone, the whiteboard) at every screen size.
-// The CSS for these lives in src/components/site/squad-fx.css. Reduced motion shows a still picture.
+// Light layers drawn over each squad's animated clip on its squad page.
+// Every layer uses the same 1600 x 900 frame as the picture, so the effects sit on the real things
+// (the LED strip, the megaphone, the whiteboard) at every screen size. Effects on things that move in
+// the clip follow them frame by frame (src/lib/squad-loops.ts). The CSS lives in
+// src/components/site/squad-fx.css. Reduced motion shows the still poster and no layer at all.
+
+import { squadLoops } from "./squad-loops";
 
 export type SquadSlug = "projects" | "events" | "technical" | "social-media" | "design";
 
@@ -33,7 +36,7 @@ const CODE_H = 166;
 
 /**
  * TECHNICAL: the RGB LED strips breathe through the club colours, PC fans glow, sparks on the board,
- * the laptop's code scrolls and the coffee is still hot.
+ * the laptop's code scrolls and the coffee on the right is still hot.
  */
 function technical(k: string, art: string) {
   const strips = [
@@ -89,70 +92,17 @@ function technical(k: string, art: string) {
           .join("") +
         `</g></g>`
       : "") +
-    `<g class="sfx-screen">${steam(578, 704, 0)}${steam(1186, 666, 1.4)}</g>` +
+    `<g class="sfx-screen">${steam(1186, 666, 1.4)}</g>` +
     rings +
     sparks
   );
 }
 
 /**
- * PROJECTS: the four sketches on the whiteboard draw themselves in, one after another, with a pencil.
- * The picture under this layer is the whiteboard with the sketches taken out; the ink comes back
- * through a mask that follows the pencil.
+ * PROJECTS: the sketches draw themselves in inside the clip itself. On top: magic at the tip of the
+ * presenter's wand, which rides along with the wand (see squad-loops.ts), and two glints on the board.
  */
-const SKETCHES: [number, number, number, number][] = [
-  [800, 148, 292, 262], // sensor array
-  [1108, 112, 290, 276], // power core
-  [776, 404, 332, 312], // joint arm
-  [1098, 412, 306, 366], // legged mobility
-];
-/** One zigzag through all four sketches: the pencil and the mask follow the same line. */
-function scribble() {
-  const rowGap = 34;
-  let d = "";
-  for (const [x, y, w, h] of SKETCHES) {
-    const rows = Math.ceil(h / rowGap);
-    for (let r = 0; r <= rows; r++) {
-      const yy = Math.min(y + r * rowGap, y + h);
-      const [a, b] = r % 2 ? [x + w, x] : [x, x + w];
-      d += `${d ? "L" : "M"}${a} ${yy} L${b} ${yy + rowGap / 2} `;
-    }
-  }
-  return d.trim();
-}
-const SCRIBBLE = scribble();
-const SCRIBBLE_LEN = (() => {
-  const pts = SCRIBBLE.replace(/[ML]/g, " ").trim().split(/\s+/).map(Number);
-  let len = 0;
-  for (let i = 2; i < pts.length; i += 2)
-    len += Math.hypot(pts[i]! - pts[i - 2]!, pts[i + 1]! - pts[i - 1]!);
-  return Math.ceil(len);
-})();
-const DRAW_S = 7.5;
-/** One round: draw the four sketches, let them sit, fade them out, and start again. */
-const CYCLE_S = 13;
-
-function projects(k: string, ink: string, still: boolean) {
-  if (still) return `<image href="${ink}" x="735" y="58" width="695" height="757"/>`;
-  const d = (DRAW_S / CYCLE_S).toFixed(4);
-  const fade0 = ((CYCLE_S - 1.6) / CYCLE_S).toFixed(4);
-  const fade1 = ((CYCLE_S - 0.4) / CYCLE_S).toFixed(4);
-  const loop = `begin="0.5s" dur="${CYCLE_S}s" repeatCount="indefinite"`;
-  const reveal =
-    `<defs><mask id="${k}m" maskUnits="userSpaceOnUse" x="0" y="0" width="1600" height="900">` +
-    `<path d="${SCRIBBLE}" fill="none" stroke="#fff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="${SCRIBBLE_LEN}" stroke-dashoffset="${SCRIBBLE_LEN}">` +
-    `<animate attributeName="stroke-dashoffset" values="${SCRIBBLE_LEN};0;0" keyTimes="0;${d};1" ${loop}/></path></mask></defs>` +
-    `<image href="${ink}" x="735" y="58" width="695" height="757" mask="url(#${k}m)">` +
-    `<animate attributeName="opacity" values="1;1;0;0" keyTimes="0;${fade0};${fade1};1" ${loop}/></image>` +
-    // the pencil: its tip sits on the path while it draws, then it lifts away until the next round
-    `<g opacity="0"><animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.01;${(DRAW_S / CYCLE_S - 0.01).toFixed(4)};${d};1" ${loop}/>` +
-    `<animateMotion path="${SCRIBBLE}" keyPoints="0;1;1" keyTimes="0;${d};1" calcMode="linear" ${loop}/>` +
-    `<g transform="rotate(-38)"><path d="M0 0 L10 -26 L-10 -26Z" fill="#f3d9b1" stroke="#232046" stroke-width="3" stroke-linejoin="round"/>` +
-    `<path d="M0 0 L4 -10 L-4 -10Z" fill="#232046"/>` +
-    `<rect x="-10" y="-120" width="20" height="94" fill="${VIOLET}" stroke="#232046" stroke-width="3"/>` +
-    `<rect x="-10" y="-136" width="20" height="16" fill="#c9c9d6" stroke="#232046" stroke-width="3"/>` +
-    `<rect x="-10" y="-152" width="20" height="16" rx="5" fill="${PINK}" stroke="#232046" stroke-width="3"/></g></g>`;
-  // Magic at the tip of the presenter's wand: it rides along with the wand (see squad-rigs.ts).
+function projects(k: string) {
   const tip =
     `<g data-track="wand-tip"><circle class="sfx-tip" cx="806" cy="256" r="22" fill="url(#${k}tip)" style="transform-origin:806px 256px"/>` +
     sparkle(806, 256, 15, LILAC, 0.2, 1.8) +
@@ -160,12 +110,11 @@ function projects(k: string, ink: string, still: boolean) {
     sparkle(792, 246, 8, LENS, 1.4, 1.8) +
     `</g>`;
   const glints = [
-    sparkle(1000, 680, 14, LILAC, DRAW_S + 0.6, 2.8),
-    sparkle(1366, 748, 12, LENS, DRAW_S + 1.4, 2.8),
+    sparkle(1000, 680, 14, LILAC, 2.2, 3.4),
+    sparkle(1366, 748, 12, LENS, 4.1, 3.4),
   ].join("");
   return (
     `<defs><radialGradient id="${k}tip"><stop offset="0" stop-color="${WHITE}" stop-opacity=".95"/><stop offset=".4" stop-color="${LILAC}" stop-opacity=".6"/><stop offset="1" stop-color="${LILAC}" stop-opacity="0"/></radialGradient></defs>` +
-    reveal +
     glints +
     tip
   );
@@ -199,7 +148,6 @@ function social(k: string) {
     [596, 148, 46, 0],
     [711, 158, 56, 1.5],
     [1464, 168, 52, 3],
-    [490, 476, 66, 4.5],
   ];
   const qrMarks = qrs
     .map(([x, y, s, d]) => {
@@ -215,9 +163,10 @@ function social(k: string) {
     .join("");
   return (
     `<defs><radialGradient id="${k}flash"><stop offset="0" stop-color="${WHITE}"/><stop offset=".35" stop-color="${WHITE}" stop-opacity=".8"/><stop offset="1" stop-color="${WHITE}" stop-opacity="0"/></radialGradient></defs>` +
-    waves +
-    `<circle class="sfx-flash" cx="1078" cy="440" r="70" fill="url(#${k}flash)" style="transform-origin:1078px 440px"/>` +
-    `<circle class="sfx-rec" cx="1172" cy="428" r="7" fill="#ff3b3b"/>` +
+    // These two ride along with the megaphone and the phone (see squad-loops.ts).
+    `<g data-track="megaphone">${waves}</g>` +
+    `<g data-track="phone"><circle class="sfx-flash" cx="1078" cy="440" r="70" fill="url(#${k}flash)" style="transform-origin:1078px 440px"/>` +
+    `<circle class="sfx-rec" cx="1172" cy="428" r="7" fill="#ff3b3b"/></g>` +
     qrMarks +
     sparkle(70, 150, 14, WHITE, 0.8, 3) +
     sparkle(232, 160, 11, WHITE, 2.2, 3) +
@@ -280,7 +229,7 @@ function design(k: string) {
     `<g class="sfx-screen">${bulbs}</g>` +
     picks +
     `<g clip-path="url(#${k}mon)"><rect class="sfx-sheen" x="360" y="330" width="90" height="250" fill="url(#${k}sheen)" transform="skewX(-20)"/></g>` +
-    // These two ride along with the print head and the stylus (see squad-rigs.ts).
+    // These two ride along with the print head and the stylus (see squad-loops.ts).
     `<g data-track="nozzle"><circle class="sfx-nozzle" cx="1186" cy="524" r="12" fill="url(#${k}nozzle)" style="transform-origin:1186px 524px"/></g>` +
     `<g data-track="stylus-tip">` +
     sparkle(412, 664, 11, LILAC, 0.1, 1.8) +
@@ -290,26 +239,22 @@ function design(k: string) {
   );
 }
 
-/** The effect layer for one squad, as SVG markup in the 1600 x 900 frame. */
+/** The effect layer for one squad, as SVG markup in the 1600 x 900 frame of its picture. */
 export function squadFx(
   slug: SquadSlug,
   opts: {
-    ink?: string;
-    still?: boolean;
     /** the squad's own picture, for effects made from it */ art?: string;
   } = {},
 ): string {
   const k = `sfx-${slug}`;
-  switch (slug) {
-    case "technical":
-      return technical(k, opts.art ?? "");
-    case "projects":
-      return projects(k, opts.ink ?? "", !!opts.still);
-    case "events":
-      return events(k);
-    case "social-media":
-      return social(k);
-    case "design":
-      return design(k);
-  }
+  const body = {
+    technical: () => technical(k, opts.art ?? ""),
+    projects: () => projects(k),
+    events: () => events(k),
+    "social-media": () => social(k),
+    design: () => design(k),
+  }[slug]();
+  // Two clips are framed a little tighter than the picture: move the effects onto the clip.
+  const m = squadLoops[slug].frame;
+  return m ? `<g transform="matrix(${m.join(" ")})">${body}</g>` : body;
 }
