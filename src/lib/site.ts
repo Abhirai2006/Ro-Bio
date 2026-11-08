@@ -226,7 +226,7 @@ export const coreTeam: Squad[] = [
     about: "Tells the campus what RO-BIO is up to, on Instagram, on LinkedIn and on the ground.",
     members: [
       m("Gagan Yadav A", 6, "BMRE", true),
-      m("Sumith S", 4),
+      m("Sumith S", 4, "BMRE", false, "Lead Video Editor"),
       m("Kulsum", 4, "AIML"),
       m("Siddharth A", 4, "CS&D"),
       m("Siddharth", 4),
@@ -274,6 +274,45 @@ export const teamLinkedIn: Record<string, string> = {
   "Gagan Yadav A": "https://www.linkedin.com/in/gagan-yadav-8317a629a",
   "Viren Biddappa K A": "https://www.linkedin.com/in/viren-biddappa-k-a-634430304",
   "Preetham Gowda S R": "https://www.linkedin.com/in/preetham-gowda-sr-3aa8103b7",
+};
+
+/**
+ * What each role does, in plain words. Robo reads these out on the team pages, so keep each one short.
+ * Drafted from what the site already says: correct them here and Robo follows.
+ */
+export const roleDuties: Record<string, string> = {
+  "Head of Department": "Backs the club from the department side.",
+  "Faculty coordinator": "Guides the club and signs off its events with the college.",
+  President: "Leads the club, runs the core meetings and has the final say on plans.",
+  "Vice President":
+    "Works beside the President, keeps the squads in step and steps in when needed.",
+  Secretary: "Keeps the club records and minutes, handles club mail and sends out notices.",
+  Head: "Leads the squad and shares out its work.",
+  "Lead Video Editor": "Cuts, colours and finishes every reel and video RO-BIO posts.",
+};
+
+/** What each squad does, a few short lines each. Robo says these as people scroll the team pages. */
+export const squadDuties: Record<NonNullable<Squad["slug"]>, string[]> = {
+  projects: [
+    "They turn an idea into steps: what to build first, which parts to get, what could go wrong.",
+    "Sketch it on the whiteboard, build it, test it, fix it. Then test it again.",
+  ],
+  events: [
+    "They plan the layout, the schedule, the crew and the volunteers for every RO-BIO event.",
+    "Speaker running late, queue at registration? They sort it out before you notice.",
+  ],
+  technical: [
+    "They build and debug the club's electronics and code. This website too. And me.",
+    "Circuit boards, bug lists and a lot of coffee.",
+  ],
+  "social-media": [
+    "They tell the campus what RO-BIO is up to, on Instagram, on LinkedIn and on the ground.",
+    "Captions, reels and QR flyers that make people stop scrolling.",
+  ],
+  design: [
+    "They make the posters, the visuals and the look of everything RO-BIO puts out.",
+    "A clear idea, a readable layout, and it fits the topic. That is their checklist.",
+  ],
 };
 
 /**
