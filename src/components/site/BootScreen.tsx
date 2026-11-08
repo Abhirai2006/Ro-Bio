@@ -31,7 +31,13 @@ const SPARKS = [
 // One heartbeat, 150 units wide. Four of them scroll by 300 units, so the strip loops without a seam.
 const BEAT = "h34 l6 -5 l6 5 h10 l5 7 l8 -34 l9 44 l6 -17 h14 l9 -8 l9 8 h34";
 
-const TAP_LINES = ["Again!", "Ooh, that tickles.", "My heart is racing!", "Faster, faster!", "Okay okay, I'm awake!"];
+const TAP_LINES = [
+  "Again!",
+  "Ooh, that tickles.",
+  "My heart is racing!",
+  "Faster, faster!",
+  "Okay okay, I'm awake!",
+];
 
 /** First-visit intro: Robo gets built, X-rayed and switched on. Times itself in CSS, so it hides even without JavaScript. */
 export function BootScreen() {
@@ -73,13 +79,18 @@ export function BootScreen() {
     setTaps((t) => t + 1);
     setBpm((b) => Math.min(180, b + 14));
     // a squash each time you tap him (re-mounting him would replay the whole assembly)
-    body.current?.animate([{ transform: "scale(1)" }, { transform: "scale(1.06, 0.94)" }, { transform: "scale(1)" }], { duration: 280, easing: "ease-out" });
+    body.current?.animate(
+      [{ transform: "scale(1)" }, { transform: "scale(1.06, 0.94)" }, { transform: "scale(1)" }],
+      { duration: 280, easing: "ease-out" },
+    );
     window.clearTimeout(idle.current);
     idle.current = window.setTimeout(leave, 7000); // let them go once they stop playing
   };
 
   if (gone) return null;
-  const line = taps ? TAP_LINES[Math.min(TAP_LINES.length - 1, Math.floor((bpm - 72) / 24))]! : "Tap me. My heart speeds up.";
+  const line = taps
+    ? TAP_LINES[Math.min(TAP_LINES.length - 1, Math.floor((bpm - 72) / 24))]!
+    : "Tap me. My heart speeds up.";
 
   return (
     <>
@@ -101,17 +112,35 @@ export function BootScreen() {
           </p>
 
           <div className="boot-bench">
-            <button type="button" className="boot-robo-hit" onClick={tap} aria-label={`Tap Robo to speed up his heart. ${bpm} beats per minute.`}>
-              <span ref={body} className="boot-robo" aria-hidden="true" dangerouslySetInnerHTML={{ __html: robo }} />
+            <button
+              type="button"
+              className="boot-robo-hit"
+              onClick={tap}
+              aria-label={`Tap Robo to speed up his heart. ${bpm} beats per minute.`}
+            >
+              <span
+                ref={body}
+                className="boot-robo"
+                aria-hidden="true"
+                dangerouslySetInnerHTML={{ __html: robo }}
+              />
               <span className="boot-scan" aria-hidden="true" />
               {SPARKS.map(([x, y, t]) => (
-                <span key={t} className="boot-spark" aria-hidden="true" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${t}s` }} />
+                <span
+                  key={t}
+                  className="boot-spark"
+                  aria-hidden="true"
+                  style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${t}s` }}
+                />
               ))}
             </button>
             <p className="boot-say boot-say-hi" aria-hidden="true">
               Hi! I'm Robo.
             </p>
-            <p className={`boot-say boot-say-tap${taps ? " boot-say-live" : ""}`} aria-live="polite">
+            <p
+              className={`boot-say boot-say-tap${taps ? " boot-say-live" : ""}`}
+              aria-live="polite"
+            >
               {line}
             </p>
             <p className="boot-xray-note" aria-hidden="true">
