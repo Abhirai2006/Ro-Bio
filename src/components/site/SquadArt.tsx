@@ -152,7 +152,12 @@ export function SquadArt({
 
   const poster = (w: number) => `${ART}/${slug}-poster-${w}.webp`;
   return (
-    <div ref={wrap} className={`relative aspect-[16/9] overflow-hidden bg-secondary ${className}`}>
+    <div
+      ref={wrap}
+      data-robo-quiet
+      data-robo-avoid
+      className={`relative aspect-[16/9] overflow-hidden bg-secondary ${className}`}
+    >
       <img
         src={poster(1600)}
         srcSet={`${poster(960)} 960w, ${poster(1600)} 1600w`}
