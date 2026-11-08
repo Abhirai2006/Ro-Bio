@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronsDown, ChevronsUp, RotateCcw } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ChevronsDown,
+  ChevronsUp,
+  RotateCcw,
+} from "lucide-react";
 import { ArmSim, SAMPLE, type Kind, type Mode } from "@/lib/arm-sim";
 import type { ArmScene } from "./arm-scene";
 
@@ -20,15 +28,22 @@ function hint(sim: ArmSim) {
   const k = sim.heldKind;
   if (sim.mode === "manual") {
     if (sim.status === "GLASS BROKEN") return "Oops. Press reset for a new vial.";
-    if (k) return `Got the ${SAMPLE[k].label.toLowerCase()}. Move it, then press Let go. Glass only survives a drop onto the foam.`;
+    if (k)
+      return `Got the ${SAMPLE[k].label.toLowerCase()}. Move it, then press Let go. Glass only survives a drop onto the foam.`;
     if (sim.status === "GRIPPING") return "Gripping.";
-    if (sim.gripClosed) return "Nothing between the fingers. Press Let go, lower a bit more and try again.";
+    if (sim.gripClosed)
+      return "Nothing between the fingers. Press Let go, lower a bit more and try again.";
     const over = sim.overSample;
-    if (over) return `Right over the ${SAMPLE[over].label.toLowerCase()}. Lower it all the way, then press Grip.`;
+    if (over)
+      return `Right over the ${SAMPLE[over].label.toLowerCase()}. Lower it all the way, then press Grip.`;
     return "Use the arrows to move over a sample.";
   }
-  if (k && sim.holding) return `Now tap where the ${SAMPLE[k].label.toLowerCase()} should go. The tray works too.`;
-  if (k) return ["CARRY", "PLACING", "RELEASE"].includes(sim.status) ? "Putting it down." : "Picking it up.";
+  if (k && sim.holding)
+    return `Now tap where the ${SAMPLE[k].label.toLowerCase()} should go. The tray works too.`;
+  if (k)
+    return ["CARRY", "PLACING", "RELEASE"].includes(sim.status)
+      ? "Putting it down."
+      : "Picking it up.";
   if (sim.busy && sim.samples.some((s) => s.queued)) return "Picking it up.";
   return "Tap a sample to pick it up.";
 }
@@ -84,7 +99,9 @@ export function RobotArm() {
         .catch(() => !cancelled && setPhase("nogl"));
     // Let the rest of the page settle first. The arm is a toy, not the content.
     const ric = "requestIdleCallback" in window;
-    const idle = ric ? window.requestIdleCallback(start, { timeout: 1200 }) : window.setTimeout(start, 300);
+    const idle = ric
+      ? window.requestIdleCallback(start, { timeout: 1200 })
+      : window.setTimeout(start, 300);
     return () => {
       cancelled = true;
       if (ric) window.cancelIdleCallback(idle);
@@ -108,9 +125,11 @@ export function RobotArm() {
 
   // Manual mode: every held jog button or key adds a direction. On screen, up is away from you and left is left.
   const applyJog = () => {
-    const keys = jogKeys.current, ax = scene.current?.axes();
+    const keys = jogKeys.current,
+      ax = scene.current?.axes();
     if (!ax) return;
-    const sx = Number(keys.has("right")) - Number(keys.has("left")), sy = Number(keys.has("away")) - Number(keys.has("near"));
+    const sx = Number(keys.has("right")) - Number(keys.has("left")),
+      sy = Number(keys.has("away")) - Number(keys.has("near"));
     const lift = Number(keys.has("raise")) - Number(keys.has("lower"));
     sim.jog(sx * ax.right.x + sy * ax.away.x, lift, sx * ax.right.z + sy * ax.away.z);
   };
@@ -139,12 +158,17 @@ export function RobotArm() {
     if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 8) p.moved = true;
     const hit = hitAt(e);
     // While something is held it glides after the pointer: a mouse just moves, a finger drags.
-    if (sim.heldKind && hit.point && (e.pointerType === "mouse" || p)) sim.carry(hit.point.x, hit.point.z);
+    if (sim.heldKind && hit.point && (e.pointerType === "mouse" || p))
+      sim.carry(hit.point.x, hit.point.z);
     if (e.pointerType === "mouse") {
       scene.current.hover(hit.kind ?? null);
       // The open gripper over a sample you can pick up, the closed one (holding a sample) while carrying,
       // and the arm's reticle everywhere else on the bench. The images live in styles.css.
-      e.currentTarget.style.cursor = sim.heldKind ? "var(--cur-grabbing)" : hit.kind ? "var(--cur-grab)" : "var(--cur-reticle)";
+      e.currentTarget.style.cursor = sim.heldKind
+        ? "var(--cur-grabbing)"
+        : hit.kind
+          ? "var(--cur-grab)"
+          : "var(--cur-reticle)";
     }
   };
   const onUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -158,13 +182,23 @@ export function RobotArm() {
       return;
     }
     if (sim.heldKind) {
-      if (hit.kind === sim.heldKind && !p.moved) sim.place(); // tapped the sample itself: straight down
+      if (hit.kind === sim.heldKind && !p.moved)
+        sim.place(); // tapped the sample itself: straight down
       else if (hit.point) sim.place(hit.point.x, hit.point.z);
       return;
     }
     if (!p.moved && hit.point && !hit.kind) sim.point(hit.point.x, hit.point.z);
   };
-  const KEYS: Record<string, string> = { ArrowLeft: "left", ArrowRight: "right", ArrowUp: "away", ArrowDown: "near", w: "raise", W: "raise", s: "lower", S: "lower" };
+  const KEYS: Record<string, string> = {
+    ArrowLeft: "left",
+    ArrowRight: "right",
+    ArrowUp: "away",
+    ArrowDown: "near",
+    w: "raise",
+    W: "raise",
+    s: "lower",
+    S: "lower",
+  };
   const onKeyUp = (e: React.KeyboardEvent) => {
     const dir = KEYS[e.key];
     if (sim.mode === "manual" && dir) hold(dir, false);
@@ -183,7 +217,12 @@ export function RobotArm() {
     }
     if (!sim.heldKind) return;
     const step = 0.02;
-    const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+    const moves: Record<string, [number, number]> = {
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+      ArrowDown: [0, step],
+    };
     const mv = moves[e.key];
     if (mv) {
       e.preventDefault();
@@ -232,20 +271,32 @@ export function RobotArm() {
         {phase !== "ready" && (
           <div className="blueprint absolute inset-0 grid place-items-center">
             <p className="max-w-[80%] text-center font-pixel text-[11px] text-lilac">
-              {phase === "loading" ? <span className="blink">LOADING THE ARM</span> : "This browser could not start 3D graphics, so the arm cannot be shown here."}
+              {phase === "loading" ? (
+                <span className="blink">LOADING THE ARM</span>
+              ) : (
+                "This browser could not start 3D graphics, so the arm cannot be shown here."
+              )}
             </p>
           </div>
         )}
         {phase === "ready" && (
-          <p className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent px-3 pb-2 pt-6 text-center text-sm font-semibold text-paper" aria-hidden="true">
+          <p
+            className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 to-transparent px-3 pb-2 pt-6 text-center text-sm font-semibold text-paper"
+            aria-hidden="true"
+          >
             {tip}
           </p>
         )}
       </div>
-      <p className="sr-only" aria-live="polite">{said}</p>
+      <p className="sr-only" aria-live="polite">
+        {said}
+      </p>
       <figcaption className="grid grid-cols-3 border-t border-paper/20 font-mono text-[10px] md:grid-cols-6 md:text-[11px]">
         {HUD.map(([k, read], i) => (
-          <span key={k} className="border-b border-r border-paper/20 px-2 py-1.5 md:border-b-0 [&:nth-child(3n)]:border-r-0 md:[&:nth-child(3n)]:border-r md:last:border-r-0">
+          <span
+            key={k}
+            className="border-b border-r border-paper/20 px-2 py-1.5 md:border-b-0 [&:nth-child(3n)]:border-r-0 md:[&:nth-child(3n)]:border-r md:last:border-r-0"
+          >
             <span className="block text-paper/50">{k}</span>
             <span ref={(el) => void (hud.current[i] = el)} className="text-lens">
               {read(sim)}
@@ -286,23 +337,51 @@ export function RobotArm() {
         </Button>
       </div>
       {mode === "tap" ? (
-        <div className="flex flex-wrap items-center gap-1 border-t border-paper/20 px-3 py-2" role="group" aria-label="Put in the tray">
+        <div
+          className="flex flex-wrap items-center gap-1 border-t border-paper/20 px-3 py-2"
+          role="group"
+          aria-label="Put in the tray"
+        >
           <span className="mr-1 font-pixel text-[10px] text-paper/60">TO THE TRAY</span>
           {KINDS.map((k) => (
-            <Button key={k} variant="ghost" size="sm" disabled={phase !== "ready" || holding} onClick={() => sim.pick(k)} className="text-paper/80 hover:bg-paper/10 hover:text-lens">
+            <Button
+              key={k}
+              variant="ghost"
+              size="sm"
+              disabled={phase !== "ready" || holding}
+              onClick={() => sim.pick(k)}
+              className="text-paper/80 hover:bg-paper/10 hover:text-lens"
+            >
               {SAMPLE[k].label}
             </Button>
           ))}
         </div>
       ) : (
-        <JogPad hold={hold} grip={() => sim.toggleGrip()} closed={closed} disabled={phase !== "ready" || busy} />
+        <JogPad
+          hold={hold}
+          grip={() => sim.toggleGrip()}
+          closed={closed}
+          disabled={phase !== "ready" || busy}
+        />
       )}
     </figure>
   );
 }
 
 /** A button that moves the arm for as long as it is held down, with a finger or a mouse. */
-function JogButton({ dir, label, hold, disabled, children }: { dir: string; label: string; hold: (dir: string, on: boolean) => void; disabled: boolean; children: React.ReactNode }) {
+function JogButton({
+  dir,
+  label,
+  hold,
+  disabled,
+  children,
+}: {
+  dir: string;
+  label: string;
+  hold: (dir: string, on: boolean) => void;
+  disabled: boolean;
+  children: React.ReactNode;
+}) {
   const off = () => hold(dir, false);
   return (
     <button
@@ -328,20 +407,46 @@ function JogButton({ dir, label, hold, disabled, children }: { dir: string; labe
 }
 
 /** Manual mode controls, laid out like a robot's control pendant: move, raise and lower, grip. */
-function JogPad({ hold, grip, closed, disabled }: { hold: (dir: string, on: boolean) => void; grip: () => void; closed: boolean; disabled: boolean }) {
+function JogPad({
+  hold,
+  grip,
+  closed,
+  disabled,
+}: {
+  hold: (dir: string, on: boolean) => void;
+  grip: () => void;
+  closed: boolean;
+  disabled: boolean;
+}) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-paper/20 px-3 py-3" role="group" aria-label="Manual controls">
+    <div
+      className="flex flex-wrap items-center justify-between gap-3 border-t border-paper/20 px-3 py-3"
+      role="group"
+      aria-label="Manual controls"
+    >
       <div className="grid grid-cols-3 gap-1">
         <span />
-        <JogButton dir="away" label="Move away from you" hold={hold} disabled={disabled}><ArrowUp /></JogButton>
+        <JogButton dir="away" label="Move away from you" hold={hold} disabled={disabled}>
+          <ArrowUp />
+        </JogButton>
         <span />
-        <JogButton dir="left" label="Move left" hold={hold} disabled={disabled}><ArrowLeft /></JogButton>
-        <JogButton dir="near" label="Move towards you" hold={hold} disabled={disabled}><ArrowDown /></JogButton>
-        <JogButton dir="right" label="Move right" hold={hold} disabled={disabled}><ArrowRight /></JogButton>
+        <JogButton dir="left" label="Move left" hold={hold} disabled={disabled}>
+          <ArrowLeft />
+        </JogButton>
+        <JogButton dir="near" label="Move towards you" hold={hold} disabled={disabled}>
+          <ArrowDown />
+        </JogButton>
+        <JogButton dir="right" label="Move right" hold={hold} disabled={disabled}>
+          <ArrowRight />
+        </JogButton>
       </div>
       <div className="flex flex-col gap-1">
-        <JogButton dir="raise" label="Raise" hold={hold} disabled={disabled}><ChevronsUp /></JogButton>
-        <JogButton dir="lower" label="Lower" hold={hold} disabled={disabled}><ChevronsDown /></JogButton>
+        <JogButton dir="raise" label="Raise" hold={hold} disabled={disabled}>
+          <ChevronsUp />
+        </JogButton>
+        <JogButton dir="lower" label="Lower" hold={hold} disabled={disabled}>
+          <ChevronsDown />
+        </JogButton>
       </div>
       <button
         type="button"
@@ -361,11 +466,30 @@ export function LineFollower({ className = "" }: { className?: string }) {
   const track =
     "M10 60 H170 L185 60 L195 44 L205 60 L225 60 L235 76 L250 8 L266 108 L278 60 L300 60 L320 36 L340 60 H590";
   return (
-    <svg viewBox="0 0 600 120" className={className} aria-hidden="true" preserveAspectRatio="xMidYMid meet">
-      <path d={track} fill="none" className="stroke-ink dark:stroke-paper" strokeWidth={8} strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 600 120"
+      className={className}
+      aria-hidden="true"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <path
+        d={track}
+        fill="none"
+        className="stroke-ink dark:stroke-paper"
+        strokeWidth={8}
+        strokeLinejoin="round"
+      />
       <path d={track} fill="none" className="stroke-lens" strokeWidth={2} strokeDasharray="6 8" />
       <g>
-        <rect x={-14} y={-10} width={28} height={20} rx={5} className="fill-violet stroke-ink" strokeWidth={2} />
+        <rect
+          x={-14}
+          y={-10}
+          width={28}
+          height={20}
+          rx={5}
+          className="fill-violet stroke-ink"
+          strokeWidth={2}
+        />
         <circle cx={-8} cy={-12} r={4} className="fill-ink" />
         <circle cx={-8} cy={12} r={4} className="fill-ink" />
         <circle cx={10} cy={0} r={3} className="fill-lens blink" />
