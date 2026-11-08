@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { MemberCard } from "@/components/site/TeamCards";
 import { SquadArt } from "@/components/site/SquadArt";
+import { SquadLinks } from "@/components/site/SquadLinks";
 import { site, squadPages } from "@/lib/site";
 
 // /team/technical and the other squad pages. The underscore keeps this page separate from /team.
@@ -49,8 +50,6 @@ function SquadPage() {
         <SquadArt
           key={squad.slug}
           slug={squad.slug}
-          fx
-          interactive
           priority
           className="mt-4 border-2 border-border shadow-hard"
         />
@@ -73,21 +72,9 @@ function SquadPage() {
 
       <section className="mx-auto max-w-6xl px-4 pb-20">
         <h2 className="text-2xl font-black">The other squads</h2>
-        <ul className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {others.map((o) => (
-            <li key={o.slug}>
-              <Link
-                to="/team/$squad"
-                params={{ squad: o.slug }}
-                viewTransition
-                className="group block border-2 border-border bg-card shadow-hard"
-              >
-                <SquadArt slug={o.slug} fx className="border-b-2 border-border" />
-                <p className="p-3 font-display font-bold group-hover:text-primary">{o.title} →</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="mt-5">
+          <SquadLinks squads={others} compact />
+        </div>
       </section>
     </>
   );
