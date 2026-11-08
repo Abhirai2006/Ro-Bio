@@ -5,6 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleJudgeApi, type JudgeEnv } from "./server/judge-api";
 import { handleCertApi, type CertEnv } from "./server/cert-api";
 import { handleRecruitApi, type RecruitEnv } from "./server/recruit-api";
+import { serveClip, type AssetsEnv } from "./server/media-range";
 
 // The Robo Spark score sheet. Cloudflare needs the Durable Object class exported from the Worker's main file.
 export { JudgeScores } from "./server/judge-store";
@@ -62,6 +63,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
   "img-src 'self' data: blob:", // blob: lets a certificate be drawn onto a canvas for the PNG download
+  "media-src 'self'", // the squad clips in /team/art
   "frame-src https://www.google.com https://maps.google.com", // the venue map on Contact and Bot Forge
   "connect-src 'self'",
   "object-src 'none'",
@@ -75,7 +77,8 @@ const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
   "Referrer-Policy": "strict-origin-when-cross-origin",
-  "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+  "Permissions-Policy":
+    "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
   "Cross-Origin-Opener-Policy": "same-origin",
 };
@@ -84,14 +87,19 @@ function withSecurityHeaders(response: Response): Response {
   const res = new Response(response.body, response);
   for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.headers.set(k, v);
   // The dev server needs inline module scripts and a websocket for hot reload, so the CSP is production only.
-  if (import.meta.env.PROD && (res.headers.get("content-type") ?? "").includes("text/html")) res.headers.set("Content-Security-Policy", CSP);
+  if (import.meta.env.PROD && (res.headers.get("content-type") ?? "").includes("text/html"))
+    res.headers.set("Content-Security-Policy", CSP);
   return res;
 }
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      if (new URL(request.url).pathname.startsWith("/api/judge/")) return withSecurityHeaders(await handleJudgeApi(request, env as JudgeEnv));
+      // The squad clips need byte ranges for Safari (see src/server/media-range.ts).
+      const clip = await serveClip(request, env as AssetsEnv);
+      if (clip) return withSecurityHeaders(clip);
+      if (new URL(request.url).pathname.startsWith("/api/judge/"))
+        return withSecurityHeaders(await handleJudgeApi(request, env as JudgeEnv));
       if (new URL(request.url).pathname.startsWith("/api/certificates/"))
         return withSecurityHeaders(await handleCertApi(request, env as CertEnv));
       if (new URL(request.url).pathname.startsWith("/api/recruit/"))
