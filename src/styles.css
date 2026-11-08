@@ -12,7 +12,8 @@
   --font-display: "Tektur", system-ui, sans-serif; /* angular, like machined parts */
   --font-pixel: "Silkscreen", ui-monospace, monospace;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-sans: "Atkinson Hyperlegible Next", system-ui, sans-serif; /* drawn by the Braille Institute for low vision readers */
+  --font-sans:
+    "Atkinson Hyperlegible Next", system-ui, sans-serif; /* drawn by the Braille Institute for low vision readers */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -119,11 +120,15 @@
 }
 @supports (cursor: image-set(url("/cursors/arrow.png") 1x) 2 2, default) {
   :root {
-    --cur-arrow: image-set(url("/cursors/arrow.png") 1x, url("/cursors/arrow@2x.png") 2x) 2 2, default;
-    --cur-hand: image-set(url("/cursors/hand.png") 1x, url("/cursors/hand@2x.png") 2x) 11 2, pointer;
+    --cur-arrow:
+      image-set(url("/cursors/arrow.png") 1x, url("/cursors/arrow@2x.png") 2x) 2 2, default;
+    --cur-hand:
+      image-set(url("/cursors/hand.png") 1x, url("/cursors/hand@2x.png") 2x) 11 2, pointer;
     --cur-grab: image-set(url("/cursors/grab.png") 1x, url("/cursors/grab@2x.png") 2x) 14 20, grab;
-    --cur-grabbing: image-set(url("/cursors/grabbing.png") 1x, url("/cursors/grabbing@2x.png") 2x) 14 20, grabbing;
-    --cur-reticle: image-set(url("/cursors/reticle.png") 1x, url("/cursors/reticle@2x.png") 2x) 15 15, crosshair;
+    --cur-grabbing:
+      image-set(url("/cursors/grabbing.png") 1x, url("/cursors/grabbing@2x.png") 2x) 14 20, grabbing;
+    --cur-reticle:
+      image-set(url("/cursors/reticle.png") 1x, url("/cursors/reticle@2x.png") 2x) 15 15, crosshair;
   }
 }
 /* High contrast mode: people there often rely on their own system cursor scheme, so every cursor goes back to it. */
@@ -414,7 +419,9 @@
   justify-content: center;
   gap: 12px;
   padding: 16px;
-  animation: boot-fade-in 0.25s ease-out both, boot-stage-out 0.2s ease-in 5.85s forwards;
+  animation:
+    boot-fade-in 0.25s ease-out both,
+    boot-stage-out 0.2s ease-in 5.85s forwards;
 }
 /* Once you start tapping, the exit waits. Leaving restarts the exit right away. */
 .boot-held,
@@ -498,11 +505,22 @@
 .boot-robo #bt-head {
   animation: boot-drop 0.42s cubic-bezier(0.3, 1.5, 0.5, 1) both;
 }
-.boot-robo #bt-legL { animation-delay: 0.2s; }
-.boot-robo #bt-legR { animation-delay: 0.32s; }
-.boot-robo .bt-pelvis { animation-delay: 0.5s; }
-.boot-robo #bt-torso { animation-delay: 0.72s; }
-.boot-robo #bt-head { animation-delay: 1.45s; animation-duration: 0.5s; }
+.boot-robo #bt-legL {
+  animation-delay: 0.2s;
+}
+.boot-robo #bt-legR {
+  animation-delay: 0.32s;
+}
+.boot-robo .bt-pelvis {
+  animation-delay: 0.5s;
+}
+.boot-robo #bt-torso {
+  animation-delay: 0.72s;
+}
+.boot-robo #bt-head {
+  animation-delay: 1.45s;
+  animation-duration: 0.5s;
+}
 .boot-robo #bt-armL {
   animation: boot-slide-l 0.36s cubic-bezier(0.3, 1.4, 0.5, 1) 1.05s both;
 }
@@ -578,7 +596,9 @@
   pointer-events: none;
 }
 .boot-say-hi {
-  animation: boot-pop-in 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 2.15s both, boot-fade-out 0.2s ease-in 3.6s forwards;
+  animation:
+    boot-pop-in 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 2.15s both,
+    boot-fade-out 0.2s ease-in 3.6s forwards;
 }
 .boot-say-tap {
   animation: boot-pop-in 0.25s cubic-bezier(0.3, 1.6, 0.5, 1) 4s both;
@@ -596,7 +616,9 @@
   letter-spacing: 0.08em;
   color: #f3a9c0;
   opacity: 0;
-  animation: boot-pop-in 0.2s ease-out 2.8s both, boot-fade-out 0.25s ease-in 3.9s forwards;
+  animation:
+    boot-pop-in 0.2s ease-out 2.8s both,
+    boot-fade-out 0.25s ease-in 3.9s forwards;
 }
 .boot-xray-note em {
   font-style: normal;
@@ -679,7 +701,9 @@
   box-shadow: 4px 4px 0 0 var(--lens);
   cursor: var(--cur-hand);
   opacity: 0;
-  animation: boot-pop-in 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) 4.45s both, boot-nudge 1.2s ease-in-out 5s infinite;
+  animation:
+    boot-pop-in 0.3s cubic-bezier(0.3, 1.6, 0.5, 1) 4.45s both,
+    boot-nudge 1.2s ease-in-out 5s infinite;
 }
 .boot-enter:hover {
   background: var(--violet-deep);
