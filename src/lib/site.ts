@@ -164,21 +164,21 @@ export const coreTeam: Squad[] = [
     title: "Events",
     slug: "events",
     about: "Plans and runs RO-BIO's events: the layout, the schedule, the crew and the volunteers.",
-    members: [m("Tejaswini V", 6, "BMRE", true), m("Kartik Kushalappa", 6), m("Abhijna Samanth", 6), m("Tejaswini", 4), m("Srishant", 4), m("Harshini", 4)],
+    members: [m("Tejaswini V", 6, "BMRE", true), m("Kartik Kushalappa", 6), m("Abhijna Samanth", 6), m("Abdul Muhaymin Khan", 6), m("Tejaswini", 4), m("Srishant", 4), m("Harshini", 4)],
   },
   {
     title: "Technical",
     slug: "technical",
     about: "Builds and debugs the club's electronics, code and this website.",
-    members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica", 4)],
+    members: [m("Brunda H S", 6, "BMRE", true), m("Varsha H K", 6), m("Lahari", 4), m("Chirag", 4), m("Pushkal Sai A", 4, "CS&D"), m("Monica S", 4)],
   },
   {
     title: "Social Media and Outreach",
     slug: "social-media",
     about: "Tells the campus what RO-BIO is up to, on Instagram, on LinkedIn and on the ground.",
-    members: [m("Sumith S", 4, "BMRE", true), m("Kulsum", 4, "AIML"), m("Siddharth A", 4, "CS&D"), m("Siddharth", 4), m("Deeksha B H", 4), m("Nishanth Raj", 4, "CS&D")],
+    members: [m("Gagan Yadav A", 6, "BMRE", true), m("Sumith S", 4), m("Kulsum", 4, "AIML"), m("Siddharth A", 4, "CS&D"), m("Siddharth", 4), m("Deeksha B H", 4), m("Nishanth Raj", 4, "CS&D")],
   },
-  { title: "Design", slug: "design", about: "Makes the club's posters, visuals and the look of everything RO-BIO puts out.", members: [m("Viren Biddappa", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham Gowda S R", 4)] },
+  { title: "Design", slug: "design", about: "Makes the club's posters, visuals and the look of everything RO-BIO puts out.", members: [m("Viren Biddappa K A", 6, "BMRE", true), m("Yashika B Ramesh", 6), m("Preetham Gowda S R", 4)] },
 ];
 
 /**
@@ -189,14 +189,27 @@ export const teamPhotos: Record<string, string> = {
   "Dr. Nithin S K": "/team/people/nithin-s-k.webp",
   "Archana G": "/team/people/archana-g.webp",
   "Abhishek Rai A": "/team/people/abhishek-rai-a.webp",
+  "Anagha A Raichurkar": "/team/people/anagha-a-raichurkar.webp",
+  "Abdul Muhaymin Khan": "/team/people/abdul-muhaymin-khan.webp",
+  Tejaswini: "/team/people/tejaswini.webp",
   "Brunda H S": "/team/people/brunda-h-s.webp",
   "Pushkal Sai A": "/team/people/pushkal-sai-a.webp",
+  "Monica S": "/team/people/monica-s.webp",
+  "Gagan Yadav A": "/team/people/gagan-yadav-a.webp",
   "Deeksha B H": "/team/people/deeksha-b-h.webp",
+  "Viren Biddappa K A": "/team/people/viren-biddappa-k-a.webp",
   "Preetham Gowda S R": "/team/people/preetham-gowda-s-r.webp",
 };
 
 /** LinkedIn profile links, by name. Only people who gave one in the team form are listed. */
-export const teamLinkedIn: Record<string, string> = {};
+export const teamLinkedIn: Record<string, string> = {
+  "Abhishek Rai A": "https://www.linkedin.com/in/abhishek-rai-a-00067238b",
+  "Anagha A Raichurkar": "https://www.linkedin.com/in/anagha-a-raichurkar-51b349291",
+  "Abdul Muhaymin Khan": "https://www.linkedin.com/in/abdul-muhaymin-khan-18103b2a8",
+  "Gagan Yadav A": "https://www.linkedin.com/in/gagan-yadav-8317a629a",
+  "Viren Biddappa K A": "https://www.linkedin.com/in/viren-biddappa-k-a-634430304",
+  "Preetham Gowda S R": "https://www.linkedin.com/in/preetham-gowda-sr-3aa8103b7",
+};
 
 /** The five squads that have their own page, in the order the team page shows them. */
 export const squadPages = () =>
