@@ -14,7 +14,7 @@ import {
   type WalkPose,
 } from "./robo-walk";
 import { heart } from "./heart";
-import { FORGE_IDLE, GREET, LOST, sectionLine } from "./robo-talk";
+import { FORGE_IDLE, GREET, LOST, narration, sectionLine } from "./robo-talk";
 
 export type RoamDom = {
   layer: HTMLElement;
@@ -59,6 +59,8 @@ const PERCH = "main h1, main h2, main h3, [data-robo-perch]";
 const AVOID = "[data-robo-avoid]";
 /** Things he keeps clear of and keeps quiet near: the squad clips and the member cards. */
 const QUIET = "[data-robo-quiet]";
+/** Parts of a page he explains as they scroll into view; the value is a key for narration() in robo-talk.ts. */
+const SAYS = "[data-robo-say]";
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const ease = (t: number) => t * t * (3 - 2 * t);
 const wrapA = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -167,7 +169,8 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
     edgeLo = 28; // the left end of his floor walk; 0 while he peeks in from the edge on a phone
   const lastVisit = new WeakMap<Element, number>(),
     hovered = new Map<string, number>();
-  type Msg = { text: string; kind: Kind; hold: number };
+  // n: a narration line, which gives way when a different part of the page scrolls into view
+  type Msg = { text: string; kind: Kind; hold: number; n?: string };
   const mq: Msg[] = [];
   let msg: Msg | null = null,
     msgAt = 0,
@@ -217,6 +220,48 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
       msgDone = 0;
     }
     mq.push({ text, kind, hold });
+  };
+  // ---- narration: as people scroll, he explains the part of the page in the middle of the screen
+  const told = new Map<string, number>();
+  let tellCheck = 0;
+  const playingInView = () =>
+    [...document.querySelectorAll("video")].some((v) => {
+      const r = v.getBoundingClientRect();
+      // a clip playing low on the screen, where his bubble would cover it
+      return !v.paused && r.top < innerHeight && r.bottom > innerHeight * 0.55;
+    });
+  // the part that fills most of the middle of the screen, where people are reading
+  const pickSay = (): string | null => {
+    const top = innerHeight * 0.2,
+      bottom = innerHeight * 0.8;
+    let best: { key: string; seen: number } | null = null;
+    for (const el of document.querySelectorAll(SAYS)) {
+      const r = el.getBoundingClientRect();
+      const seen = Math.min(r.bottom, bottom) - Math.max(r.top, top);
+      const key = el.getAttribute("data-robo-say") ?? "";
+      if (key && seen > 40 && (!best || seen > best.seen)) best = { key, seen };
+    }
+    return best?.key ?? null;
+  };
+  const tell = () => {
+    if (mode !== "free" || rest || ms - tellCheck < 350) return;
+    tellCheck = ms;
+    if (ms - scrollAt < 650 || ms - scrollAt > 6000 || playingInView()) return;
+    const key = pickSay();
+    if (
+      !key ||
+      ms - (told.get(key) ?? -1e9) < 45000 ||
+      msg?.n === key ||
+      mq.some((m) => m.n === key)
+    )
+      return;
+    const lines = narration(key);
+    if (!lines.length) return;
+    told.set(key, ms);
+    // drop what is still waiting about another part, then queue this part's lines
+    for (let i = mq.length - 1; i >= 0; i--) if (mq[i]!.n) mq.splice(i, 1);
+    for (const text of lines) mq.push({ text, kind: "plain", hold: 2600, n: key });
+    nextIdle = ms + 15000;
   };
   const avoids = () =>
     [...document.querySelectorAll(AVOID)]
@@ -848,7 +893,7 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
       ?.getAttribute("data-thought");
     if (t && ms - (hovered.get(t) ?? -1e9) > 8000) {
       hovered.set(t, ms);
-      say(t, "think", 2400);
+      say(t, "think", 2400, false, true);
     }
   };
   const onLink = (e: MouseEvent) => {
@@ -1136,7 +1181,9 @@ export function startRoam(d: RoamDom, o: RoamOpts = {}) {
         d.bubble.setAttribute("data-on", "false");
         msgDone = ms + 350;
       }
-    } else if (mode === "free" && !rest && !cur && !queue.length && !mq.length && ms > nextIdle) {
+    }
+    tell();
+    if (!msg && mode === "free" && !rest && !cur && !queue.length && !mq.length && ms > nextIdle) {
       say(IDLE[Math.floor(Math.random() * IDLE.length)]!, "think", 2600);
       nextIdle = ms + 12000 + Math.random() * 7000;
     }
