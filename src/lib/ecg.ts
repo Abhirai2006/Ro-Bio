@@ -1,6 +1,7 @@
 // A synthetic lead II ECG beat built from Gaussian waves around the R peak (P, Q, R, S, T).
 // tau is seconds relative to the R peak, rr is the beat-to-beat interval. QT shortens as the heart speeds up.
-const g = (t: number, c: number, s: number, a: number) => a * Math.exp(-((t - c) ** 2) / (2 * s * s));
+const g = (t: number, c: number, s: number, a: number) =>
+  a * Math.exp(-((t - c) ** 2) / (2 * s * s));
 
 export function beatShape(tau: number, rr: number) {
   const k = Math.sqrt(Math.max(0.3, rr) / 0.833);
