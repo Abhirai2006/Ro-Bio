@@ -2,7 +2,15 @@ import type { ReactNode } from "react";
 import { PageIntro } from "@/components/site/parts";
 import { LAST_UPDATED } from "@/lib/seo";
 
-export function LegalPage({ label, title, children }: { label: string; title: string; children: ReactNode }) {
+export function LegalPage({
+  label,
+  title,
+  children,
+}: {
+  label: string;
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <>
       <PageIntro label={label} title={title}>
