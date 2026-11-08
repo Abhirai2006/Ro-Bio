@@ -1,4 +1,6 @@
+import { useRef, useState } from "react";
 import { currentSem, teamLinkedIn, teamPhotos, type Member } from "@/lib/site";
+import "./team-cards.css";
 
 /** "Dr. Nithin S K" becomes "NS": titles like Dr. are left out. */
 const initials = (name: string) =>
@@ -36,15 +38,26 @@ export function Portrait({ name, className = "" }: { name: string; className?: s
   );
 }
 
-/** One team member: photo, name, role or HEAD badge, semester and branch, LinkedIn when given. */
+/** The part of a LinkedIn link after /in/, like "anagha-a-raichurkar-51b349291". */
+const linkedInId = (url: string) => url.replace(/^.*\/in\//, "").replace(/[/?#].*$/, "");
+
+/**
+ * One team member: photo, name, role or HEAD badge, semester and branch. Someone who gave a LinkedIn
+ * link gets a card that flips over when tapped, with their LinkedIn ID and a button to open it.
+ */
 export function MemberCard({ member, index = 0 }: { member: Member; index?: number }) {
   const link = teamLinkedIn[member.name];
   const badge = member.role ?? (member.head ? "Head" : undefined);
-  return (
-    <article
-      className="team-rise flex h-full flex-col border-2 border-border bg-card shadow-hard"
-      style={{ animationDelay: `${Math.min(index, 10) * 70}ms` }}
-    >
+  const [flipped, setFlipped] = useState(false);
+  const flipBtn = useRef<HTMLButtonElement>(null);
+  const openBtn = useRef<HTMLAnchorElement>(null);
+  const flip = (to: boolean, focus = false) => {
+    setFlipped(to);
+    // keyboard users land on the side they just turned to
+    if (focus) requestAnimationFrame(() => (to ? openBtn : flipBtn).current?.focus());
+  };
+  const front = (
+    <>
       <div className="relative border-b-2 border-border">
         <Portrait name={member.name} />
         {badge && (
@@ -59,16 +72,100 @@ export function MemberCard({ member, index = 0 }: { member: Member; index?: numb
           {currentSem(member.sem)}th sem {member.dept}
         </p>
         {link && (
+          <button
+            ref={flipBtn}
+            type="button"
+            className="mcard-flip"
+            aria-expanded={flipped}
+            aria-label={`Show ${member.name}'s LinkedIn`}
+            onClick={(e) => {
+              e.stopPropagation();
+              flip(true, e.detail === 0);
+            }}
+          >
+            <span className="mcard-in" aria-hidden="true">
+              in
+            </span>
+            LinkedIn
+            <span className="mcard-turn" aria-hidden="true">
+              <svg viewBox="0 0 16 16" width="14" height="14">
+                <path
+                  d="M3 6a5 5 0 0 1 9-2M13 10a5 5 0 0 1-9 2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M12 1v3.5H8.5M4 15v-3.5h3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+              </svg>
+            </span>
+          </button>
+        )}
+      </div>
+    </>
+  );
+  const style = { animationDelay: `${Math.min(index, 10) * 70}ms` };
+  if (!link)
+    return (
+      <article
+        className="team-rise flex h-full flex-col border-2 border-border bg-card shadow-hard"
+        style={style}
+      >
+        {front}
+      </article>
+    );
+  const id = linkedInId(link);
+  return (
+    <article
+      className={`team-rise mcard h-full ${flipped ? "is-flipped" : ""}`}
+      style={style}
+      onClick={(e) => {
+        // a tap anywhere on the card turns it, except on its own links and buttons
+        if ((e.target as Element).closest("a, button")) return;
+        flip(!flipped);
+      }}
+    >
+      <div className="mcard-inner">
+        <div className="mcard-face mcard-front" inert={flipped}>
+          {front}
+        </div>
+        <div
+          className="mcard-face mcard-back"
+          inert={!flipped}
+          aria-label={`${member.name} on LinkedIn`}
+          role="group"
+        >
+          <p className="font-pixel text-[10px] tracking-widest">LINKEDIN</p>
+          <p className="mcard-name font-display">{member.name}</p>
+          <p className="mcard-id font-mono">
+            <span>linkedin.com/in/</span>
+            {id}
+          </p>
           <a
+            ref={openBtn}
             href={link}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 inline-flex w-fit items-center gap-1.5 border-2 border-border px-2 py-1 text-sm font-bold hover:bg-secondary"
-            aria-label={`${member.name} on LinkedIn (opens in a new tab)`}
+            className="mcard-open"
+            aria-label={`Open ${member.name}'s LinkedIn profile (opens in a new tab)`}
           >
-            LinkedIn <span aria-hidden="true">↗</span>
+            Open profile <span aria-hidden="true">↗</span>
           </a>
-        )}
+          <button
+            type="button"
+            className="mcard-back-btn font-pixel"
+            onClick={(e) => {
+              e.stopPropagation();
+              flip(false, e.detail === 0);
+            }}
+          >
+            FLIP BACK
+          </button>
+        </div>
       </div>
     </article>
   );
