@@ -220,91 +220,8 @@ function technical(): Theme {
   };
 }
 
-/* ---------- DESIGN: pencils and crayons pop out of the click, crayon strokes colour the screen ---------- */
-type Tool = {
-  kind: "pencil" | "crayon" | "stylus";
-  color: string;
-  tx: number;
-  ty: number;
-  rot: number;
-  spin: number;
-  at: number;
-  size: number;
-};
-function drawPencil(c: Ctx, color: string, size: number) {
-  const L = size;
-  const Wd = size * 0.16;
-  c.lineWidth = Math.max(2, size * 0.025);
-  c.strokeStyle = INK;
-  c.lineJoin = "round";
-  // body
-  c.fillStyle = color;
-  c.fillRect(-L / 2, -Wd / 2, L * 0.7, Wd);
-  c.strokeRect(-L / 2, -Wd / 2, L * 0.7, Wd);
-  c.beginPath();
-  c.moveTo(-L / 2, 0);
-  c.lineTo(-L / 2 + L * 0.7, 0);
-  c.globalAlpha = 0.35;
-  c.stroke();
-  c.globalAlpha = 1;
-  // wood and lead
-  c.fillStyle = "#f3d9b1";
-  c.beginPath();
-  c.moveTo(L * 0.2, -Wd / 2);
-  c.lineTo(L / 2, 0);
-  c.lineTo(L * 0.2, Wd / 2);
-  c.closePath();
-  c.fill();
-  c.stroke();
-  c.fillStyle = INK;
-  c.beginPath();
-  c.moveTo(L * 0.41, -Wd * 0.16);
-  c.lineTo(L / 2, 0);
-  c.lineTo(L * 0.41, Wd * 0.16);
-  c.closePath();
-  c.fill();
-  // ferrule and eraser
-  c.fillStyle = "#c9c9d6";
-  c.fillRect(-L / 2 - L * 0.08, -Wd / 2, L * 0.08, Wd);
-  c.strokeRect(-L / 2 - L * 0.08, -Wd / 2, L * 0.08, Wd);
-  c.fillStyle = PINK;
-  c.beginPath();
-  c.roundRect(-L / 2 - L * 0.16, -Wd / 2, L * 0.08, Wd, [Wd * 0.3, 0, 0, Wd * 0.3]);
-  c.fill();
-  c.stroke();
-}
-function drawCrayon(c: Ctx, color: string, size: number) {
-  const L = size * 0.62;
-  const Wd = size * 0.2;
-  c.lineWidth = Math.max(2, size * 0.025);
-  c.strokeStyle = INK;
-  c.lineJoin = "round";
-  c.fillStyle = color;
-  c.beginPath();
-  c.roundRect(-L / 2, -Wd / 2, L * 0.8, Wd, Wd * 0.2);
-  c.fill();
-  c.stroke();
-  c.beginPath();
-  c.moveTo(-L / 2 + L * 0.8, -Wd * 0.42);
-  c.lineTo(L / 2, -Wd * 0.12);
-  c.lineTo(L / 2, Wd * 0.12);
-  c.lineTo(-L / 2 + L * 0.8, Wd * 0.42);
-  c.closePath();
-  c.fill();
-  c.stroke();
-  // the paper wrapper
-  c.fillStyle = PAPER;
-  c.fillRect(-L * 0.28, -Wd / 2, L * 0.46, Wd);
-  c.strokeRect(-L * 0.28, -Wd / 2, L * 0.46, Wd);
-  c.strokeStyle = color;
-  c.lineWidth = Math.max(1.5, size * 0.018);
-  for (const f of [0.34, 0.66]) {
-    c.beginPath();
-    c.moveTo(-L * 0.28 + L * 0.46 * f, -Wd * 0.3);
-    c.lineTo(-L * 0.28 + L * 0.46 * f, Wd * 0.3);
-    c.stroke();
-  }
-}
+/* ---------- DESIGN: a designer's canvas. Frames snap into a layout, the stylus draws a pen-tool curve,
+   the squad name gets a selection box, and the colour swatches pop in. ---------- */
 /** A tablet stylus: slim barrel, a side button, a rounded end and a fine nib. */
 function drawStylus(c: Ctx, color: string, size: number) {
   const L = size * 0.95;
@@ -339,127 +256,334 @@ function drawStylus(c: Ctx, color: string, size: number) {
   c.fillRect(L / 2 - Wd * 0.3, -Wd * 0.08, Wd * 0.3, Wd * 0.16);
 }
 
-/** Where the hero stylus is at time t on its underline stroke below the squad name. */
-function stylusPath(s: Scene, p: number): [number, number] {
-  const w = Math.min(s.w * 0.62, 620);
-  const x = s.w / 2 - w / 2 + w * p;
-  const y = s.h / 2 + Math.max(64, s.h * 0.105) + Math.sin(p * Math.PI * 3) * 10;
-  return [x, y];
+/** A point on a cubic curve. */
+const bez = (p0: number, p1: number, p2: number, p3: number, u: number) =>
+  (1 - u) ** 3 * p0 + 3 * (1 - u) ** 2 * u * p1 + 3 * (1 - u) * u * u * p2 + u ** 3 * p3;
+
+/** The layout frames: where each one lands, as shares of the screen, and what it holds. */
+const FRAMES: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  fill: string;
+  art: "photo" | "text" | "dot" | "grid" | "bars";
+}[] = [
+  { x: 0.05, y: 0.14, w: 0.2, h: 0.3, fill: LILAC, art: "photo" },
+  { x: 0.07, y: 0.55, w: 0.17, h: 0.24, fill: PAPER, art: "text" },
+  { x: 0.76, y: 0.12, w: 0.18, h: 0.22, fill: SUN, art: "dot" },
+  { x: 0.74, y: 0.48, w: 0.21, h: 0.32, fill: LENS, art: "grid" },
+  { x: 0.36, y: 0.08, w: 0.28, h: 0.15, fill: PINK, art: "bars" },
+];
+/** The same frames on a tall phone screen: x, y and width as shares of the screen, height from the shape. */
+const FRAMES_TALL: { x: number; y: number; w: number; aspect: number }[] = [
+  { x: 0.06, y: 0.1, w: 0.36, aspect: 1.07 },
+  { x: 0.08, y: 0.64, w: 0.34, aspect: 1.13 },
+  { x: 0.62, y: 0.27, w: 0.3, aspect: 1.31 },
+  { x: 0.58, y: 0.62, w: 0.36, aspect: 1.05 },
+  { x: 0.54, y: 0.09, w: 0.4, aspect: 3 },
+];
+const SWATCHES = [VIOLET, LENS, PINK, SUN, LILAC, "#38c6a0", INK];
+
+function frameArt(c: Ctx, f: (typeof FRAMES)[number], w: number, h: number) {
+  c.lineWidth = 2;
+  c.strokeStyle = INK;
+  c.fillStyle = INK;
+  if (f.art === "photo") {
+    // a picture placeholder: sun and hills
+    c.fillStyle = PAPER;
+    c.beginPath();
+    c.arc(w * 0.7, h * 0.3, Math.min(w, h) * 0.12, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.fillStyle = VIOLET;
+    c.beginPath();
+    c.moveTo(0, h);
+    c.lineTo(w * 0.35, h * 0.5);
+    c.lineTo(w * 0.6, h * 0.78);
+    c.lineTo(w * 0.8, h * 0.6);
+    c.lineTo(w, h);
+    c.closePath();
+    c.fill();
+    c.stroke();
+  } else if (f.art === "text") {
+    c.fillRect(w * 0.12, h * 0.16, w * 0.6, h * 0.12);
+    for (let i = 0; i < 4; i++)
+      c.fillRect(w * 0.12, h * (0.4 + i * 0.13), w * (i === 3 ? 0.45 : 0.76), h * 0.05);
+  } else if (f.art === "dot") {
+    c.fillStyle = PINK;
+    c.beginPath();
+    c.arc(w / 2, h / 2, Math.min(w, h) * 0.28, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+  } else if (f.art === "grid") {
+    c.strokeStyle = PAPER;
+    c.globalAlpha = 0.7;
+    for (let i = 1; i < 4; i++) {
+      c.beginPath();
+      c.moveTo((w * i) / 4, 0);
+      c.lineTo((w * i) / 4, h);
+      c.moveTo(0, (h * i) / 4);
+      c.lineTo(w, (h * i) / 4);
+      c.stroke();
+    }
+    c.globalAlpha = 1;
+    c.fillStyle = PAPER;
+    c.fillRect(w * 0.25, h * 0.25, w * 0.5, h * 0.25);
+    c.strokeStyle = INK;
+    c.strokeRect(w * 0.25, h * 0.25, w * 0.5, h * 0.25);
+  } else {
+    const bw = w / 9;
+    for (let i = 0; i < 4; i++) {
+      const bh = h * (0.3 + ((i * 37) % 50) / 100);
+      c.fillStyle = i % 2 ? PAPER : INK;
+      c.fillRect(w * 0.14 + i * bw * 1.8, h - bh - h * 0.12, bw, bh);
+    }
+  }
 }
 
 function design(): Theme {
-  let tools: Tool[] | null = null;
-  let strokes: { y: number; at: number; color: string; wob: number }[] = [];
-  const colors = [VIOLET, LENS, PINK, SUN, LILAC, "#38c6a0"];
   return {
     bg: PAPER,
     ink: VIOLET,
     title: INK,
     draw(c, t, s) {
-      if (!tools) {
-        tools = [];
-        const n = 16;
-        for (let i = 0; i < n; i++) {
-          const a = (i / n) * Math.PI * 2 + s.rnd() * 0.3;
-          const r = (0.26 + s.rnd() * 0.3) * Math.min(s.w, s.h) + 40;
-          tools.push({
-            kind: i % 3 === 2 ? "stylus" : i % 2 ? "crayon" : "pencil",
-            color: colors[i % colors.length]!,
-            tx: s.w / 2 + Math.cos(a) * r * (s.w / Math.min(s.w, s.h)) * 0.75,
-            ty: s.h / 2 + Math.sin(a) * r,
-            rot: a + (s.rnd() - 0.5) * 1.2,
-            spin: (s.rnd() - 0.5) * 0.0016,
-            at: 40 + i * 14,
-            size: Math.max(90, Math.min(170, s.w / 9)) * (0.8 + s.rnd() * 0.4),
-          });
-        }
-        const bands = 7;
-        strokes = Array.from({ length: bands }, (_, i) => ({
-          y: ((i + 0.5) / bands) * s.h,
-          at: 120 + i * 50,
-          color: i % 2 ? LILAC : "#efeafe",
-          wob: s.rnd() * 6,
-        }));
-      }
-      // crayon strokes swipe across, one band after another, until the page is coloured in
-      const bh = s.h / strokes.length;
-      for (const st of strokes) {
-        const p = easeOut(clamp((t - st.at) / 260));
-        if (p <= 0) continue;
-        c.strokeStyle = st.color;
-        c.lineCap = "round";
-        c.lineWidth = bh * 1.5;
-        c.beginPath();
-        const x1 = -bh + (s.w + 2 * bh) * p;
-        c.moveTo(-bh, st.y);
-        for (let x = -bh; x <= x1; x += 40)
-          c.lineTo(x, st.y + Math.sin(x / 90 + st.wob) * bh * 0.12);
-        c.stroke();
-        // waxy texture: thin lighter streaks along the stroke
-        c.strokeStyle = PAPER;
-        c.globalAlpha = 0.25;
-        c.lineWidth = 2;
-        for (let k = -2; k <= 2; k++) {
-          c.beginPath();
-          c.moveTo(-bh, st.y + k * bh * 0.18);
-          c.lineTo(x1, st.y + k * bh * 0.18 + Math.sin(k + st.wob) * 4);
-          c.stroke();
-        }
-        c.globalAlpha = 1;
-      }
-      for (const tl of tools) {
-        const p = clamp((t - tl.at) / 360);
-        if (p <= 0) continue;
-        const e = easeOut(p);
-        const x = s.x + (tl.tx - s.x) * e;
-        const y = s.y + (tl.ty - s.y) * e;
+      // the canvas: paper floods out from the click, with the dot grid of a design tool on it
+      const R = easeInOut(clamp(t / 520)) * s.diag;
+      if (R > 0) {
         c.save();
-        c.translate(x, y);
-        c.rotate(tl.rot * e + tl.spin * t);
-        const k = pop(p);
-        c.scale(k, k);
-        if (tl.kind === "pencil") drawPencil(c, tl.color, tl.size);
-        else if (tl.kind === "stylus") drawStylus(c, tl.color, tl.size);
-        else drawCrayon(c, tl.color, tl.size);
+        c.beginPath();
+        c.arc(s.x, s.y, R, 0, Math.PI * 2);
+        c.fillStyle = PAPER;
+        c.fill();
+        c.clip();
+        c.fillStyle = "#d9d3f5";
+        for (let gy = 12; gy < s.h; gy += 24)
+          for (let gx = 12; gx < s.w; gx += 24) c.fillRect(gx - 1, gy - 1, 2.4, 2.4);
         c.restore();
       }
-      // the hero stylus glides in and writes a glowing line under the squad name
-      const hp = clamp((t - 300) / 420);
-      if (hp > 0) {
-        const steps = Math.max(2, Math.round(hp * 60));
+
+      // layout frames fly out of the click and snap into place
+      const unit = Math.min(s.w, s.h);
+      const tall = s.h > s.w * 1.1;
+      FRAMES.forEach((f, i) => {
+        const p = clamp((t - 90 - i * 55) / 380);
+        if (p <= 0) return;
+        const e = pop(p);
+        const ft = FRAMES_TALL[i]!;
+        const fx = (tall ? ft.x : f.x) * s.w,
+          fy = (tall ? ft.y : f.y) * s.h,
+          fw = (tall ? ft.w : f.w) * s.w,
+          fh = tall ? fw / ft.aspect : Math.max(f.h * s.h, unit * 0.12);
+        const cx = s.x + (fx + fw / 2 - s.x) * easeOut(p),
+          cy = s.y + (fy + fh / 2 - s.y) * easeOut(p);
+        c.save();
+        c.translate(cx, cy);
+        c.rotate((1 - easeOut(p)) * (i % 2 ? 0.5 : -0.5));
+        c.scale(e, e);
+        c.translate(-fw / 2, -fh / 2);
+        c.fillStyle = INK;
+        c.fillRect(5, 5, fw, fh); // the hard shadow, like the rest of the site
+        c.fillStyle = f.fill;
+        c.fillRect(0, 0, fw, fh);
+        c.save();
+        c.beginPath();
+        c.rect(0, 0, fw, fh);
+        c.clip();
+        frameArt(c, f, fw, fh);
+        c.restore();
+        c.lineWidth = 2.5;
+        c.strokeStyle = INK;
+        c.strokeRect(0, 0, fw, fh);
+        c.restore();
+      });
+
+      // the pen tool: a curve drawn by the stylus, with anchor points and their handles
+      const P = (
+        tall
+          ? [
+              [0.04 * s.w, 0.9 * s.h],
+              [0.35 * s.w, 0.8 * s.h],
+              [0.65 * s.w, 1.0 * s.h],
+              [0.96 * s.w, 0.86 * s.h],
+            ]
+          : [
+              [0.06 * s.w, 0.86 * s.h],
+              [0.32 * s.w, 0.6 * s.h],
+              [0.62 * s.w, 1.02 * s.h],
+              [0.94 * s.w, 0.74 * s.h],
+            ]
+      ) as [[number, number], [number, number], [number, number], [number, number]];
+      const at = (u: number): [number, number] => [
+        bez(P[0][0], P[1][0], P[2][0], P[3][0], u),
+        bez(P[0][1], P[1][1], P[2][1], P[3][1], u),
+      ];
+      const pp = easeInOut(clamp((t - 180) / 440));
+      if (pp > 0) {
         c.lineCap = "round";
         c.lineJoin = "round";
-        for (const [w, col, a] of [
-          [14, LILAC, 0.35],
+        for (const [lw, col, al] of [
+          [16, LILAC, 0.35],
           [5, VIOLET, 1],
         ] as const) {
           c.beginPath();
-          for (let i = 0; i <= steps; i++) {
-            const [x, y] = stylusPath(s, (i / steps) * hp);
+          const n = Math.max(2, Math.round(pp * 80));
+          for (let i = 0; i <= n; i++) {
+            const [x, y] = at((i / n) * pp);
             if (i) c.lineTo(x, y);
             else c.moveTo(x, y);
           }
           c.strokeStyle = col;
-          c.globalAlpha = a;
-          c.lineWidth = w;
+          c.globalAlpha = al;
+          c.lineWidth = lw;
           c.stroke();
         }
         c.globalAlpha = 1;
-        const [x, y] = stylusPath(s, hp);
-        const size = Math.max(150, Math.min(240, s.w / 6));
-        c.save();
-        // nib on the line, barrel up and to the right like a hand holds it
-        c.translate(x, y);
-        c.rotate(2.65 + Math.sin(t / 120) * 0.04);
-        c.translate(-size * 0.47, 0);
-        drawStylus(c, PINK, size);
-        c.restore();
-        // a spark at the nib
-        c.fillStyle = PAPER;
-        c.beginPath();
-        c.arc(x, y, 4 + Math.sin(t / 40) * 1.5, 0, Math.PI * 2);
-        c.fill();
+        // handles at the two ends, the way a pen tool shows them
+        const anchor = (ax: number, ay: number, hx: number, hy: number, show: number) => {
+          if (show <= 0) return;
+          c.globalAlpha = show;
+          c.strokeStyle = LENS;
+          c.lineWidth = 1.5;
+          c.beginPath();
+          c.moveTo(ax - (hx - ax), ay - (hy - ay));
+          c.lineTo(hx, hy);
+          c.stroke();
+          c.fillStyle = PAPER;
+          for (const [qx, qy] of [
+            [hx, hy],
+            [ax - (hx - ax), ay - (hy - ay)],
+          ] as const) {
+            c.beginPath();
+            c.arc(qx, qy, 4.5, 0, Math.PI * 2);
+            c.fill();
+            c.stroke();
+          }
+          c.fillRect(ax - 6, ay - 6, 12, 12);
+          c.lineWidth = 2;
+          c.strokeRect(ax - 6, ay - 6, 12, 12);
+          c.globalAlpha = 1;
+        };
+        anchor(
+          P[0][0],
+          P[0][1],
+          P[0][0] + (P[1][0] - P[0][0]) * 0.5,
+          P[0][1] + (P[1][1] - P[0][1]) * 0.5,
+          clamp(pp * 6),
+        );
+        if (pp >= 1)
+          anchor(
+            P[3][0],
+            P[3][1],
+            P[3][0] - (P[3][0] - P[2][0]) * 0.4,
+            P[3][1] - (P[3][1] - P[2][1]) * 0.4,
+            clamp((t - 620) / 120),
+          );
+        // the stylus rides the tip of the curve
+        if (pp < 1 || t < 760) {
+          const [x, y] = at(pp);
+          const size = Math.max(140, Math.min(230, s.w / 6));
+          c.save();
+          c.translate(x, y);
+          c.rotate(2.55 + Math.sin(t / 110) * 0.05);
+          c.translate(-size * 0.47, 0);
+          drawStylus(c, PINK, size);
+          c.restore();
+        }
       }
+
+      // the squad name is selected, like a text layer: a box with handles and a little label
+      const sp = clamp((t - 330) / 220);
+      if (sp > 0) {
+        const fs = clamp(s.w * 0.07, 35.2, 88);
+        c.font = `900 ${fs}px "Tektur", system-ui, sans-serif`;
+        const tw = c.measureText("Design").width;
+        // around the big word only, below the small SQUAD label
+        const bw = tw + 32,
+          bh = fs * 0.92 + 12;
+        const bx = s.w / 2 - bw / 2,
+          by = s.h / 2 + 13 - bh / 2;
+        const k = easeOut(sp);
+        c.save();
+        c.translate(s.w / 2, by + bh / 2);
+        c.scale(0.9 + 0.1 * k, 0.9 + 0.1 * k);
+        c.translate(-s.w / 2, -(by + bh / 2));
+        c.globalAlpha = k;
+        c.strokeStyle = LENS;
+        c.lineWidth = 2;
+        c.strokeRect(bx, by, bw, bh);
+        c.fillStyle = PAPER;
+        for (const [hx, hy] of [
+          [bx, by],
+          [bx + bw / 2, by],
+          [bx + bw, by],
+          [bx, by + bh / 2],
+          [bx + bw, by + bh / 2],
+          [bx, by + bh],
+          [bx + bw / 2, by + bh],
+          [bx + bw, by + bh],
+        ] as const) {
+          c.fillRect(hx - 5, hy - 5, 10, 10);
+          c.strokeRect(hx - 5, hy - 5, 10, 10);
+        }
+        // the layer label under the box
+        c.font = `700 12px "JetBrains Mono", ui-monospace, monospace`;
+        const lab = "Tektur 900";
+        const lw = c.measureText(lab).width + 14;
+        c.fillStyle = LENS;
+        c.fillRect(s.w / 2 - lw / 2, by + bh + 10, lw, 20);
+        c.fillStyle = PAPER;
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.fillText(lab, s.w / 2, by + bh + 20.5);
+        c.textAlign = "start";
+        c.textBaseline = "alphabetic";
+        c.restore();
+
+        // the cursor glides from the click to the corner handle and clicks it
+        const cp = easeInOut(clamp((t - 250) / 330));
+        const tx = bx + bw,
+          ty = by;
+        const mx = s.x + (tx + 4 - s.x) * cp,
+          my = s.y + (ty + 4 - s.y) * cp;
+        const press = t > 600 && t < 700 ? 0.85 : 1;
+        c.save();
+        c.translate(mx, my);
+        c.scale(press * 1.3, press * 1.3);
+        c.beginPath();
+        c.moveTo(0, 0);
+        c.lineTo(0, 22);
+        c.lineTo(6, 16);
+        c.lineTo(10, 25);
+        c.lineTo(14, 23);
+        c.lineTo(10, 14);
+        c.lineTo(18, 14);
+        c.closePath();
+        c.fillStyle = INK;
+        c.fill();
+        c.strokeStyle = PAPER;
+        c.lineWidth = 1.6;
+        c.stroke();
+        c.restore();
+      }
+
+      // colour swatches pop in along the bottom
+      const sw = Math.max(16, Math.min(26, s.w / 40));
+      const total = SWATCHES.length * sw * 2.4;
+      SWATCHES.forEach((col, i) => {
+        const p = clamp((t - 420 - i * 35) / 260);
+        if (p <= 0) return;
+        const k = pop(p);
+        const x = s.w / 2 - total / 2 + sw * 1.2 + i * sw * 2.4;
+        const y = s.h - sw * 2.2;
+        c.beginPath();
+        c.arc(x, y, sw * k, 0, Math.PI * 2);
+        c.fillStyle = col;
+        c.fill();
+        c.lineWidth = 2.5;
+        c.strokeStyle = INK;
+        c.stroke();
+      });
     },
   };
 }
