@@ -65,13 +65,27 @@ export function SiteHeader() {
   };
   return (
     <header className="sticky top-0 z-40 border-b-2 border-border bg-background/90 backdrop-blur">
-      <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 bg-card px-3 py-2">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 bg-card px-3 py-2"
+      >
         Skip to content
       </a>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5">
-        <Link to="/" className="flex items-center gap-2" aria-label="RO-BIO home" onClick={() => close()}>
-          <img src={logoUrl} alt="" className="h-10 w-10 rounded-sm border-2 border-border bg-paper object-cover" />
-          <span className="whitespace-nowrap font-display text-lg font-black italic max-[420px]:hidden">RO-BIO</span>
+        <Link
+          to="/"
+          className="flex items-center gap-2"
+          aria-label="RO-BIO home"
+          onClick={() => close()}
+        >
+          <img
+            src={logoUrl}
+            alt=""
+            className="h-10 w-10 rounded-sm border-2 border-border bg-paper object-cover"
+          />
+          <span className="whitespace-nowrap font-display text-lg font-black italic max-[420px]:hidden">
+            RO-BIO
+          </span>
         </Link>
         <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex gap-0.5 xl:gap-1">
@@ -80,7 +94,10 @@ export function SiteHeader() {
                 <Link
                   to={n.to}
                   className="px-2 py-2 text-sm font-bold hover:text-primary xl:px-2.5"
-                  activeProps={{ className: "px-2 py-2 text-sm font-bold text-primary underline decoration-2 underline-offset-4 xl:px-2.5" }}
+                  activeProps={{
+                    className:
+                      "px-2 py-2 text-sm font-bold text-primary underline decoration-2 underline-offset-4 xl:px-2.5",
+                  }}
                 >
                   {n.label}
                 </Link>
@@ -100,9 +117,15 @@ export function SiteHeader() {
             onClick={() => (open ? close() : setOpen(true))}
           >
             <span aria-hidden="true" className="relative block h-3 w-4">
-              <span className={`absolute left-0 h-0.5 w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] rotate-45" : "top-0"}`} />
-              <span className={`absolute left-0 top-[5px] h-0.5 bg-current transition-all duration-200 ${open ? "w-0 opacity-0" : "w-3"}`} />
-              <span className={`absolute left-0 h-0.5 w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] -rotate-45" : "top-[10px]"}`} />
+              <span
+                className={`absolute left-0 h-0.5 w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] rotate-45" : "top-0"}`}
+              />
+              <span
+                className={`absolute left-0 top-[5px] h-0.5 bg-current transition-all duration-200 ${open ? "w-0 opacity-0" : "w-3"}`}
+              />
+              <span
+                className={`absolute left-0 h-0.5 w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] -rotate-45" : "top-[10px]"}`}
+              />
             </span>
             {open ? "CLOSE" : "MENU"}
           </button>
@@ -114,7 +137,13 @@ export function SiteHeader() {
 }
 
 /** Full-height menu for phones. Rows slide in one after another; Esc closes; focus stays inside while it is open. */
-function MobileNav({ onClose, toggle }: { onClose: (refocus?: boolean) => void; toggle: React.RefObject<HTMLButtonElement | null> }) {
+function MobileNav({
+  onClose,
+  toggle,
+}: {
+  onClose: (refocus?: boolean) => void;
+  toggle: React.RefObject<HTMLButtonElement | null>;
+}) {
   const panel = useRef<HTMLDivElement>(null);
   const [top, setTop] = useState(0);
   const pathname = useRouterState({ select: (st) => st.location.pathname });
@@ -124,11 +153,17 @@ function MobileNav({ onClose, toggle }: { onClose: (refocus?: boolean) => void; 
     const root = document.documentElement;
     root.dataset["menu"] = "open"; // locks page scroll and tucks Robo away, see styles.css
     setTop(toggle.current?.closest("header")?.getBoundingClientRect().bottom ?? 0);
-    (panel.current?.querySelector<HTMLElement>("[data-here]") ?? panel.current?.querySelector<HTMLElement>("a"))?.focus({ preventScroll: true });
+    (
+      panel.current?.querySelector<HTMLElement>("[data-here]") ??
+      panel.current?.querySelector<HTMLElement>("a")
+    )?.focus({ preventScroll: true });
     const key = (e: KeyboardEvent) => {
       if (e.key === "Escape") return onClose(true);
       if (e.key !== "Tab" || !panel.current) return;
-      const els = [toggle.current, ...panel.current.querySelectorAll<HTMLElement>("a, button")].filter(Boolean) as HTMLElement[];
+      const els = [
+        toggle.current,
+        ...panel.current.querySelectorAll<HTMLElement>("a, button"),
+      ].filter(Boolean) as HTMLElement[];
       const i = els.indexOf(document.activeElement as HTMLElement);
       const to = e.shiftKey ? (i <= 0 ? els.length - 1 : i - 1) : i === els.length - 1 ? 0 : i + 1;
       e.preventDefault();
@@ -164,17 +199,29 @@ function MobileNav({ onClose, toggle }: { onClose: (refocus?: boolean) => void; 
           {nav.map((n, i) => {
             const here = pathname === n.to || pathname.startsWith(n.to + "/");
             return (
-              <li key={n.to} className="menu-row border-b-2 border-border" style={{ "--i": i } as React.CSSProperties}>
+              <li
+                key={n.to}
+                className="menu-row border-b-2 border-border"
+                style={{ "--i": i } as React.CSSProperties}
+              >
                 <Link
                   to={n.to}
                   data-here={here || undefined}
                   onClick={() => onClose()}
                   className={`group flex items-center gap-4 px-4 py-3 transition-colors active:bg-secondary ${here ? "bg-primary text-primary-foreground active:bg-primary" : "bg-card/80"}`}
                 >
-                  <span className={`font-mono text-xs ${here ? "" : "text-primary"}`}>{String(i + 1).padStart(2, "0")}</span>
+                  <span className={`font-mono text-xs ${here ? "" : "text-primary"}`}>
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-display text-2xl font-black italic leading-tight">{n.label}</span>
-                    <span className={`block text-xs ${here ? "opacity-90" : "text-muted-foreground"}`}>{here ? "You are here" : n.hint}</span>
+                    <span className="block font-display text-2xl font-black italic leading-tight">
+                      {n.label}
+                    </span>
+                    <span
+                      className={`block text-xs ${here ? "opacity-90" : "text-muted-foreground"}`}
+                    >
+                      {here ? "You are here" : n.hint}
+                    </span>
                   </span>
                   <span
                     aria-hidden="true"
@@ -188,15 +235,32 @@ function MobileNav({ onClose, toggle }: { onClose: (refocus?: boolean) => void; 
           })}
         </ul>
       </nav>
-      <div className="menu-row grid grid-cols-2 gap-3 p-4" style={{ "--i": nav.length } as React.CSSProperties}>
-        <Link to="/events/$slug" params={{ slug: next.slug }} onClick={() => onClose()} className="border-2 border-border bg-ink p-3 text-paper shadow-hard-violet">
+      <div
+        className="menu-row grid grid-cols-2 gap-3 p-4"
+        style={{ "--i": nav.length } as React.CSSProperties}
+      >
+        <Link
+          to="/events/$slug"
+          params={{ slug: next.slug }}
+          onClick={() => onClose()}
+          className="border-2 border-border bg-ink p-3 text-paper shadow-hard-violet"
+        >
           <span className="block font-pixel text-[9px] text-lilac">NEXT UP</span>
-          <span className="mt-1 block font-display text-lg font-black italic leading-tight">{next.title}</span>
+          <span className="mt-1 block font-display text-lg font-black italic leading-tight">
+            {next.title}
+          </span>
           <span className="block font-mono text-[11px] opacity-80">{eventDate(next)}</span>
         </Link>
-        <a href={site.instagram} target="_blank" rel="noreferrer" className="border-2 border-border bg-lilac p-3 text-ink shadow-hard">
+        <a
+          href={site.instagram}
+          target="_blank"
+          rel="noreferrer"
+          className="border-2 border-border bg-lilac p-3 text-ink shadow-hard"
+        >
           <span className="block font-pixel text-[9px]">SAY HI</span>
-          <span className="mt-1 block font-display text-lg font-black leading-tight">Instagram</span>
+          <span className="mt-1 block font-display text-lg font-black leading-tight">
+            Instagram
+          </span>
           <span className="block font-mono text-[11px]">{site.instagramHandle}</span>
         </a>
       </div>
@@ -235,7 +299,10 @@ export function Window({
     <div data-robo-perch className={`border-2 border-border bg-card shadow-hard ${className}`}>
       <div className="flex items-center justify-between border-b-2 border-border bg-secondary px-2 py-1">
         <span className="font-pixel text-[10px] tracking-wider">{tag}</span>
-        <span aria-hidden="true" className="grid h-3.5 w-3.5 place-items-center border-2 border-border text-[8px] leading-none">
+        <span
+          aria-hidden="true"
+          className="grid h-3.5 w-3.5 place-items-center border-2 border-border text-[8px] leading-none"
+        >
           ×
         </span>
       </div>
@@ -247,7 +314,15 @@ export function Window({
   );
 }
 
-export function PageIntro({ label, title, children }: { label: string; title: string; children?: ReactNode }) {
+export function PageIntro({
+  label,
+  title,
+  children,
+}: {
+  label: string;
+  title: string;
+  children?: ReactNode;
+}) {
   return (
     <section className="blueprint border-b-2 border-border">
       <div className="mx-auto max-w-6xl px-4 pb-12 pt-14 md:pt-20">
@@ -285,10 +360,20 @@ export function SiteFooter() {
         <div className="text-sm">
           <p className="font-pixel text-[11px] text-lilac">FIND US</p>
           <p className="mt-2 opacity-90">{site.address}</p>
-          <a href={site.instagram} target="_blank" rel="noreferrer" className="mt-2 inline-block font-bold text-lens underline underline-offset-4">
+          <a
+            href={site.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-block font-bold text-lens underline underline-offset-4"
+          >
             Instagram {site.instagramHandle}
           </a>
-          <a href={site.linkedin} target="_blank" rel="noreferrer" className="mt-1 block font-bold text-lens underline underline-offset-4">
+          <a
+            href={site.linkedin}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 block font-bold text-lens underline underline-offset-4"
+          >
             LinkedIn RO-BIO Hub
           </a>
         </div>
@@ -300,16 +385,31 @@ export function SiteFooter() {
           <p className="mt-4 opacity-70">Built by students.</p>
         </div>
       </div>
-            <div className="border-t border-current/20">
-          <nav aria-label="Help and legal" className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-sm font-semibold">
-            <Link to="/faq" className="underline underline-offset-4">FAQ</Link>
-            <Link to="/privacy" className="underline underline-offset-4">Privacy</Link>
-            <Link to="/terms" className="underline underline-offset-4">Terms</Link>
-            <Link to="/accessibility" className="underline underline-offset-4">Accessibility</Link>
-            <a href="/sitemap.xml" className="underline underline-offset-4">Sitemap</a>
-            <a href="/llms.txt" className="underline underline-offset-4">For AI assistants</a>
-          </nav>
-        </div>
-      </footer>
+      <div className="border-t border-current/20">
+        <nav
+          aria-label="Help and legal"
+          className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-sm font-semibold"
+        >
+          <Link to="/faq" className="underline underline-offset-4">
+            FAQ
+          </Link>
+          <Link to="/privacy" className="underline underline-offset-4">
+            Privacy
+          </Link>
+          <Link to="/terms" className="underline underline-offset-4">
+            Terms
+          </Link>
+          <Link to="/accessibility" className="underline underline-offset-4">
+            Accessibility
+          </Link>
+          <a href="/sitemap.xml" className="underline underline-offset-4">
+            Sitemap
+          </a>
+          <a href="/llms.txt" className="underline underline-offset-4">
+            For AI assistants
+          </a>
+        </nav>
+      </div>
+    </footer>
   );
 }
