@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
 import { MemberCard, Portrait } from "@/components/site/TeamCards";
-import { SquadArt } from "@/components/site/SquadArt";
+import { SquadLinks } from "@/components/site/SquadLinks";
 import { coreTeam, faculty, squadPages } from "@/lib/site";
 
 export const Route = createFileRoute("/team")({
@@ -21,9 +21,6 @@ export const Route = createFileRoute("/team")({
   }),
   component: Team,
 });
-
-/** Centres the short last row: the fifth tile on two-column screens, the fourth and fifth on three. */
-const tileStart = ["", "", "", "lg:col-start-2", "md:col-start-2 lg:col-start-auto"];
 
 const officeBearers = coreTeam.find((s) => s.title === "Office Bearers");
 
@@ -71,37 +68,10 @@ function Team() {
         <p className="mt-2 max-w-2xl text-muted-foreground">
           Five squads keep the club running. Open one to meet the people in it.
         </p>
-        {/* Every squad gets the same size tile: two or three to a row, the last row centred. */}
-        <ul className="mt-6 grid auto-rows-fr gap-6 md:grid-cols-4 lg:grid-cols-6">
-          {squads.map((sq, i) => {
-            const head = sq.members.find((m) => m.head);
-            return (
-              <li key={sq.slug} className={`md:col-span-2 ${tileStart[i] ?? ""}`}>
-                <Link
-                  to="/team/$squad"
-                  params={{ squad: sq.slug }}
-                  viewTransition
-                  className="group flex h-full flex-col border-2 border-border bg-card shadow-hard transition-[box-shadow,translate] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--ink)] focus-visible:-translate-y-0.5"
-                >
-                  <SquadArt slug={sq.slug} fx className="border-b-2 border-border" />
-                  <div className="flex flex-1 flex-col justify-between gap-3 p-4">
-                    <div>
-                      <h3 className="font-display text-2xl font-black">{sq.title}</h3>
-                      <p className="mt-1 text-muted-foreground">{sq.about}</p>
-                    </div>
-                    <p className="font-mono text-sm">
-                      {head ? `Head: ${head.name} · ` : ""}
-                      {sq.members.length} members
-                      <span className="ml-3 font-bold text-primary group-hover:underline">
-                        Open →
-                      </span>
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        {/* One link per squad. Each opens with its own animated jump into the squad page. */}
+        <div className="mt-6">
+          <SquadLinks squads={squads} />
+        </div>
       </section>
     </>
   );
