@@ -16,8 +16,13 @@ export const Route = createFileRoute("/events/$slug")({
   },
   head: ({ loaderData }) => {
     const e = loaderData?.event;
-    if (!e) return { meta: [{ title: "Event not found | RO-BIO" }, { name: "robots", content: "noindex" }] };
-    const desc = e.about ?? `${e.title} by RO-BIO at ${site.college}. ${eventDate(e)}. ${e.activities.map((a) => a.name).join(", ")}.`;
+    if (!e)
+      return {
+        meta: [{ title: "Event not found | RO-BIO" }, { name: "robots", content: "noindex" }],
+      };
+    const desc =
+      e.about ??
+      `${e.title} by RO-BIO at ${site.college}. ${eventDate(e)}. ${e.activities.map((a) => a.name).join(", ")}.`;
     const poster = e.poster
       ? [
           { property: "og:image", content: `${site.url}${e.poster}` },
@@ -47,7 +52,16 @@ function EventPage() {
   const { event: e } = Route.useLoaderData();
   const place = atCollege(e)
     ? { "@type": "Place", name: site.college, address }
-    : { "@type": "Place", name: e.venue, address: { "@type": "PostalAddress", addressLocality: "Mysuru", addressRegion: "Karnataka", addressCountry: "IN" } };
+    : {
+        "@type": "Place",
+        name: e.venue,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Mysuru",
+          addressRegion: "Karnataka",
+          addressCountry: "IN",
+        },
+      };
   return (
     <>
       {/* Google only accepts Event data with a date, so it waits until the date is fixed. */}
@@ -57,7 +71,9 @@ function EventPage() {
             "@context": "https://schema.org",
             "@type": "Event",
             name: e.title,
-            description: e.about ?? `${e.title} by RO-BIO at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`,
+            description:
+              e.about ??
+              `${e.title} by RO-BIO at ${site.college}. ${e.activities.map((a) => a.name).join(", ")}.`,
             startDate: e.date,
             eventStatus: "https://schema.org/EventScheduled",
             eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
@@ -65,16 +81,30 @@ function EventPage() {
             organizer: { "@type": "Organization", name: "RO-BIO", url: site.url },
             url: `${site.url}/events/${e.slug}`,
             image: `${site.url}${e.poster ?? "/og-image.png"}`,
-            subEvent: e.activities.map((a) => ({ "@type": "Event", name: a.name, startDate: e.date })),
+            subEvent: e.activities.map((a) => ({
+              "@type": "Event",
+              name: a.name,
+              startDate: e.date,
+            })),
           }}
         />
       )}
       <PageIntro label={`${e.kind.toUpperCase()} / RO-BIO HUB PRESENTS`} title={e.title}>
         <span className="font-display text-2xl font-bold text-primary">{eventDate(e)}</span>
-        {e.date && <span className="mt-1 block font-mono text-base">{e.time ?? "Start time to be announced."}</span>}
-        {e.audience && <span className="mt-1 block text-base">For {e.audience.charAt(0).toLowerCase() + e.audience.slice(1)}.</span>}
+        {e.date && (
+          <span className="mt-1 block font-mono text-base">
+            {e.time ?? "Start time to be announced."}
+          </span>
+        )}
+        {e.audience && (
+          <span className="mt-1 block text-base">
+            For {e.audience.charAt(0).toLowerCase() + e.audience.slice(1)}.
+          </span>
+        )}
       </PageIntro>
-      <section className={`mx-auto max-w-6xl px-4 pt-14 ${e.poster ? "grid items-start gap-8 md:grid-cols-[2fr_1fr]" : ""}`}>
+      <section
+        className={`mx-auto max-w-6xl px-4 pt-14 ${e.poster ? "grid items-start gap-8 md:grid-cols-[2fr_1fr]" : ""}`}
+      >
         <div>
           {e.about && <p className="max-w-2xl text-lg">{e.about}</p>}
           {e.slug === "robo-spark" && (
@@ -85,23 +115,38 @@ function EventPage() {
               >
                 Get your certificate
               </Link>
-              <Link to="/events/robo-spark/present" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
+              <Link
+                to="/events/robo-spark/present"
+                className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard"
+              >
                 Open the presentation
               </Link>
-              <Link to="/events/robo-spark/missions" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
+              <Link
+                to="/events/robo-spark/missions"
+                className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard"
+              >
                 Missions and judging guide
               </Link>
-              <Link to="/events/robo-spark/judge" className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard">
+              <Link
+                to="/events/robo-spark/judge"
+                className="border-2 border-border bg-card px-4 py-2 font-bold shadow-hard"
+              >
                 Judge scoring
               </Link>
             </div>
           )}
-          <h2 className={`text-2xl font-black ${e.about ? "mt-8" : ""}`}>{e.poster ? "What happens" : "Activities"}</h2>
+          <h2 className={`text-2xl font-black ${e.about ? "mt-8" : ""}`}>
+            {e.poster ? "What happens" : "Activities"}
+          </h2>
           <ul className={`mt-5 grid gap-4 ${e.poster ? "" : "sm:grid-cols-2"}`}>
             {e.activities.map((a) => (
               <li key={a.name}>
                 <Window tag={a.tag} title={a.name} className="h-full">
-                  {a.tag === "EVENT" && <p className="mt-1 text-sm text-muted-foreground">Rules and details coming soon.</p>}
+                  {a.tag === "EVENT" && (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Rules and details coming soon.
+                    </p>
+                  )}
                 </Window>
               </li>
             ))}
@@ -109,7 +154,13 @@ function EventPage() {
         </div>
         {e.poster && (
           <figure className="border-2 border-border bg-card p-2 shadow-hard-violet">
-            <img src={e.poster} alt={`The ${e.title} poster: ${e.kind.toLowerCase()}, ${eventDate(e)}${e.time ? `, ${e.time}` : ""}`} width={1200} height={1600} className="block h-auto w-full" />
+            <img
+              src={e.poster}
+              alt={`The ${e.title} poster: ${e.kind.toLowerCase()}, ${eventDate(e)}${e.time ? `, ${e.time}` : ""}`}
+              width={1200}
+              height={1600}
+              className="block h-auto w-full"
+            />
           </figure>
         )}
       </section>
@@ -134,10 +185,22 @@ function EventPage() {
           {e.registration !== "none" && (
             <div className="border-2 border-border bg-ink p-5 text-paper shadow-hard-violet">
               <p className="font-pixel text-[11px] text-lilac">REGISTRATION</p>
-              <p className="mt-2 font-display text-xl font-bold">{e.registration === "open" ? "Open" : e.registration === "closed" ? "Closed" : "Coming soon"}</p>
+              <p className="mt-2 font-display text-xl font-bold">
+                {e.registration === "open"
+                  ? "Open"
+                  : e.registration === "closed"
+                    ? "Closed"
+                    : "Coming soon"}
+              </p>
               <p className="mt-2 text-sm opacity-80">
-                Team size, deadline and rules aren't final yet. {e.title} is for students of our college. Keep an eye on{" "}
-                <a href={site.instagram} target="_blank" rel="noreferrer" className="text-lens underline">
+                Team size, deadline and rules aren't final yet. {e.title} is for students of our
+                college. Keep an eye on{" "}
+                <a
+                  href={site.instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-lens underline"
+                >
                   {site.instagramHandle}
                 </a>
                 .
@@ -150,7 +213,8 @@ function EventPage() {
               {contacts.map((c) => (
                 <li key={c.name} className="flex flex-wrap items-baseline justify-between gap-x-3">
                   <span>
-                    <span className="font-bold">{c.name}</span> <span className="text-sm text-muted-foreground">({c.role})</span>
+                    <span className="font-bold">{c.name}</span>{" "}
+                    <span className="text-sm text-muted-foreground">({c.role})</span>
                   </span>
                   <a href={`tel:+91${c.phone}`} className="font-mono text-primary underline">
                     {c.phone}
