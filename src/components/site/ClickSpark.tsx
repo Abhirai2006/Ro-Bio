@@ -11,7 +11,10 @@ export function ClickSpark() {
     let live = 0;
     const onDown = (e: PointerEvent) => {
       if (reduce.matches || !e.isPrimary || e.button > 0 || live >= 6) return;
-      if ((e.target as Element | null)?.closest?.("input, textarea, select, [contenteditable='true']")) return;
+      if (
+        (e.target as Element | null)?.closest?.("input, textarea, select, [contenteditable='true']")
+      )
+        return;
       const burst = document.createElement("span");
       burst.className = "click-spark";
       burst.setAttribute("aria-hidden", "true");
