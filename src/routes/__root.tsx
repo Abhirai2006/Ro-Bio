@@ -25,16 +25,29 @@ const orgLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "Organization", "@id": `${site.url}/#org`, name: "RO-BIO", alternateName: "Ro-Bio Hub", url: site.url,
-      logo: `${site.url}/favicon.png`, image: `${site.url}/og-image.png`,
+      "@type": "Organization",
+      "@id": `${site.url}/#org`,
+      name: "RO-BIO",
+      alternateName: "Ro-Bio Hub",
+      url: site.url,
+      logo: `${site.url}/favicon.png`,
+      image: `${site.url}/og-image.png`,
       description: `RO-BIO is a ${site.focus} club at ${site.college}, Mysuru, India, open to ${site.openTo}.`,
-      foundingDate: site.startedOn, sameAs: [site.instagram, site.linkedin], address,
+      foundingDate: site.startedOn,
+      sameAs: [site.instagram, site.linkedin],
+      address,
       parentOrganization: { "@type": "CollegeOrUniversity", name: site.college, address },
     },
-    { "@type": "WebSite", "@id": `${site.url}/#website`, url: site.url, name: "RO-BIO", inLanguage: "en-IN", publisher: { "@id": `${site.url}/#org` } },
+    {
+      "@type": "WebSite",
+      "@id": `${site.url}/#website`,
+      url: site.url,
+      name: "RO-BIO",
+      inLanguage: "en-IN",
+      publisher: { "@id": `${site.url}/#org` },
+    },
   ],
 };
-
 
 function NotFoundComponent() {
   return <NotFound />;
@@ -48,7 +61,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something broke on our side. Try again or head home.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Something broke on our side. Try again or head home.
+        </p>
         <div className="mt-6 flex justify-center gap-2">
           <button
             onClick={() => {
@@ -68,13 +83,22 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
+/** True when no page matched the address, so only this root route is left: the 404 page shows. */
+const lostPage = (matches: { routeId: string }[]) => matches.every((m) => m.routeId === "__root__");
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RO-BIO | Robotics and biomedical club for every branch, MUSE Mysuru" },
-      { name: "description", content: "RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, open to students of every branch." },
+      ...(lostPage(matches)
+        ? [{ title: "Page not found | RO-BIO" }, { name: "robots", content: "noindex" }]
+        : [{ title: "RO-BIO | Robotics and biomedical club for every branch, MUSE Mysuru" }]),
+      {
+        name: "description",
+        content:
+          "RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, open to students of every branch.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:site_name", content: "RO-BIO" },
@@ -85,12 +109,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:image:type", content: "image/png" },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "The RO-BIO logo: a robot in a space helmet over a wireframe globe" },
+      {
+        property: "og:image:alt",
+        content: "The RO-BIO logo: a robot in a space helmet over a wireframe globe",
+      },
       { name: "twitter:image", content: `${site.url}/og-image.png` },
       { name: "theme-color", content: "#725dff" },
     ],
     links: [
-      { rel: "alternate", type: "text/plain", href: "/llms.txt", title: "Summary for AI assistants" },
+      {
+        rel: "alternate",
+        type: "text/plain",
+        href: "/llms.txt",
+        title: "Summary for AI assistants",
+      },
       { rel: "sitemap", type: "application/xml", href: "/sitemap.xml" },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
