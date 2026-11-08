@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { currentSem, teamLinkedIn, teamPhotos, type Member } from "@/lib/site";
+import { memberThought } from "@/lib/robo-talk";
 import "./team-cards.css";
 
 /** "Dr. Nithin S K" becomes "NS": titles like Dr. are left out. */
@@ -45,7 +46,17 @@ const linkedInId = (url: string) => url.replace(/^.*\/in\//, "").replace(/[/?#].
  * One team member: photo, name, role or HEAD badge, semester and branch. Someone who gave a LinkedIn
  * link gets a card that flips over when tapped, with their LinkedIn ID and a button to open it.
  */
-export function MemberCard({ member, index = 0 }: { member: Member; index?: number }) {
+export function MemberCard({
+  member,
+  index = 0,
+  squadTitle,
+}: {
+  member: Member;
+  index?: number;
+  /** the squad the card sits in, for what Robo says about the person */
+  squadTitle?: string;
+}) {
+  const thought = memberThought(member, squadTitle);
   const link = teamLinkedIn[member.name];
   const badge = member.role ?? (member.head ? "Head" : undefined);
   const [flipped, setFlipped] = useState(false);
@@ -112,6 +123,7 @@ export function MemberCard({ member, index = 0 }: { member: Member; index?: numb
   if (!link)
     return (
       <article
+        data-thought={thought}
         className="team-rise flex h-full flex-col border-2 border-border bg-card shadow-hard"
         style={style}
       >
@@ -121,6 +133,7 @@ export function MemberCard({ member, index = 0 }: { member: Member; index?: numb
   const id = linkedInId(link);
   return (
     <article
+      data-thought={thought}
       className={`team-rise mcard h-full ${flipped ? "is-flipped" : ""}`}
       style={style}
       onClick={(e) => {
