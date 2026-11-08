@@ -222,7 +222,7 @@ function technical(): Theme {
 
 /* ---------- DESIGN: pencils and crayons pop out of the click, crayon strokes colour the screen ---------- */
 type Tool = {
-  kind: "pencil" | "crayon";
+  kind: "pencil" | "crayon" | "stylus";
   color: string;
   tx: number;
   ty: number;
@@ -305,6 +305,48 @@ function drawCrayon(c: Ctx, color: string, size: number) {
     c.stroke();
   }
 }
+/** A tablet stylus: slim barrel, a side button, a rounded end and a fine nib. */
+function drawStylus(c: Ctx, color: string, size: number) {
+  const L = size * 0.95;
+  const Wd = size * 0.09;
+  c.lineWidth = Math.max(2, size * 0.022);
+  c.strokeStyle = INK;
+  c.lineJoin = "round";
+  c.fillStyle = "#e9e7f2";
+  c.beginPath();
+  c.roundRect(-L / 2, -Wd / 2, L * 0.82, Wd, [Wd / 2, 0, 0, Wd / 2]);
+  c.fill();
+  c.stroke();
+  // grip band in the squad colour, and the side button
+  c.fillStyle = color;
+  c.fillRect(L * 0.08, -Wd / 2, L * 0.16, Wd);
+  c.strokeRect(L * 0.08, -Wd / 2, L * 0.16, Wd);
+  c.fillStyle = INK;
+  c.beginPath();
+  c.roundRect(-L * 0.08, -Wd / 2 - Wd * 0.35, L * 0.1, Wd * 0.4, Wd * 0.15);
+  c.fill();
+  // cone and nib
+  c.fillStyle = "#c9c9d6";
+  c.beginPath();
+  c.moveTo(L * 0.32, -Wd / 2);
+  c.lineTo(L / 2 - Wd * 0.3, -Wd * 0.12);
+  c.lineTo(L / 2 - Wd * 0.3, Wd * 0.12);
+  c.lineTo(L * 0.32, Wd / 2);
+  c.closePath();
+  c.fill();
+  c.stroke();
+  c.fillStyle = INK;
+  c.fillRect(L / 2 - Wd * 0.3, -Wd * 0.08, Wd * 0.3, Wd * 0.16);
+}
+
+/** Where the hero stylus is at time t on its underline stroke below the squad name. */
+function stylusPath(s: Scene, p: number): [number, number] {
+  const w = Math.min(s.w * 0.62, 620);
+  const x = s.w / 2 - w / 2 + w * p;
+  const y = s.h / 2 + Math.max(64, s.h * 0.105) + Math.sin(p * Math.PI * 3) * 10;
+  return [x, y];
+}
+
 function design(): Theme {
   let tools: Tool[] | null = null;
   let strokes: { y: number; at: number; color: string; wob: number }[] = [];
@@ -321,7 +363,7 @@ function design(): Theme {
           const a = (i / n) * Math.PI * 2 + s.rnd() * 0.3;
           const r = (0.26 + s.rnd() * 0.3) * Math.min(s.w, s.h) + 40;
           tools.push({
-            kind: i % 2 ? "crayon" : "pencil",
+            kind: i % 3 === 2 ? "stylus" : i % 2 ? "crayon" : "pencil",
             color: colors[i % colors.length]!,
             tx: s.w / 2 + Math.cos(a) * r * (s.w / Math.min(s.w, s.h)) * 0.75,
             ty: s.h / 2 + Math.sin(a) * r,
@@ -377,8 +419,46 @@ function design(): Theme {
         const k = pop(p);
         c.scale(k, k);
         if (tl.kind === "pencil") drawPencil(c, tl.color, tl.size);
+        else if (tl.kind === "stylus") drawStylus(c, tl.color, tl.size);
         else drawCrayon(c, tl.color, tl.size);
         c.restore();
+      }
+      // the hero stylus glides in and writes a glowing line under the squad name
+      const hp = clamp((t - 300) / 420);
+      if (hp > 0) {
+        const steps = Math.max(2, Math.round(hp * 60));
+        c.lineCap = "round";
+        c.lineJoin = "round";
+        for (const [w, col, a] of [
+          [14, LILAC, 0.35],
+          [5, VIOLET, 1],
+        ] as const) {
+          c.beginPath();
+          for (let i = 0; i <= steps; i++) {
+            const [x, y] = stylusPath(s, (i / steps) * hp);
+            if (i) c.lineTo(x, y);
+            else c.moveTo(x, y);
+          }
+          c.strokeStyle = col;
+          c.globalAlpha = a;
+          c.lineWidth = w;
+          c.stroke();
+        }
+        c.globalAlpha = 1;
+        const [x, y] = stylusPath(s, hp);
+        const size = Math.max(150, Math.min(240, s.w / 6));
+        c.save();
+        // nib on the line, barrel up and to the right like a hand holds it
+        c.translate(x, y);
+        c.rotate(2.65 + Math.sin(t / 120) * 0.04);
+        c.translate(-size * 0.47, 0);
+        drawStylus(c, PINK, size);
+        c.restore();
+        // a spark at the nib
+        c.fillStyle = PAPER;
+        c.beginPath();
+        c.arc(x, y, 4 + Math.sin(t / 40) * 1.5, 0, Math.PI * 2);
+        c.fill();
       }
     },
   };
