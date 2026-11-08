@@ -10,3 +10,7 @@
 # Built files have a content hash in their name, so they can be cached for a year.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# The squad clips and posters keep their names when they change, so browsers check back after a day.
+/team/art/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
