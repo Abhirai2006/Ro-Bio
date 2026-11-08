@@ -416,3 +416,23 @@
     display: none;
   }
 }
+/* Replay stands out a little once the clip has finished. */
+.sq-replay {
+  background: #3554d1;
+  color: #fffffa;
+  animation: sq-replay-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.sq-replay:hover {
+  background: #2a44b0;
+}
+@keyframes sq-replay-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sq-replay {
+    animation: none;
+  }
+}
