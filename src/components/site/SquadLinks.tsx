@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { SquadSlug } from "@/lib/squad-fx";
 import { playWarp, prefersStill } from "@/lib/squad-warp";
+import { narration } from "@/lib/robo-talk";
 import { recruitment, site, teamPhotos, type Squad } from "@/lib/site";
 import "./squad-links.css";
 
@@ -165,7 +166,11 @@ export function SquadLinks({
       {squads.map((sq, i) => {
         const head = sq.members.find((m) => m.head);
         return (
-          <li key={sq.slug}>
+          <li
+            key={sq.slug}
+            data-robo-say={compact ? undefined : `squad:${sq.slug}`}
+            data-thought={narration(`squad:${sq.slug}`)[0]}
+          >
             <Link
               to="/team/$squad"
               params={{ squad: sq.slug }}
