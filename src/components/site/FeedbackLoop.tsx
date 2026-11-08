@@ -4,7 +4,12 @@ export type LoopStep = { stage: string; part: string; what: string };
 export type Loop = { title: string; steps: [LoopStep, LoopStep, LoopStep, LoopStep] };
 
 // Clockwise ring on a 3x3 grid: step cells in the corners, arrows on the edges.
-const cells = ["col-start-1 row-start-1", "col-start-3 row-start-1", "col-start-3 row-start-3", "col-start-1 row-start-3"];
+const cells = [
+  "col-start-1 row-start-1",
+  "col-start-3 row-start-1",
+  "col-start-3 row-start-3",
+  "col-start-1 row-start-3",
+];
 const arrows = [
   { cls: "col-start-2 row-start-1", ch: "→" },
   { cls: "col-start-3 row-start-2", ch: "↓" },
@@ -16,7 +21,8 @@ const arrows = [
 export function FeedbackLoops({ loops }: { loops: Loop[] }) {
   const [tick, setTick] = useState(0);
   const [paused, setPaused] = useState(false);
-  const step = tick % 4, cycles = Math.floor(tick / 4);
+  const step = tick % 4,
+    cycles = Math.floor(tick / 4);
 
   useEffect(() => {
     if (paused || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -74,7 +80,8 @@ export function FeedbackLoops({ loops }: { loops: Loop[] }) {
               </span>
             </div>
             <p className="mt-4 min-h-[3rem] text-sm text-muted-foreground">
-              <span className="font-bold text-foreground">{l.steps[step]!.part}:</span> {l.steps[step]!.what}
+              <span className="font-bold text-foreground">{l.steps[step]!.part}:</span>{" "}
+              {l.steps[step]!.what}
             </p>
           </div>
         ))}
@@ -87,7 +94,9 @@ export function FeedbackLoops({ loops }: { loops: Loop[] }) {
         >
           {paused ? "PLAY THE LOOP" : "PAUSE"}
         </button>
-        <span className="text-muted-foreground">Same four stages, two kinds of machine. Tap any step to stop on it.</span>
+        <span className="text-muted-foreground">
+          Same four stages, two kinds of machine. Tap any step to stop on it.
+        </span>
       </div>
     </div>
   );
