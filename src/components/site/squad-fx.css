@@ -369,3 +369,50 @@
     opacity: 0 !important;
   }
 }
+
+/* Pausing the clip pauses its light layer too. */
+.sfx-paused * {
+  animation-play-state: paused !important;
+}
+
+/* Pause and Sound on the squad picture. */
+.sq-ctl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2rem;
+  padding: 0.3rem 0.6rem;
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 2px 2px 0 0 var(--ink);
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  line-height: 1;
+}
+.sq-ctl:hover {
+  background: var(--secondary);
+}
+.sq-ctl:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 var(--ink);
+}
+.sq-ctl:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+.sq-ctl[aria-pressed="true"] {
+  background: #e9efff;
+  color: #201e2d;
+}
+/* On a phone the picture is small: icons only, so the buttons do not cover the drawing. */
+@media (max-width: 639px) {
+  .sq-ctl {
+    min-width: 2rem;
+    justify-content: center;
+    padding: 0.3rem;
+  }
+  .sq-ctl-word {
+    display: none;
+  }
+}
