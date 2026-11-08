@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { botForge, daysBetween, eventDate, events, formatDate, nextEvent, pastEvents, todayInIndia, upcomingEvents } from "./site";
+import {
+  botForge,
+  daysBetween,
+  eventDate,
+  events,
+  formatDate,
+  nextEvent,
+  pastEvents,
+  todayInIndia,
+  upcomingEvents,
+} from "./site";
 
 describe("club facts", () => {
   it("Bot Forge has no date yet, with Robo Sumo and Robot Race only", () => {
