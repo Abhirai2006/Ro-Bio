@@ -4,11 +4,16 @@ import {
   botForge,
   coreTeam,
   coreTeamSize,
+  currentSem,
   events,
+  faculty,
   formatDate,
   gallery,
+  roleDuties,
   site,
+  squadDuties,
   teamPhotos,
+  type Member,
 } from "./site";
 
 /** How many of the core team have a photo up, counted from site.ts, so the line stays true as photos arrive. */
@@ -198,4 +203,66 @@ export function sectionLine(text: string): string {
     `"${h}". Saving that to memory.`,
     `Scanning "${h}". A human wrote this. I can tell.`,
   ]);
+}
+
+// ---- the team pages: who does what. Every line is built from site.ts (roleDuties, squadDuties, coreTeam).
+
+/** The duty for a role title, matched on its start: "Head of Department, BMRE" finds "Head of Department". */
+const dutyOf = (role: string) =>
+  Object.entries(roleDuties).find(([k]) => role === k || role.startsWith(`${k},`))?.[1] ?? "";
+
+const officeBearers = coreTeam.find((s) => s.title === "Office Bearers")?.members ?? [];
+const squadBySlug = (slug: string) => coreTeam.find((s) => s.slug === slug);
+
+/**
+ * What Robo says when a part of a team page comes into view as people scroll. The key comes from the
+ * part's data-robo-say attribute: "faculty", "office", "squads", "squad:technical" or "members:technical".
+ * Returns no lines for a key it does not know.
+ */
+export function narration(key: string): string[] {
+  if (key === "faculty")
+    return faculty.map((f) => `${f.name}, ${f.role}. ${dutyOf(f.role)}`.trim());
+  if (key === "office")
+    return officeBearers.map((m) => `${m.name} is our ${m.role}. ${dutyOf(m.role ?? "")}`.trim());
+  if (key === "squads")
+    return [
+      `${coreTeam.filter((s) => s.slug).length} squads keep the club running. Point at one and I will tell you what they do.`,
+    ];
+  const [kind, slug] = key.split(":");
+  const sq = slug ? squadBySlug(slug) : undefined;
+  if (!sq?.slug) return [];
+  const head = sq.members.find((m) => m.head);
+  const duties = squadDuties[sq.slug] ?? [];
+  if (kind === "squad")
+    return [
+      `${sq.title}. ${duties[0] ?? sq.about ?? ""}`.trim(),
+      head
+        ? `${head.name} heads it. ${sq.members.length} people in the squad.`
+        : `${sq.members.length} people in the squad.`,
+    ];
+  if (kind === "members")
+    return [
+      `The ${sq.title} squad. ${duties[0] ?? sq.about ?? ""}`.trim(),
+      ...duties.slice(1),
+      head
+        ? `${head.name} heads the squad. ${roleDuties["Head"] ?? ""} ${sq.members.length} people in all.`
+            .replace(/\s+/g, " ")
+            .trim()
+        : `${sq.members.length} people in all.`,
+      // squad members with a title of their own get a line too
+      ...sq.members
+        .filter((m) => m.role)
+        .map((m) => `${m.name} is the squad's ${m.role}. ${dutyOf(m.role ?? "")}`.trim()),
+    ];
+  return [];
+}
+
+/** What Robo says when someone points at a member card. */
+export function memberThought(m: Member, squadTitle?: string): string {
+  const who = `${m.name}, ${currentSem(m.sem)}th sem ${m.dept}.`;
+  // a squad role (like Lead Video Editor) belongs to the squad; an office bearer's role to the club
+  if (m.role && squadTitle) return `${who} The ${squadTitle} ${m.role}. ${dutyOf(m.role)}`.trim();
+  if (m.role) return `${who} Our ${m.role}. ${dutyOf(m.role)}`.trim();
+  if (m.head && squadTitle) return `${who} Heads the ${squadTitle} squad.`;
+  return squadTitle ? `${who} In the ${squadTitle} squad.` : who;
 }
