@@ -3,31 +3,100 @@
 // Standing space: origin at the pelvis, y down, the feet end near y = 104, the floor is at y = 106.
 
 export type Pose = {
-  rx: number; ry: number; rr: number; // whole body position and rotation
-  spine: number; hr: number; // torso bend, head turn
-  aLs: number; aLe: number; aRs: number; aRe: number; // arms: shoulder outward, elbow inward (left is the viewer's left)
-  shL: number; shR: number; // shoulder lift in pixels, up is positive. Small shrugs that go with a head tilt.
-  lLh: number; lLk: number; lRh: number; lRk: number; // legs: hip outward, knee inward
-  eye: number; mouth: number; // 0 closed, 1 open
-  lx: number; ly: number; // where the pupils look, in pixels
-  breath: number; beat: number; // 0..1, driven by the animation loop
+  rx: number;
+  ry: number;
+  rr: number; // whole body position and rotation
+  spine: number;
+  hr: number; // torso bend, head turn
+  aLs: number;
+  aLe: number;
+  aRs: number;
+  aRe: number; // arms: shoulder outward, elbow inward (left is the viewer's left)
+  shL: number;
+  shR: number; // shoulder lift in pixels, up is positive. Small shrugs that go with a head tilt.
+  lLh: number;
+  lLk: number;
+  lRh: number;
+  lRk: number; // legs: hip outward, knee inward
+  eye: number;
+  mouth: number; // 0 closed, 1 open
+  lx: number;
+  ly: number; // where the pupils look, in pixels
+  breath: number;
+  beat: number; // 0..1, driven by the animation loop
 };
 
 export const REST: Pose = {
-  rx: 0, ry: 0, rr: 0, spine: 0, hr: 0,
-  aLs: 8, aLe: 8, aRs: 8, aRe: 8, shL: 0, shR: 0, lLh: 3, lLk: 0, lRh: 3, lRk: 0,
-  eye: 1, mouth: 0, lx: 0, ly: 0, breath: 0, beat: 0,
+  rx: 0,
+  ry: 0,
+  rr: 0,
+  spine: 0,
+  hr: 0,
+  aLs: 8,
+  aLe: 8,
+  aRs: 8,
+  aRe: 8,
+  shL: 0,
+  shR: 0,
+  lLh: 3,
+  lLk: 0,
+  lRh: 3,
+  lRk: 0,
+  eye: 1,
+  mouth: 0,
+  lx: 0,
+  ly: 0,
+  breath: 0,
+  beat: 0,
 };
 const P = (o: Partial<Pose>): Pose => ({ ...REST, ...o });
 
 export const POSES = {
   // Lying on its side, head propped on one hand, like a figure reclining at rest.
-  sleep: P({ rx: 26, ry: 51, rr: -90, hr: 12, aLs: 150, aLe: -120, aRs: 6, aRe: 14, lLh: -2, lLk: 22, lRh: 4, lRk: 58, eye: 0, mouth: 0.05 }),
+  sleep: P({
+    rx: 26,
+    ry: 51,
+    rr: -90,
+    hr: 12,
+    aLs: 150,
+    aLe: -120,
+    aRs: 6,
+    aRe: 14,
+    lLh: -2,
+    lLk: 22,
+    lRh: 4,
+    lRk: 58,
+    eye: 0,
+    mouth: 0.05,
+  }),
   // Sitting up, legs still stretched out.
-  sit: P({ rx: -4, ry: 84, rr: -90, spine: 90, hr: 6, aLs: 24, aLe: 20, aRs: 24, aRe: 20, eye: 0.55, mouth: 0.1 }),
+  sit: P({
+    rx: -4,
+    ry: 84,
+    rr: -90,
+    spine: 90,
+    hr: 6,
+    aLs: 24,
+    aLe: 20,
+    aRs: 24,
+    aRe: 20,
+    eye: 0.55,
+    mouth: 0.1,
+  }),
   stand: P({}),
   // Both arms overhead, head back, mouth wide: a proper yawn.
-  yawn: P({ spine: -7, hr: -14, aLs: 158, aLe: 12, aRs: 158, aRe: 12, lLh: 8, lRh: 8, eye: 0.08, mouth: 1 }),
+  yawn: P({
+    spine: -7,
+    hr: -14,
+    aLs: 158,
+    aLe: 12,
+    aRs: 158,
+    aRe: 12,
+    lLh: 8,
+    lRh: 8,
+    eye: 0.08,
+    mouth: 1,
+  }),
   // A hand to the chin.
   think: P({ aRs: 62, aRe: 212, hr: 7, lRh: 3 }),
   wave: P({ aRs: 118, aRe: -8, hr: -4, mouth: 0.35 }),
@@ -45,15 +114,22 @@ export function transforms(p: Pose): Record<string, string> {
     torso: `rotate(${f(p.spine)})`,
     chest: `translate(0 -45) scale(${s(0.03 * p.breath)} ${s(0.014 * p.breath)}) translate(0 45)`,
     head: `translate(0 -92) rotate(${f(p.hr)})`,
-    armL: `translate(-30 ${f(-72 - p.shL)}) rotate(${f(p.aLs)})`, foreL: `translate(0 38) rotate(${f(-p.aLe)})`,
-    armR: `translate(30 ${f(-72 - p.shR)}) rotate(${f(-p.aRs)})`, foreR: `translate(0 38) rotate(${f(p.aRe)})`,
-    legL: `translate(-13 6) rotate(${f(p.lLh)})`, shinL: `translate(0 46) rotate(${f(-p.lLk)})`,
-    legR: `translate(13 6) rotate(${f(-p.lRh)})`, shinR: `translate(0 46) rotate(${f(p.lRk)})`,
-    lidL: `translate(-8 -32) scale(1 ${f(Math.max(0.001, 1 - p.eye))})`, lidR: `translate(8 -32) scale(1 ${f(Math.max(0.001, 1 - p.eye))})`,
-    pupilL: `translate(${f(p.lx)} ${f(p.ly)})`, pupilR: `translate(${f(p.lx)} ${f(p.ly)})`,
+    armL: `translate(-30 ${f(-72 - p.shL)}) rotate(${f(p.aLs)})`,
+    foreL: `translate(0 38) rotate(${f(-p.aLe)})`,
+    armR: `translate(30 ${f(-72 - p.shR)}) rotate(${f(-p.aRs)})`,
+    foreR: `translate(0 38) rotate(${f(p.aRe)})`,
+    legL: `translate(-13 6) rotate(${f(p.lLh)})`,
+    shinL: `translate(0 46) rotate(${f(-p.lLk)})`,
+    legR: `translate(13 6) rotate(${f(-p.lRh)})`,
+    shinR: `translate(0 46) rotate(${f(p.lRk)})`,
+    lidL: `translate(-8 -32) scale(1 ${f(Math.max(0.001, 1 - p.eye))})`,
+    lidR: `translate(8 -32) scale(1 ${f(Math.max(0.001, 1 - p.eye))})`,
+    pupilL: `translate(${f(p.lx)} ${f(p.ly)})`,
+    pupilR: `translate(${f(p.lx)} ${f(p.ly)})`,
     mouth: `translate(0 -6) scale(1 ${f(0.12 + 0.88 * p.mouth)})`,
     heart: `translate(5 -47) scale(${s(0.24 * p.beat)})`,
-    core: `translate(0 -54) scale(${s(0.45 * p.beat)})`, tip: `translate(0 -57) scale(${s(0.6 * p.beat)})`,
+    core: `translate(0 -54) scale(${s(0.45 * p.beat)})`,
+    tip: `translate(0 -57) scale(${s(0.6 * p.beat)})`,
     lungs: `translate(0 -50) scale(${s(0.07 * p.breath)} ${s(0.05 * p.breath)}) translate(0 50)`,
   };
 }
@@ -64,13 +140,18 @@ export function opacities(p: Pose): { closedL: string; closedR: string } {
   return { closedL: String(shut), closedR: String(shut) };
 }
 
-const INK = "#15131c", BONE = "#efe9d8", BONE_LINE = "#a99f86", PINK = "#f3a9c0", RED = "#e24d63";
+const INK = "#15131c",
+  BONE = "#efe9d8",
+  BONE_LINE = "#a99f86",
+  PINK = "#f3a9c0",
+  RED = "#e24d63";
 const T = (tf: Record<string, string>, id: string) => `id="rb-${id}" transform="${tf[id]}"`;
 const capsule = (w: number, len: number, fill: string, cls = "shell") =>
   `<rect class="${cls}" x="${-w / 2}" y="${-w / 2 + 1}" width="${w}" height="${len + w - 2}" rx="${w / 2}" fill="${fill}" stroke="${INK}" stroke-width="2"/>`;
 const bone = (x1: number, y1: number, x2: number, y2: number, w: number) =>
   `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${BONE}" stroke-width="${w}" stroke-linecap="round"/><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${BONE_LINE}" stroke-width="1" stroke-linecap="round" opacity=".6"/>`;
-const joint = (r: number) => `<circle class="shell" r="${r}" fill="#fffffa" stroke="${INK}" stroke-width="2"/>`;
+const joint = (r: number) =>
+  `<circle class="shell" r="${r}" fill="#fffffa" stroke="${INK}" stroke-width="2"/>`;
 
 function arm(side: "L" | "R", tf: Record<string, string>) {
   const hand = `<rect class="shell" x="-6.5" y="${side === "L" ? 33 : 33}" width="13" height="13" rx="5" fill="#fffffa" stroke="${INK}" stroke-width="2"/>
@@ -100,8 +181,11 @@ function leg(side: "L" | "R", tf: Record<string, string>) {
 
 /** The whole robot as an SVG string. Server-rendered in the sleeping pose, then updated by the animation loop. */
 export function rigMarkup(p: Pose, xray = false, floor = true): string {
-  const tf = transforms(p), op = opacities(p);
-  const ticks = [-100, -60, -20, 20, 60, 100].map((x) => `<line x1="${x}" y1="115" x2="${x}" y2="119" stroke="${INK}" stroke-width="2"/>`).join("");
+  const tf = transforms(p),
+    op = opacities(p);
+  const ticks = [-100, -60, -20, 20, 60, 100]
+    .map((x) => `<line x1="${x}" y1="115" x2="${x}" y2="119" stroke="${INK}" stroke-width="2"/>`)
+    .join("");
   const floorSvg = floor
     ? `<ellipse cx="0" cy="111" rx="112" ry="5" fill="rgba(0,0,0,.2)"/><rect x="-124" y="106" width="248" height="9" fill="${INK}"/><rect x="-124" y="106" width="248" height="2.5" fill="#fffffa" opacity=".85"/>${ticks}`
     : "";
@@ -131,7 +215,12 @@ ${floorSvg}
       <g class="bones">
         ${[-84, -76, -68, -60, -52, -44, -36, -28, -20, -12].map((y) => `<rect x="-3.2" y="${y}" width="6.4" height="6" rx="2" fill="${BONE}" stroke="${BONE_LINE}" stroke-width=".8"/>`).join("")}
         <g ${T(tf, "lungs")}><ellipse cx="-13" cy="-52" rx="10" ry="17" fill="#f7c6d2" stroke="#c98a9c"/><ellipse cx="13" cy="-52" rx="10" ry="17" fill="#f7c6d2" stroke="#c98a9c"/></g>
-        ${[0, 1, 2, 3, 4].map((i) => { const y = -70 + i * 9; return `<path d="M-2,${y} Q-25,${y - 2} -23,${y + 10} Q-15,${y + 17} -3,${y + 13}" fill="none" stroke="${BONE}" stroke-width="3" stroke-linecap="round"/><path d="M2,${y} Q25,${y - 2} 23,${y + 10} Q15,${y + 17} 3,${y + 13}" fill="none" stroke="${BONE}" stroke-width="3" stroke-linecap="round"/>`; }).join("")}
+        ${[0, 1, 2, 3, 4]
+          .map((i) => {
+            const y = -70 + i * 9;
+            return `<path d="M-2,${y} Q-25,${y - 2} -23,${y + 10} Q-15,${y + 17} -3,${y + 13}" fill="none" stroke="${BONE}" stroke-width="3" stroke-linecap="round"/><path d="M2,${y} Q25,${y - 2} 23,${y + 10} Q15,${y + 17} 3,${y + 13}" fill="none" stroke="${BONE}" stroke-width="3" stroke-linecap="round"/>`;
+          })
+          .join("")}
         <rect x="-2.6" y="-72" width="5.2" height="30" rx="2.4" fill="${BONE}" stroke="${BONE_LINE}" stroke-width=".8"/>
         <path ${T(tf, "heart")} d="M0,8 C-11,-2 -10,-13 0,-8 C10,-13 11,-2 0,8Z" fill="${RED}" stroke="#9d2a3c" stroke-width="1.4"/>
       </g>
