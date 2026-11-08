@@ -6,6 +6,12 @@
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // Static files are served straight from the assets, except the squad clips: the Worker serves those so it
+  // can answer byte ranges, which Safari needs to play video (src/server/media-range.ts).
+  "assets": {
+    "binding": "ASSETS",
+    "run_worker_first": ["/team/art/*.mp4", "/team/art/*.webm"]
+  },
   // Robo Spark judge scores. Cloudflare creates this SQLite store on the first deploy, nothing to set up by hand.
   // The judge passcode is a secret named JUDGE_PASSCODE, added in the dashboard: Settings, Variables and Secrets.
   // Robo Spark certificates (CERT_STORE): names, emails and numbers live only in this SQLite store.
