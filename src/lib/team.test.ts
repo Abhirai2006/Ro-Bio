@@ -12,7 +12,7 @@ describe("core team", () => {
   });
   it("has no fundraising squad and counts the team from the list", () => {
     expect(coreTeam.some((s) => s.title === "Fundraising")).toBe(false);
-    expect(coreTeamSize).toBe(30);
+    expect(coreTeamSize).toBe(32);
   });
   it("Abhishek Rai A is Secretary, in the office bearers only, 5th sem AIML", () => {
     const top = coreTeam.find((s) => s.title === "Office Bearers")!;
