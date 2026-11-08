@@ -18,7 +18,13 @@ describe("robo talk", () => {
   it("takes dates and registration from site.ts", () => {
     const bf = botForge;
     const lines = Array.from({ length: 40 }, () => sectionLine("Bot Forge")).join(" ");
-    expect(lines).toContain(bf.date ? formatDate(bf.date).replace(/^[A-Za-z]{3},\s*/, "").replace(/\s\d{4}$/, "") : "Date coming soon");
+    expect(lines).toContain(
+      bf.date
+        ? formatDate(bf.date)
+            .replace(/^[A-Za-z]{3},\s*/, "")
+            .replace(/\s\d{4}$/, "")
+        : "Date coming soon",
+    );
     if (bf.registration === "coming-soon") expect(lines).toMatch(/not open yet/);
     expect(FORGE_IDLE).toContain(bf.title);
   });
@@ -29,7 +35,10 @@ describe("robo talk", () => {
     expect(sectionLine("Some new heading")).toContain("Some new heading");
   });
   it("never uses em or en dashes", () => {
-    const all = [...Object.values(GREET), ...["Robo Sumo", "Bot Forge", "Core team", "x"].map(sectionLine)].join(" ");
+    const all = [
+      ...Object.values(GREET),
+      ...["Robo Sumo", "Bot Forge", "Core team", "x"].map(sectionLine),
+    ].join(" ");
     expect(all).not.toMatch(/[\u2013\u2014]/);
   });
 });
