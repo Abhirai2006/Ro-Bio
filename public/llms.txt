@@ -1,6 +1,6 @@
 # RO-BIO
 
-> RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, Mysuru, India, open to students of every branch. It started on 20 May 2026 and has 30 students on its core team. Its first robotics competition is Bot Forge. The date is coming soon.
+> RO-BIO is a robotics and biomedical engineering club at Mysore University School of Engineering, Mysuru, India, open to students of every branch. It started on 20 May 2026 and has 32 students on its core team. Its first robotics competition is Bot Forge. The date is coming soon.
 
 RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Robotic Engineering.
 
@@ -11,7 +11,7 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - College: Mysore University School of Engineering. Address: Mysore University School of Engineering, Manasa Gangotri Campus, Mysore-570006
 - Started: 20 May 2026
 - Head of Department, BMRE: Dr. Nithin S K
-- Core team: 30 students
+- Core team: 32 students
 - Website: https://ro-bio.hub-muse.workers.dev
 - Instagram: https://www.instagram.com/ro_bio_hub/
 - LinkedIn: https://www.linkedin.com/in/ro-bio-hub-606b5840b/
@@ -24,7 +24,7 @@ RO-BIO is also written Ro-Bio Hub. BMRE is the short name for Biomedical and Rob
 - [Events](https://ro-bio.hub-muse.workers.dev/events): Events run by RO-BIO.
 - [Bot Forge](https://ro-bio.hub-muse.workers.dev/events/bot-forge): Bot Forge, date coming soon: Robo Sumo, Robot Race.
 - [Robo Spark](https://ro-bio.hub-muse.workers.dev/events/robo-spark): Robo Spark, Tue, 3 Nov 2026, 11:45 am to 1:00 pm: Icebreaker, Group discussion on a robotics problem, Teams present on the podium.
-- [Team](https://ro-bio.hub-muse.workers.dev/team): The 30 students on the core team.
+- [Team](https://ro-bio.hub-muse.workers.dev/team): The 32 students on the core team.
 - [Projects squad](https://ro-bio.hub-muse.workers.dev/team/projects): Turns ideas into working robots, from the first sketch on the whiteboard to a tested prototype.
 - [Events squad](https://ro-bio.hub-muse.workers.dev/team/events): Plans and runs RO-BIO's events: the layout, the schedule, the crew and the volunteers.
 - [Technical squad](https://ro-bio.hub-muse.workers.dev/team/technical): Builds and debugs the club's electronics, code and this website.
