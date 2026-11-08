@@ -6,3 +6,5 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+# Cloudflare reads this file; keep it plain JSON with comments (no trailing commas).
+wrangler.jsonc
