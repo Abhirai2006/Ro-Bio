@@ -29,7 +29,13 @@ function canvasTexture(w: number, h: number, draw: (g: CanvasRenderingContext2D)
 }
 
 /** A cylinder lying along the x axis: the housing of a joint that pitches. */
-function joint(r: number, len: number, shell: THREE.Material, cap: THREE.Material, led: THREE.Material) {
+function joint(
+  r: number,
+  len: number,
+  shell: THREE.Material,
+  cap: THREE.Material,
+  led: THREE.Material,
+) {
   const g = new THREE.Group();
   const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 40), shell);
   body.rotation.z = Math.PI / 2;
@@ -54,7 +60,10 @@ function link(r0: number, r1: number, len: number, shell: THREE.Material, band: 
   body.rotation.x = Math.PI / 2;
   body.position.z = len / 2;
   g.add(body);
-  const stripe = new THREE.Mesh(new THREE.CylinderGeometry((r0 + r1) / 2 + 0.0012, (r0 + r1) / 2 + 0.0012, 0.018, 36), band);
+  const stripe = new THREE.Mesh(
+    new THREE.CylinderGeometry((r0 + r1) / 2 + 0.0012, (r0 + r1) / 2 + 0.0012, 0.018, 36),
+    band,
+  );
   stripe.rotation.x = Math.PI / 2;
   stripe.position.z = len * 0.55;
   g.add(stripe);
@@ -94,7 +103,14 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   key.position.set(-0.45, 1.1, 0.7);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
-  Object.assign(key.shadow.camera, { left: -0.7, right: 0.7, top: 0.7, bottom: -0.7, near: 0.2, far: 2.6 });
+  Object.assign(key.shadow.camera, {
+    left: -0.7,
+    right: 0.7,
+    top: 0.7,
+    bottom: -0.7,
+    near: 0.2,
+    far: 2.6,
+  });
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.01;
   key.shadow.radius = 3;
@@ -104,10 +120,18 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   scene.add(rim);
 
   // Materials
-  const shell = new THREE.MeshStandardMaterial({ color: 0xf1f0f8, roughness: 0.34, metalness: 0.04 });
+  const shell = new THREE.MeshStandardMaterial({
+    color: 0xf1f0f8,
+    roughness: 0.34,
+    metalness: 0.04,
+  });
   const cap = new THREE.MeshStandardMaterial({ color: C.violet, roughness: 0.42, metalness: 0.1 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x2c2a3c, roughness: 0.5, metalness: 0.55 });
-  const led = new THREE.MeshStandardMaterial({ color: C.lens, emissive: C.lens, emissiveIntensity: 1.8 });
+  const led = new THREE.MeshStandardMaterial({
+    color: C.lens,
+    emissive: C.lens,
+    emissiveIntensity: 1.8,
+  });
   const pad = new THREE.MeshStandardMaterial({ color: 0x15141c, roughness: 0.95 });
 
   // The bench, with a 5 cm grid like a cutting mat. It runs far back so the fog can fade it out.
@@ -128,15 +152,30 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   });
   grid.wrapS = grid.wrapT = THREE.RepeatWrapping;
   grid.repeat.set(6, 5);
-  const table = new THREE.Mesh(new THREE.PlaneGeometry(3, 2.5), new THREE.MeshStandardMaterial({ map: grid, roughness: 0.82, metalness: 0 }));
+  const table = new THREE.Mesh(
+    new THREE.PlaneGeometry(3, 2.5),
+    new THREE.MeshStandardMaterial({ map: grid, roughness: 0.82, metalness: 0 }),
+  );
   table.rotation.x = -Math.PI / 2;
   table.position.set(0, 0, -0.5);
   table.receiveShadow = true;
   scene.add(table);
   // A low rail around the work cell: samples stop at it instead of rolling out of reach.
-  const railMat = new THREE.MeshStandardMaterial({ color: 0x3b3656, roughness: 0.5, metalness: 0.2 });
-  const railGlow = new THREE.MeshStandardMaterial({ color: C.lilac, emissive: C.lilac, emissiveIntensity: 0.35, roughness: 0.6 });
-  const cw = TABLE.maxX - TABLE.minX, cd = TABLE.maxZ - TABLE.minZ, cx = (TABLE.minX + TABLE.maxX) / 2, cz = (TABLE.minZ + TABLE.maxZ) / 2;
+  const railMat = new THREE.MeshStandardMaterial({
+    color: 0x3b3656,
+    roughness: 0.5,
+    metalness: 0.2,
+  });
+  const railGlow = new THREE.MeshStandardMaterial({
+    color: C.lilac,
+    emissive: C.lilac,
+    emissiveIntensity: 0.35,
+    roughness: 0.6,
+  });
+  const cw = TABLE.maxX - TABLE.minX,
+    cd = TABLE.maxZ - TABLE.minZ,
+    cx = (TABLE.minX + TABLE.maxX) / 2,
+    cz = (TABLE.minZ + TABLE.maxZ) / 2;
   for (const [w, d, x, z] of [
     [cw + 0.016, 0.008, cx, TABLE.maxZ + 0.004],
     [cw + 0.016, 0.008, cx, TABLE.minZ - 0.004],
@@ -147,7 +186,10 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     rail.position.set(x, 0.006, z);
     rail.receiveShadow = true;
     scene.add(rail);
-    const glow = new THREE.Mesh(new THREE.BoxGeometry(w < d ? 0.003 : w, 0.0015, w < d ? d : 0.003), railGlow);
+    const glow = new THREE.Mesh(
+      new THREE.BoxGeometry(w < d ? 0.003 : w, 0.0015, w < d ? d : 0.003),
+      railGlow,
+    );
     glow.position.set(x, 0.0125, z);
     scene.add(glow);
   }
@@ -220,7 +262,10 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   rollG.add(palm);
   const fingers = [-1, 1].map((side) => {
     const f = new THREE.Group();
-    const body = new THREE.Mesh(new RoundedBoxGeometry(0.01, 0.026, ARM.fingerLen, 2, 0.002), shell);
+    const body = new THREE.Mesh(
+      new RoundedBoxGeometry(0.01, 0.026, ARM.fingerLen, 2, 0.002),
+      shell,
+    );
     body.position.set(side * 0.005, 0, 0);
     f.add(body);
     const rubber = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.022, 0.03), pad);
@@ -232,9 +277,17 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   });
 
   // Fixture rings on the bench where each sample starts
-  const ringMat = new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.3, depthWrite: false });
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: C.lens,
+    transparent: true,
+    opacity: 0.3,
+    depthWrite: false,
+  });
   for (const s of sim.samples) {
-    const r = new THREE.Mesh(new THREE.RingGeometry(SAMPLE[s.kind].foot + 0.006, SAMPLE[s.kind].foot + 0.009, 48), ringMat);
+    const r = new THREE.Mesh(
+      new THREE.RingGeometry(SAMPLE[s.kind].foot + 0.006, SAMPLE[s.kind].foot + 0.009, 48),
+      ringMat,
+    );
     r.rotation.x = -Math.PI / 2;
     r.position.set(s.p.x, 0.0006, s.p.z);
     scene.add(r);
@@ -244,8 +297,13 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   const tray = new THREE.Group();
   tray.position.set(TRAY.x, 0, TRAY.z);
   scene.add(tray);
-  const trayMat = new THREE.MeshStandardMaterial({ color: 0x3b3656, roughness: 0.55, metalness: 0.1 });
-  const ow = TRAY.w + TRAY.wall * 2, od = TRAY.d + TRAY.wall * 2;
+  const trayMat = new THREE.MeshStandardMaterial({
+    color: 0x3b3656,
+    roughness: 0.55,
+    metalness: 0.1,
+  });
+  const ow = TRAY.w + TRAY.wall * 2,
+    od = TRAY.d + TRAY.wall * 2;
   const floorBox = new THREE.Mesh(new THREE.BoxGeometry(ow, 0.004, od), trayMat);
   floorBox.position.y = 0.002;
   tray.add(floorBox);
@@ -259,7 +317,10 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     wall.position.set(x, TRAY.rim / 2, z);
     wall.castShadow = wall.receiveShadow = true;
     tray.add(wall);
-    const lip = new THREE.Mesh(new THREE.BoxGeometry(w + 0.0005, 0.002, d + 0.0005), new THREE.MeshStandardMaterial({ color: C.lilac, roughness: 0.5 }));
+    const lip = new THREE.Mesh(
+      new THREE.BoxGeometry(w + 0.0005, 0.002, d + 0.0005),
+      new THREE.MeshStandardMaterial({ color: C.lilac, roughness: 0.5 }),
+    );
     lip.position.set(x, TRAY.rim + 0.001, z);
     tray.add(lip);
   }
@@ -277,7 +338,10 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
         g.fill();
       }
   });
-  const foam = new THREE.Mesh(new THREE.BoxGeometry(TRAY.w, TRAY.foam - 0.004, TRAY.d), new THREE.MeshStandardMaterial({ map: foamTex, roughness: 1 }));
+  const foam = new THREE.Mesh(
+    new THREE.BoxGeometry(TRAY.w, TRAY.foam - 0.004, TRAY.d),
+    new THREE.MeshStandardMaterial({ map: foamTex, roughness: 1 }),
+  );
   foam.position.y = 0.004 + (TRAY.foam - 0.004) / 2;
   foam.receiveShadow = true;
   tray.add(foam);
@@ -288,24 +352,38 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     g.textBaseline = "middle";
     g.fillText("DROP ZONE", 256, 34);
   });
-  const labelMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.019), new THREE.MeshBasicMaterial({ map: label, transparent: true, depthWrite: false }));
+  const labelMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.15, 0.019),
+    new THREE.MeshBasicMaterial({ map: label, transparent: true, depthWrite: false }),
+  );
   labelMesh.position.set(0, TRAY.rim / 2, od / 2 + 0.0008);
   tray.add(labelMesh);
   // Redraw the label once the pixel font has loaded.
-  document.fonts?.load("bold 34px Silkscreen").then(() => {
-    const g = (label.image as HTMLCanvasElement).getContext("2d")!;
-    g.clearRect(0, 0, 512, 64);
-    g.fillStyle = "#a979fa";
-    g.font = "bold 34px Silkscreen, ui-monospace, monospace";
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.fillText("DROP ZONE", 256, 34);
-    label.needsUpdate = true;
-    dirty = true;
-  }).catch(() => {});
+  document.fonts
+    ?.load("bold 34px Silkscreen")
+    .then(() => {
+      const g = (label.image as HTMLCanvasElement).getContext("2d")!;
+      g.clearRect(0, 0, 512, 64);
+      g.fillStyle = "#a979fa";
+      g.font = "bold 34px Silkscreen, ui-monospace, monospace";
+      g.textAlign = "center";
+      g.textBaseline = "middle";
+      g.fillText("DROP ZONE", 256, 34);
+      label.needsUpdate = true;
+      dirty = true;
+    })
+    .catch(() => {});
 
   // Samples
-  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xe3ecff, roughness: 0.05, metalness: 0, transmission: 1, thickness: 0.003, ior: 1.5, clearcoat: 1 });
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    color: 0xe3ecff,
+    roughness: 0.05,
+    metalness: 0,
+    transmission: 1,
+    thickness: 0.003,
+    ior: 1.5,
+    clearcoat: 1,
+  });
   const ballTex = canvasTexture(256, 128, (g) => {
     g.fillStyle = "#a979fa";
     g.fillRect(0, 0, 256, 128);
@@ -321,25 +399,49 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
     const g = new THREE.Group();
     const k = SAMPLE[s.kind];
     if (s.kind === "glass") {
-      const body = new THREE.Mesh(new THREE.CylinderGeometry(k.half, k.half, k.h * 2 - 0.01, 40), glassMat);
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(k.half, k.half, k.h * 2 - 0.01, 40),
+        glassMat,
+      );
       body.position.y = -0.005;
       const liquid = new THREE.Mesh(
         new THREE.CylinderGeometry(k.half - 0.003, k.half - 0.003, 0.03, 32),
-        new THREE.MeshStandardMaterial({ color: C.lens, emissive: C.lens, emissiveIntensity: 0.35, roughness: 0.2 }),
+        new THREE.MeshStandardMaterial({
+          color: C.lens,
+          emissive: C.lens,
+          emissiveIntensity: 0.35,
+          roughness: 0.2,
+        }),
       );
       liquid.position.y = -k.h + 0.019;
-      const top = new THREE.Mesh(new THREE.CylinderGeometry(k.half + 0.0015, k.half + 0.0015, 0.012, 40), new THREE.MeshStandardMaterial({ color: C.paper, roughness: 0.5 }));
+      const top = new THREE.Mesh(
+        new THREE.CylinderGeometry(k.half + 0.0015, k.half + 0.0015, 0.012, 40),
+        new THREE.MeshStandardMaterial({ color: C.paper, roughness: 0.5 }),
+      );
       top.position.y = k.h - 0.006;
       g.add(body, liquid, top);
     } else if (s.kind === "rubber") {
-      g.add(new THREE.Mesh(new RoundedBoxGeometry(k.half * 2, k.h * 2, k.half * 2, 3, 0.005), new THREE.MeshStandardMaterial({ color: C.violet, roughness: 0.85 })));
+      g.add(
+        new THREE.Mesh(
+          new RoundedBoxGeometry(k.half * 2, k.h * 2, k.half * 2, 3, 0.005),
+          new THREE.MeshStandardMaterial({ color: C.violet, roughness: 0.85 }),
+        ),
+      );
     } else {
-      g.add(new THREE.Mesh(new THREE.SphereGeometry(k.h, 40, 24), new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.45 })));
+      g.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(k.h, 40, 24),
+          new THREE.MeshStandardMaterial({ map: ballTex, roughness: 0.45 }),
+        ),
+      );
     }
     g.traverse((o) => {
       if (o instanceof THREE.Mesh) o.castShadow = o.receiveShadow = true;
     });
-    const box = new THREE.Mesh(new THREE.CylinderGeometry(k.foot + 0.02, k.foot + 0.02, k.h * 2 + 0.03, 12), hitMat);
+    const box = new THREE.Mesh(
+      new THREE.CylinderGeometry(k.foot + 0.02, k.foot + 0.02, k.h * 2 + 0.03, 12),
+      hitMat,
+    );
     box.userData["kind"] = s.kind;
     g.add(box);
     hitboxes.push(box);
@@ -350,7 +452,13 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   // Broken glass and the spill
   const shardMesh = new THREE.InstancedMesh(
     new THREE.TetrahedronGeometry(1),
-    new THREE.MeshPhysicalMaterial({ color: 0xe6eeff, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.85 }),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xe6eeff,
+      roughness: 0.08,
+      clearcoat: 1,
+      transparent: true,
+      opacity: 0.85,
+    }),
     16,
   );
   shardMesh.castShadow = true;
@@ -358,26 +466,50 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   scene.add(shardMesh);
   const puddle = new THREE.Mesh(
     new THREE.CircleGeometry(1, 48),
-    new THREE.MeshStandardMaterial({ color: C.lens, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.6 }),
+    new THREE.MeshStandardMaterial({
+      color: C.lens,
+      roughness: 0.08,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.6,
+    }),
   );
   puddle.rotation.x = -Math.PI / 2;
   puddle.visible = false;
   scene.add(puddle);
 
   // Manual mode: a ring on the bench under the gripper. It turns solid lilac when the fingers are right over a sample.
-  const jogMat = new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.8, depthWrite: false });
+  const jogMat = new THREE.MeshBasicMaterial({
+    color: C.lens,
+    transparent: true,
+    opacity: 0.8,
+    depthWrite: false,
+  });
   const jogRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 48), jogMat);
   jogRing.rotation.x = -Math.PI / 2;
   jogRing.visible = false;
   scene.add(jogRing);
 
   // A ring under a sample the mouse is over, and a landing mark under whatever is being carried
-  const hoverRing = new THREE.Mesh(new THREE.RingGeometry(0.036, 0.041, 48), new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.9, depthWrite: false }));
+  const hoverRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.036, 0.041, 48),
+    new THREE.MeshBasicMaterial({
+      color: C.lens,
+      transparent: true,
+      opacity: 0.9,
+      depthWrite: false,
+    }),
+  );
   hoverRing.rotation.x = -Math.PI / 2;
   hoverRing.visible = false;
   scene.add(hoverRing);
   const landing = new THREE.Group();
-  const landMat = new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.85, depthWrite: false });
+  const landMat = new THREE.MeshBasicMaterial({
+    color: C.lens,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+  });
   const landRing = new THREE.Mesh(new THREE.RingGeometry(0.85, 1, 48), landMat);
   landRing.rotation.x = -Math.PI / 2;
   const landDot = new THREE.Mesh(new THREE.CircleGeometry(0.18, 24), landMat);
@@ -385,7 +517,15 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   landing.add(landRing, landDot);
   landing.visible = false;
   scene.add(landing);
-  const guide = new THREE.Mesh(new THREE.CylinderGeometry(0.0008, 0.0008, 1, 6), new THREE.MeshBasicMaterial({ color: C.lens, transparent: true, opacity: 0.4, depthWrite: false }));
+  const guide = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.0008, 0.0008, 1, 6),
+    new THREE.MeshBasicMaterial({
+      color: C.lens,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+    }),
+  );
   guide.visible = false;
   scene.add(guide);
   let hovered: Kind | null = null;
@@ -393,11 +533,16 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   // Resizing
   let dirty = true;
   const size = () => {
-    const w = host.clientWidth || 1, h = host.clientHeight || 1;
+    const w = host.clientWidth || 1,
+      h = host.clientHeight || 1;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     // Narrow screens: step back a little so the tray stays in view.
-    camera.position.set(-0.24, 0.84, 1.3).sub(lookAt).multiplyScalar(camera.aspect < 1.1 ? 1.18 : 1).add(lookAt);
+    camera.position
+      .set(-0.24, 0.84, 1.3)
+      .sub(lookAt)
+      .multiplyScalar(camera.aspect < 1.1 ? 1.18 : 1)
+      .add(lookAt);
     camera.lookAt(lookAt);
     camera.updateProjectionMatrix();
     dirty = true;
@@ -407,7 +552,10 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   size();
 
   // Copy the simulation onto the models
-  const q = new THREE.Quaternion(), m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
+  const q = new THREE.Quaternion(),
+    m4 = new THREE.Matrix4(),
+    pos = new THREE.Vector3(),
+    scl = new THREE.Vector3();
   const axis = new THREE.Vector3();
   const ballPrev = { x: 0, z: 0, yaw: 0, ready: false };
   const sync = () => {
@@ -424,12 +572,15 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
       if (s.kind === "ball") {
         // Roll the ball by the distance it travelled, and turn it with the gripper while it is held.
         if (ballPrev.ready) {
-          const dx = s.p.x - ballPrev.x, dz = s.p.z - ballPrev.z, d = Math.hypot(dx, dz);
+          const dx = s.p.x - ballPrev.x,
+            dz = s.p.z - ballPrev.z,
+            d = Math.hypot(dx, dz);
           if (!s.held && d > 1e-6 && s.p.y < SAMPLE.ball.h + TRAY.foam + 0.002) {
             axis.set(dz / d, 0, -dx / d);
             g.quaternion.premultiply(q.setFromAxisAngle(axis, d / SAMPLE.ball.h));
           }
-          if (s.held) g.quaternion.premultiply(q.setFromAxisAngle(axis.set(0, 1, 0), s.yaw - ballPrev.yaw));
+          if (s.held)
+            g.quaternion.premultiply(q.setFromAxisAngle(axis.set(0, 1, 0), s.yaw - ballPrev.yaw));
         }
         Object.assign(ballPrev, { x: s.p.x, z: s.p.z, yaw: s.yaw, ready: true });
       } else g.rotation.y = s.yaw;
@@ -456,7 +607,8 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
       jogMat.color.setHex(over ? C.lilac : C.lens);
       jogMat.opacity = over ? 1 : 0.7;
     }
-    const hs = hovered && sim.mode === "tap" && !sim.heldKind && !sim.busy ? sim.sample(hovered) : null;
+    const hs =
+      hovered && sim.mode === "tap" && !sim.heldKind && !sim.busy ? sim.sample(hovered) : null;
     hoverRing.visible = !!hs;
     if (hs) hoverRing.position.set(hs.p.x, floorAt(hs.p), hs.p.z);
     const held = sim.heldKind ? sim.sample(sim.heldKind) : null;
@@ -472,7 +624,9 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   };
 
   // Main loop: the simulation always runs while the arm is on screen; drawing only happens when something changed.
-  let raf = 0, last = 0, visible = true;
+  let raf = 0,
+    last = 0,
+    visible = true;
   const loop = (now: number) => {
     raf = requestAnimationFrame(loop);
     const dt = last ? Math.min((now - last) / 1000, 1 / 20) : 1 / 60;
@@ -495,19 +649,31 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
   });
   io.observe(host);
 
-  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+  const ray = new THREE.Raycaster(),
+    ndc = new THREE.Vector2();
   return {
     axes() {
-      const ax = lookAt.x - camera.position.x, az = lookAt.z - camera.position.z, n = Math.hypot(ax, az);
+      const ax = lookAt.x - camera.position.x,
+        az = lookAt.z - camera.position.z,
+        n = Math.hypot(ax, az);
       return { away: { x: ax / n, z: az / n }, right: { x: -az / n, z: ax / n } };
     },
     hit(clientX, clientY) {
       const r = canvas.getBoundingClientRect();
       ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
-      const found = ray.intersectObjects(hitboxes.filter((b) => !sim.sample(b.userData["kind"] as Kind).broken), false)[0];
+      const found = ray.intersectObjects(
+        hitboxes.filter((b) => !sim.sample(b.userData["kind"] as Kind).broken),
+        false,
+      )[0];
       const t = -ray.ray.origin.y / ray.ray.direction.y;
-      const point = t > 0 ? { x: ray.ray.origin.x + ray.ray.direction.x * t, z: ray.ray.origin.z + ray.ray.direction.z * t } : undefined;
+      const point =
+        t > 0
+          ? {
+              x: ray.ray.origin.x + ray.ray.direction.x * t,
+              z: ray.ray.origin.z + ray.ray.direction.z * t,
+            }
+          : undefined;
       return found ? { kind: found.object.userData["kind"] as Kind, point } : { point };
     },
     hover(kind) {
@@ -523,10 +689,12 @@ export function createArmScene(host: HTMLElement, sim: ArmSim, onFrame: () => vo
       scene.traverse((o) => {
         if (o instanceof THREE.Mesh || o instanceof THREE.InstancedMesh) {
           o.geometry.dispose();
-          (Array.isArray(o.material) ? o.material : [o.material]).forEach((mt: THREE.Material & { map?: THREE.Texture | null }) => {
-            mt.map?.dispose();
-            mt.dispose();
-          });
+          (Array.isArray(o.material) ? o.material : [o.material]).forEach(
+            (mt: THREE.Material & { map?: THREE.Texture | null }) => {
+              mt.map?.dispose();
+              mt.dispose();
+            },
+          );
         }
       });
       scene.environment?.dispose();
