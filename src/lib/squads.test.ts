@@ -46,6 +46,15 @@ describe("squad pages", () => {
     }
   });
 
+  it("keeps LinkedIn links clean: https, the /in/ part only, no tracking or trailing slash", () => {
+    for (const [name, url] of Object.entries(teamLinkedIn))
+      expect(url, name).toMatch(/^https:\/\/www\.linkedin\.com\/in\/[a-z0-9-]+$/);
+  });
+
+  it("gives every squad exactly one head", () => {
+    for (const s of squadPages()) expect(s.members.filter((m) => m.head).length, s.title).toBe(1);
+  });
+
   it("builds an effect layer for every squad, with no em or en dashes", () => {
     for (const s of slugs) {
       const svg = squadFx(s, { art: `/team/art/${s}-1600.webp` });
