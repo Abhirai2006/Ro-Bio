@@ -11,7 +11,10 @@ export default defineConfig({
     tanstackStart({
       // Our own server entry, src/server.ts, wraps rendering with a friendly error page.
       server: { entry: "server" },
-      importProtection: { behavior: "error", client: { files: ["**/server/**"], specifiers: ["server-only"] } },
+      importProtection: {
+        behavior: "error",
+        client: { files: ["**/server/**"], specifiers: ["server-only"] },
+      },
     }),
     viteReact(),
   ],
@@ -19,6 +22,13 @@ export default defineConfig({
   build: { chunkSizeWarningLimit: 600 },
   resolve: {
     tsconfigPaths: true, // the "@/..." imports, read from tsconfig.json
-    dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
+    dedupe: [
+      "react",
+      "react-dom",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+      "@tanstack/react-query",
+      "@tanstack/query-core",
+    ],
   },
 });
