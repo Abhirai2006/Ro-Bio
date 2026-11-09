@@ -14,3 +14,7 @@
 # The squad clips and posters keep their names when they change, so browsers check back after a day.
 /team/art/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# The merch 3D models are big and rarely change, so browsers keep them for a day and check back after that.
+/merch/models/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
