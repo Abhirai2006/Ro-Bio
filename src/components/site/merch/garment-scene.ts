@@ -241,11 +241,28 @@ export function createMerchScene(
     const up = upHint.clone().addScaledVector(n, -upHint.dot(n)).normalize();
     const x = new THREE.Vector3().crossVectors(up, n).normalize();
     const euler = new THREE.Euler().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, up, n));
-    const g = new DecalGeometry(mesh, hit.point, euler, new THREE.Vector3(size[0], size[1], depth));
-    const d = new THREE.Mesh(g, mat);
-    d.receiveShadow = true;
-    d.renderOrder = 2;
-    parent.add(d);
+    // a print can span several panels (a back sewn from two halves): lay it on every piece under it
+    const reach = new THREE.Box3().setFromCenterAndSize(
+      hit.point,
+      new THREE.Vector3(1, 1, 1).multiplyScalar(Math.hypot(size[0], size[1], depth)),
+    );
+    for (const target of targets) {
+      if (target !== mesh && !new THREE.Box3().setFromObject(target).intersectsBox(reach)) continue;
+      const g = new DecalGeometry(
+        target,
+        hit.point,
+        euler,
+        new THREE.Vector3(size[0], size[1], depth),
+      );
+      if (!g.getAttribute("position")?.count) {
+        g.dispose();
+        continue;
+      }
+      const d = new THREE.Mesh(g, mat);
+      d.receiveShadow = true;
+      d.renderOrder = 2;
+      parent.add(d);
+    }
     return hit.point.clone();
   }
 
@@ -289,9 +306,10 @@ export function createMerchScene(
         const m = new THREE.MeshPhysicalMaterial({
           color: P.fabric,
           normalMap: src.normalMap ?? (k ? knit.normal[k].v : null),
-          normalScale: src.normalMap ? new THREE.Vector2(1, 1) : new THREE.Vector2(0.45, 0.45),
+          normalScale: src.normalMap ? src.normalScale.clone() : new THREE.Vector2(0.45, 0.45),
           aoMap: src.aoMap,
-          aoMapIntensity: 1,
+          // the zip hoodie opens, so its baked shadows inside the hood are softened to read as cloth, not a hole
+          aoMapIntensity: kind === "jacket" ? 0.5 : 1,
           roughnessMap: src.roughnessMap,
           roughness: src.roughnessMap ? 1 : 0.92,
           metalness: 0,
@@ -300,12 +318,18 @@ export function createMerchScene(
           sheenColor: new THREE.Color(P.sheen),
           side: THREE.DoubleSide,
         });
-        // the inside of the cloth reads as a lining: a touch darker than the outside
+        // the inside of the cloth reads as a lining: a touch darker than the outside, but lit by light bouncing
+        // around inside the garment, so an open neck or hood never shows a black hole
         m.onBeforeCompile = (sh) => {
-          sh.fragmentShader = sh.fragmentShader.replace(
-            "#include <color_fragment>",
-            "#include <color_fragment>\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.62;",
-          );
+          sh.fragmentShader = sh.fragmentShader
+            .replace(
+              "#include <color_fragment>",
+              "#include <color_fragment>\n  vec3 liningBase = diffuseColor.rgb;\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.8;",
+            )
+            .replace(
+              "#include <dithering_fragment>",
+              "if (!gl_FrontFacing) gl_FragColor.rgb += liningBase * 0.22;\n#include <dithering_fragment>",
+            );
         };
         fabric.push(m);
         o.material = m;
