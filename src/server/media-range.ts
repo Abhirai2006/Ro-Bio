@@ -1,12 +1,13 @@
-// Byte ranges for the squad clips in /team/art. Cloudflare's static assets always answer a Range request
+// Byte ranges for the squad clips in /team/art and the merch loop in /merch. Cloudflare's static assets always answer a Range request
 // with the whole file and a 200, and Safari will not play a video without a proper 206 Partial Content.
 // So wrangler.jsonc routes the clips to the Worker first (run_worker_first), the Worker fetches the file
 // from the assets binding and cuts out the bytes that were asked for. The clips are a couple of MB at most.
 
 export type AssetsEnv = { ASSETS?: { fetch: (req: Request) => Promise<Response> } };
 
-/** The squad clips: /team/art/<name>.mp4 or .webm. */
-export const isClip = (pathname: string) => /^\/team\/art\/[a-z0-9-]+\.(mp4|webm)$/.test(pathname);
+/** The squad clips, /team/art/<name>.mp4 or .webm, and the merch loop, /merch/<name>.mp4 or .webm. */
+export const isClip = (pathname: string) =>
+  /^\/(team\/art|merch)\/[a-z0-9-]+\.(mp4|webm)$/.test(pathname);
 
 /** Reads one "bytes=" range against a file of `size` bytes. Null means not satisfiable. */
 export function parseRange(header: string, size: number): [number, number] | null {
