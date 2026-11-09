@@ -2,11 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { merch } from "@/lib/site";
 import {
+  NUMBER_STYLES,
   colour,
   likeKey,
   merchApi,
   pieceLikes,
   product,
+  styleKey,
   type ColourId,
   type Tally,
 } from "@/lib/merch";
@@ -115,7 +117,9 @@ function AdminPage() {
     );
 
   const notes = data.notes.filter((n) => filter === "all" || n.kind === filter);
-  const total = Object.values(data.counts).reduce((a, b) => a + b, 0);
+  const total = Object.entries(data.counts)
+    .filter(([k]) => !k.startsWith("number:"))
+    .reduce((a, [, b]) => a + b, 0);
   return (
     <section className="mx-auto max-w-6xl px-4 py-12">
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -188,6 +192,19 @@ function AdminPage() {
           </tbody>
         </table>
       </div>
+
+      <h2 className="mt-10 text-xl font-black">Sleeve number styles</h2>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+        {NUMBER_STYLES.map((st) => (
+          <li
+            key={st.id}
+            className="flex items-center justify-between border-2 border-border bg-card px-3 py-2"
+          >
+            <span className="font-bold">{st.name}</span>
+            <span className="font-mono">{data.counts[styleKey(st.id)] ?? 0} votes</span>
+          </li>
+        ))}
+      </ul>
 
       <div className="mt-10 flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl font-black">Notes</h2>
