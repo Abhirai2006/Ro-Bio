@@ -385,3 +385,95 @@ export const mission = [
   "Help members get better at teamwork, leading and solving problems.",
   "Bring in engineers from industry to teach and mentor.",
 ];
+
+/**
+ * Club merch, shown on /merch. It is a draft for members to look at, like and comment on, not a shop yet:
+ * the page is left out of the menu and of search engines while `draft` is true. Prices are per piece in rupees
+ * and still open to talk about. `gsm` is the fabric weight, left out until the vendor confirms it.
+ */
+export type MerchKind = "jacket" | "hoodie" | "tee" | "polo";
+export const merch = {
+  drop: "Drop 01",
+  draft: true,
+  draftNote:
+    "Draft designs. The final artwork from our designer is on its way, so this page will change.",
+  priceNote: "Price is negotiable",
+  /** The demo name and number on the 3D models. Members can type their own to see how it looks. */
+  demoName: "Thushar K L",
+  demoNumber: "07",
+  /** Zip hoodie and hoodie first: the club's own favourites. */
+  products: [
+    {
+      kind: "jacket",
+      name: "Zip Hoodie",
+      price: 580,
+      fabric: "Fleece",
+      details: ["Full front zip", "Hood with drawcords", "Front pockets", "Rib cuffs and hem"],
+    },
+    {
+      kind: "hoodie",
+      name: "Hoodie",
+      price: 550,
+      fabric: "Fleece",
+      details: ["Hood with drawcords", "Kangaroo pocket", "Rib cuffs and hem"],
+    },
+    {
+      kind: "tee",
+      name: "Round Neck Tee",
+      price: 300,
+      gsm: 180,
+      fabric: "Cotton jersey",
+      details: ["Crew neck", "Short sleeves", "Regular fit"],
+    },
+    {
+      kind: "polo",
+      name: "Polo",
+      price: 380,
+      gsm: 220,
+      fabric: "Cotton pique",
+      details: ["Knit collar", "Button placket", "Raglan sleeves"],
+    },
+  ] as {
+    kind: MerchKind;
+    name: string;
+    price: number;
+    gsm?: number;
+    fabric: string;
+    details: string[];
+  }[],
+  colours: [
+    { id: "black", name: "Ink Black", hex: "#1a191f" },
+    { id: "white", name: "Paper White", hex: "#f1f0ec" },
+    { id: "lilac", name: "Lilac", hex: "#b3a0ea" },
+  ] as { id: "black" | "white" | "lilac"; name: string; hex: string }[],
+  /**
+   * The 3D garments are free models from Sketchfab under CC BY 4.0, which asks for this credit. We recoloured
+   * them, took out the brand marks, lowered the arms and made the files smaller.
+   */
+  models: [
+    {
+      kind: "jacket",
+      title: "Hooded Jacket",
+      author: "ArtDevice",
+      url: "https://sketchfab.com/3d-models/hooded-jacket-562280813fa74612a89369d4b791e011",
+    },
+    {
+      kind: "hoodie",
+      title: "Adidas Hoodie",
+      author: "Garrett Marshall Art",
+      url: "https://sketchfab.com/3d-models/adidas-hoodie-e4c89a5628db4c7abadbd18bb407a2a8",
+    },
+    {
+      kind: "tee",
+      title: "T Shirt",
+      author: "funlab117",
+      url: "https://sketchfab.com/3d-models/t-shirt-c1a3e5eb9b5445f4b7d4be82f1127eba",
+    },
+    {
+      kind: "polo",
+      title: "Mans Polo",
+      author: "mrarrt95",
+      url: "https://sketchfab.com/3d-models/mans-polo-8d8ffad8f85746f39b68f58629a8ce68",
+    },
+  ] as { kind: MerchKind; title: string; author: string; url: string }[],
+};
