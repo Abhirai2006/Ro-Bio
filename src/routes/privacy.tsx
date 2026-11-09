@@ -10,13 +10,13 @@ export const Route = createFileRoute("/privacy")({
       {
         name: "description",
         content:
-          "What the RO-BIO website stores and shares: no accounts, no forms, no analytics, no cookies.",
+          "What the RO-BIO website stores and shares: no accounts, no analytics, one cookie for merch likes.",
       },
       { property: "og:title", content: "Privacy Policy | RO-BIO" },
       {
         property: "og:description",
         content:
-          "What the RO-BIO website stores and shares: no accounts, no forms, no analytics, no cookies.",
+          "What the RO-BIO website stores and shares: no accounts, no analytics, one cookie for merch likes.",
       },
     ],
     links: [canonical("/privacy")],
@@ -35,9 +35,9 @@ function Page() {
       <h2>The short version</h2>
       <p>
         We do not ask visitors for personal information on this site. There are no accounts, public
-        forms, comments or newsletters. We do not use analytics or advertising trackers, and the
-        site does not set cookies. The only exception is the Google map on the Contact and Bot Forge
-        pages, which comes from Google.
+        forms or newsletters. We do not use analytics or advertising trackers. The site sets one
+        cookie of its own, only if you open the members' merch page (see below), and the Google map
+        on the Contact and Bot Forge pages comes from Google.
       </p>
 
       <h2>What our hosting provider sees</h2>
@@ -111,6 +111,22 @@ function Page() {
         events. Anyone listed can ask us to correct or remove their details at any time.
       </p>
 
+      <h2>Merch likes and feedback</h2>
+      <p>
+        The members' merch page lets you like a design and send a short note about it. When you open
+        it, the site gives your browser a random id in a cookie called <strong>robio_voter</strong>.
+        It is only sent to the merch likes and feedback service on this site, scripts on the page
+        cannot read it, and it lasts two years. It lets us count one like per browser for each piece
+        and colour. The page also keeps the list of what you liked in local storage (
+        <strong>robio-merch-liked</strong>) so the hearts show straight away.
+      </p>
+      <p>
+        We store the likes, and any note you send with the name you type (the name is optional).
+        Anyone can see the like counts. Only the core team can read the notes, behind a passcode. To
+        slow down spam we keep a scrambled code made from your IP address for ten minutes, never the
+        address itself. We delete the likes and notes once the merch is decided, and you can ask us
+        to delete yours sooner.
+      </p>
       <h2>Core member recruitment</h2>
       <p>
         Students who apply to join the core team fill in a Google Form run by the club. Google
