@@ -182,6 +182,10 @@ share the link in the club group.
 - **Models:** free Sketchfab models under CC BY 4.0, credited at the foot of the page. They were recoloured,
   cleaned of brand marks, given lowered arms and made smaller. They live in `public/merch/models/`.
 - **When the merch is decided:** delete all likes and notes from `/merch/admin`.
+- **Going public is one switch:** set `draft: false` in `merch` in `src/lib/site.ts`. The home page then shows a
+  "Wear the club" section with a short loop of the zip hoodie (`src/components/site/MerchTeaser.tsx`), Merch joins
+  the menu, the footer and the sitemap, search engines may list the page, and `/merch` becomes a showcase: the
+  likes, style votes and notes are hidden and no cookie is set.
 
 <table>
   <tr>
