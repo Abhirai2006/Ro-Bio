@@ -18,16 +18,19 @@
   // The admin passcode is a secret named CERT_ADMIN_PASSCODE, added the same way as JUDGE_PASSCODE.
   // Core member recruitment (RECRUIT_STORE): applicants and judges' marks live only in this SQLite store.
   // Its two secrets, added the same way: RECRUIT_ADMIN_PASSCODE and RECRUIT_JUDGE_PASSCODE.
+  // Merch likes and feedback (MERCH_STORE): random browser ids, likes and notes. Its secret: MERCH_ADMIN_PASSCODE.
   "durable_objects": {
     "bindings": [
       { "name": "JUDGE_SCORES", "class_name": "JudgeScores" },
       { "name": "CERT_STORE", "class_name": "CertStore" },
-      { "name": "RECRUIT_STORE", "class_name": "RecruitStore" }
+      { "name": "RECRUIT_STORE", "class_name": "RecruitStore" },
+      { "name": "MERCH_STORE", "class_name": "MerchStore" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["JudgeScores"] },
     { "tag": "v2", "new_sqlite_classes": ["CertStore"] },
-    { "tag": "v3", "new_sqlite_classes": ["RecruitStore"] }
+    { "tag": "v3", "new_sqlite_classes": ["RecruitStore"] },
+    { "tag": "v4", "new_sqlite_classes": ["MerchStore"] }
   ]
 }
