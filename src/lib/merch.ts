@@ -4,12 +4,21 @@ import { merch, type MerchKind } from "@/lib/site";
 
 export type ColourId = (typeof merch.colours)[number]["id"];
 
+/** The sleeve number styles members can choose between. */
+export const NUMBER_STYLES = [
+  { id: "plate", name: "Armour", note: "Robot anime armour plate" },
+  { id: "ink", name: "Ink slash", note: "Brush and red slash" },
+  { id: "kanji", name: "Kanji", note: "Brush number with Japanese numerals" },
+] as const;
+export type NumberStyle = (typeof NUMBER_STYLES)[number]["id"];
+
 /** What the 3D model shows right now. Nothing here is an order. */
 export type Pick = {
   kind: MerchKind;
   colour: ColourId;
   name: string;
   number: string;
+  style: NumberStyle;
 };
 
 export const NAME_MAX = 16;
@@ -51,6 +60,11 @@ export const isColour = (v: unknown): v is ColourId =>
   typeof v === "string" && merch.colours.some((c) => c.id === v);
 
 export const likeKey = (kind: MerchKind, c: ColourId) => `${kind}:${c}`;
+
+export const isStyle = (v: unknown): v is NumberStyle =>
+  typeof v === "string" && NUMBER_STYLES.some((s) => s.id === v);
+/** Votes for a number style share the likes table: the piece is "number" and the colour is the style. */
+export const styleKey = (s: NumberStyle) => `number:${s}`;
 
 export const product = (kind: MerchKind) => merch.products.find((p) => p.kind === kind)!;
 export const colour = (id: ColourId) => merch.colours.find((c) => c.id === id)!;
