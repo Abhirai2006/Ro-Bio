@@ -198,6 +198,7 @@ Club members do not need to touch the code to update the site. Every fact lives 
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")` |
 | Semester on the team cards | `currentSem` adds one to the announced semester. Update it when the semester changes |
 | What we work on | `focusAreas` |
+| Merch prices, colours, the draft note and the 3D model credits | `merch` |
 | Vision and mission | `vision` and `mission` |
 | Venue map | `mapUrl` and `mapEmbed` |
 | Live web address | `url`, once a custom domain is connected |
@@ -272,3 +273,22 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 <sub>Built by students. The text, design, logo and artwork belong to RO-BIO and its creators.</sub>
 
 </div>
+
+<br />
+
+## Merch drafts (members only)
+
+`/merch` shows the draft club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, in three colours.
+Members can turn each piece, try their own name and number, like a piece in a colour and send a short note.
+While `merch.draft` is `true` in `src/lib/site.ts` the page is not in the menu, the sitemap or search engines:
+share the link in the club group.
+
+- **Likes:** one per browser for each piece and colour, kept in a Cloudflare Durable Object (`MERCH_STORE`).
+  A random id in an HttpOnly cookie stops a reload from liking twice. There are no accounts, so a different
+  browser or a private window can like again.
+- **Notes:** only the core team reads them, at `/merch/admin`. Add the passcode once in the Cloudflare dashboard:
+  Workers, ro-bio, Settings, Variables and Secrets, add a secret named `MERCH_ADMIN_PASSCODE`.
+- **Models:** free Sketchfab models under CC BY 4.0, credited at the foot of the page. They were recoloured,
+  cleaned of brand marks, given lowered arms and made smaller. They live in `public/merch/models/`.
+- **When the merch is decided:** delete all likes and notes from `/merch/admin`.
+
