@@ -20,6 +20,8 @@ describe("squad clip byte ranges", () => {
     expect(isClip("/team/art/technical-1600.webp")).toBe(false);
     expect(isClip("/team/art/../secret.mp4")).toBe(false);
     expect(isClip("/team/technical")).toBe(false);
+    expect(isClip("/merch/kit-loop.mp4")).toBe(true);
+    expect(isClip("/merch/models/jacket/jacket.bin")).toBe(false);
   });
 
   it("reads ranges the way browsers send them", () => {
