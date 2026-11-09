@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { cleanName, cleanNumber, cleanText, isColour, isKind, pieceLikes } from "@/lib/merch";
+import {
+  NUMBER_STYLES,
+  cleanName,
+  cleanNumber,
+  cleanText,
+  isColour,
+  isKind,
+  isStyle,
+  pieceLikes,
+} from "@/lib/merch";
 import { merch } from "@/lib/site";
 
 describe("merch page", () => {
@@ -25,6 +34,12 @@ describe("merch page", () => {
     expect(isKind("socks")).toBe(false);
     expect(isColour("lilac")).toBe(true);
     expect(isColour("red")).toBe(false);
+  });
+
+  it("offers the three number styles the club picked", () => {
+    expect(NUMBER_STYLES.map((s) => s.id)).toEqual(["plate", "ink", "kanji"]);
+    expect(isStyle("kanji")).toBe(true);
+    expect(isStyle("chip")).toBe(false);
   });
 
   it("adds a piece's likes across colours", () => {
