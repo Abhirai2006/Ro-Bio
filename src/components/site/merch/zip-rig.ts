@@ -37,42 +37,68 @@ function bake(geo: THREE.BufferGeometry, m: THREE.Matrix4) {
   return out;
 }
 
-/** Splits the closed front down x = 0: triangles on the wearer's left get their own copy of the seam vertices. */
+/**
+ * Splits the closed front down x = 0, from the hem up through the front of the hood. Every triangle the line
+ * crosses is cut in three and the new points get one copy for each side, so nothing is left joining the two
+ * halves once they move apart, not even under the rib hem where the cloth has no point on the centre line.
+ */
 function cut(geo: THREE.BufferGeometry, top: number) {
-  const pos = geo.getAttribute("position") as THREE.BufferAttribute;
-  const n0 = pos.count;
-  const seam = (i: number) =>
-    Math.abs(pos.getX(i)) < 0.002 && pos.getZ(i) > 0.02 && pos.getY(i) < top + 0.01;
+  const names = Object.keys(geo.attributes);
+  const attrs = names.map((n) => geo.getAttribute(n) as THREE.BufferAttribute);
+  const data = attrs.map((a) => Array.from(a.array as Float32Array));
+  const pos = data[names.indexOf("position")]!;
+  const X = (i: number) => pos[i * 3]!;
+  const front = (i: number) => pos[i * 3 + 2]! > 0 && pos[i * 3 + 1]! < top;
   const idx = Array.from(geo.index!.array);
-  const copies = new Map<number, number>();
-  const extra: number[] = [];
-  for (let t = 0; t < idx.length; t += 3) {
-    const cx = (pos.getX(idx[t]!) + pos.getX(idx[t + 1]!) + pos.getX(idx[t + 2]!)) / 3;
-    if (cx <= 0) continue;
-    for (let k = 0; k < 3; k++) {
-      const i = idx[t + k]!;
-      if (!seam(i)) continue;
-      let c = copies.get(i);
-      if (c === undefined) {
-        c = n0 + extra.length;
-        copies.set(i, c);
-        extra.push(i);
-      }
-      idx[t + k] = c;
+  const out: number[] = [];
+  const made = new Map<string, [number, number]>();
+  let cuts = 0;
+  const split = (a: number, b: number) => {
+    const key = a < b ? `${a}_${b}` : `${b}_${a}`;
+    const hit = made.get(key);
+    if (hit) return hit;
+    const t = Math.min(1, Math.max(0, (0 - X(a)) / (X(b) - X(a) || 1)));
+    const pair: number[] = [];
+    for (let side = 0; side < 2; side++) {
+      const id = pos.length / 3;
+      attrs.forEach((at, j) => {
+        const d = data[j]!;
+        for (let c = 0; c < at.itemSize; c++)
+          d.push(d[a * at.itemSize + c]! + (d[b * at.itemSize + c]! - d[a * at.itemSize + c]!) * t);
+      });
+      // a hair either side of the line
+      pos[id * 3] = side ? 0.0003 : -0.0003;
+      pair.push(id);
     }
+    const p: [number, number] = [pair[0]!, pair[1]!];
+    made.set(key, p);
+    return p;
+  };
+  for (let t = 0; t < idx.length; t += 3) {
+    const tri = [idx[t]!, idx[t + 1]!, idx[t + 2]!];
+    const side = tri.map((i) => (X(i) >= 0 ? 1 : 0));
+    if ((side[0] === side[1] && side[1] === side[2]) || !tri.every(front)) {
+      out.push(...tri);
+      continue;
+    }
+    cuts++;
+    // the lone vertex on one side, and the two on the other; the winding stays as it was
+    const lone = side[0] === side[1] ? 2 : side[0] === side[2] ? 1 : 0;
+    const a = tri[lone]!,
+      b = tri[(lone + 1) % 3]!,
+      c = tri[(lone + 2) % 3]!;
+    const sa = side[lone]!;
+    const ab = split(a, b),
+      ac = split(a, c);
+    out.push(a, ab[sa]!, ac[sa]!);
+    out.push(ab[1 - sa]!, b, c);
+    out.push(ab[1 - sa]!, c, ac[1 - sa]!);
   }
-  for (const name of Object.keys(geo.attributes)) {
-    const a = geo.getAttribute(name) as THREE.BufferAttribute;
-    const arr = new Float32Array((a.count + extra.length) * a.itemSize);
-    arr.set(a.array as Float32Array);
-    extra.forEach((src, k) => {
-      for (let j = 0; j < a.itemSize; j++)
-        arr[(a.count + k) * a.itemSize + j] = a.array[src * a.itemSize + j]!;
-    });
-    geo.setAttribute(name, new THREE.BufferAttribute(arr, a.itemSize));
-  }
-  geo.setIndex(idx);
-  return { copies: extra.length, firstCopy: n0 };
+  attrs.forEach((at, j) =>
+    geo.setAttribute(names[j]!, new THREE.BufferAttribute(new Float32Array(data[j]!), at.itemSize)),
+  );
+  geo.setIndex(out);
+  return cuts;
 }
 
 export type ZipRig = {
@@ -109,8 +135,8 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
   const geo = bake(body.geometry, body.matrixWorld);
   const TOP = 0.745,
     BOTTOM = 0.025;
-  const { copies, firstCopy } = cut(geo, TOP);
-  if (copies < 10) return null;
+  // through the zip and on up through the front of the hood, which is sewn to the zip tops
+  if (cut(geo, TOP + 0.1) < 10) return null;
   body.geometry = geo;
   root.attach(body);
   body.position.set(0, 0, 0);
@@ -127,10 +153,23 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
 
   // the zip line: the front centre, hem to collar, as z for each height
   const line: [number, number][] = [];
-  for (let i = 0; i < firstCopy; i++)
-    if (Math.abs(rest[i * 3]!) < 0.002 && rest[i * 3 + 2]! > 0.02)
+  for (let i = 0; i < pos.count; i++)
+    if (
+      Math.abs(rest[i * 3]!) < 0.002 &&
+      rest[i * 3 + 2]! > 0.02 &&
+      rest[i * 3 + 1]! <= TOP + 0.005
+    )
       line.push([rest[i * 3 + 1]!, rest[i * 3 + 2]!]);
   line.sort((p, q) => p[0] - q[0]);
+  {
+    const best = new Map<number, [number, number]>();
+    for (const [y, z] of line) {
+      const k = Math.round(y * 100);
+      const b = best.get(k);
+      if (!b || z > b[1]) best.set(k, [y, z]);
+    }
+    line.splice(0, line.length, ...[...best.values()].sort((p, q) => p[0] - q[0]));
+  }
   const lineZ = (y: number) => {
     if (!line.length) return 0.15;
     if (y <= line[0]![0]) return line[0]![1];
@@ -154,7 +193,7 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
     if (w > 0.004) {
       moving.push(i);
       weight.push(w);
-      sideOf.push(i >= firstCopy || x > 0 ? 1 : -1);
+      sideOf.push(x >= 0 ? 1 : -1);
     }
   }
 
