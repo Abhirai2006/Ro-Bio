@@ -5,6 +5,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { handleJudgeApi, type JudgeEnv } from "./server/judge-api";
 import { handleCertApi, type CertEnv } from "./server/cert-api";
 import { handleRecruitApi, type RecruitEnv } from "./server/recruit-api";
+import { handleMerchApi, type MerchEnv } from "./server/merch-api";
 import { serveClip, type AssetsEnv } from "./server/media-range";
 
 // The Robo Spark score sheet. Cloudflare needs the Durable Object class exported from the Worker's main file.
@@ -13,6 +14,8 @@ export { JudgeScores } from "./server/judge-store";
 export { CertStore } from "./server/cert-store";
 // Core member recruitment (applicants and judges' marks). Same reason: the class must be exported here.
 export { RecruitStore } from "./server/recruit-store";
+// Merch likes and feedback. Same reason: the class must be exported here.
+export { MerchStore } from "./server/merch-store";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -104,6 +107,8 @@ export default {
         return withSecurityHeaders(await handleCertApi(request, env as CertEnv));
       if (new URL(request.url).pathname.startsWith("/api/recruit/"))
         return withSecurityHeaders(await handleRecruitApi(request, env as RecruitEnv));
+      if (new URL(request.url).pathname.startsWith("/api/merch/"))
+        return withSecurityHeaders(await handleMerchApi(request, env as MerchEnv));
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
