@@ -15,7 +15,7 @@ _Unauthorised innovation in progress!_
 <a href="https://ro-bio.hub-muse.workers.dev"><img alt="Live site" src="https://img.shields.io/badge/Live_site-ro--bio.hub--muse.workers.dev-725DFF?style=flat" /></a>
 <a href="https://www.instagram.com/ro_bio_hub/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-@ro__bio__hub-A979FA?style=flat" /></a>
 <a href="https://www.linkedin.com/in/ro-bio-hub-606b5840b/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-RO--BIO_Hub-6294FF?style=flat" /></a>
-<img alt="Tests" src="https://img.shields.io/badge/tests-65_passing-725DFF?style=flat" />
+<img alt="Tests" src="https://img.shields.io/badge/tests-192_passing-725DFF?style=flat" />
 
 <br /><br />
 
@@ -80,6 +80,7 @@ Everything here was built by students: the 3D robot arm, the Robo Sumo physics, 
 | Open Robo's menu and pick **X-ray** | His skeleton and heart show through, next to the biology inside |
 | Tap the heartbeat in the header | It speeds up while you play |
 | Visit a page that does not exist, like `/tem` | Robo guesses you meant `/team` and the flatline comes back to life |
+| Open `/merch` (shared with members) and drag the zip on the zip hoodie | The club kit in 3D: the front parts, sways and settles like cloth, and your name and number print on it |
 
 <br />
 
@@ -160,11 +161,46 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 <br />
 
+## The merch studio (members only, for now)
+
+<img src="docs/screenshots/merch.jpg" alt="The merch studio: a black zip hoodie in 3D beside the piece, colour, like and name pickers" width="100%" />
+
+`/merch` shows the draft club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, in three colours.
+Members can turn each piece, try their own name and number, like a piece in a colour and send a short note.
+While `merch.draft` is `true` in `src/lib/site.ts` the page is not in the menu, the sitemap or search engines:
+share the link in the club group.
+
+- **Likes:** one per browser for each piece and colour, kept in a Cloudflare Durable Object (`MERCH_STORE`).
+  A random id in an HttpOnly cookie stops a reload from liking twice. There are no accounts, so a different
+  browser or a private window can like again.
+- **Sleeve number styles:** members pick Armour, Ink slash or Kanji (`NUMBER_STYLES` in `src/lib/merch.ts`,
+  drawn in `src/components/site/merch/art.ts`) and can vote for their favourite. The votes show on the admin page.
+- **Zip:** the zip hoodie's zip can be dragged open on the model or with the slider under it
+  (`src/components/site/merch/zip-rig.ts`).
+- **Notes:** only the core team reads them, at `/merch/admin`. Add the passcode once in the Cloudflare dashboard:
+  Workers, ro-bio, Settings, Variables and Secrets, add a secret named `MERCH_ADMIN_PASSCODE`.
+- **Models:** free Sketchfab models under CC BY 4.0, credited at the foot of the page. They were recoloured,
+  cleaned of brand marks, given lowered arms and made smaller. They live in `public/merch/models/`.
+- **When the merch is decided:** delete all likes and notes from `/merch/admin`.
+
+<table>
+  <tr>
+    <td align="center" width="50%"><img src="docs/screenshots/merch-zip.jpg" alt="The zip hoodie zipped up, half open and fully open" /><br /><sub><b>A working zip</b>: drag it down and the fronts part, sway and settle</sub></td>
+    <td align="center" width="50%"><img src="docs/screenshots/merch-numbers.jpg" alt="The sleeve number in the Armour, Ink slash and Kanji styles" /><br /><sub><b>Three sleeve number styles</b> members choose and vote for</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/merch-back.jpg" alt="The back of the zip hoodie with the RO-BIO logo and the name ABHIRAI" width="50%" />
+
+<sub>The back print: the club logo, the member's name and the club line under it.</sub>
+
+<br />
+
 ## What we have built so far
 
 - **20 May 2026:** RO-BIO starts at Mysore University School of Engineering.
 - **Most Saturdays:** engineers from companies like L&T come to campus and teach practical skills.
-- **The website:** the 3D pick-and-place arm, Robo, the Robo Sumo game, the team page and the Bot Forge page.
+- **The website:** the 3D pick-and-place arm, Robo, the Robo Sumo game, the team page, the Bot Forge page and the 3D merch studio for members.
 - **Events:** Robo Spark, an interactive group discussion for first years on 3 November 2026, and Bot Forge, on a date that is coming soon.
 
 <br />
@@ -175,7 +211,9 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 | --- | --- |
 | [TanStack Start](https://tanstack.com/start) and [React 19](https://react.dev) | Pages, routing and server rendering |
 | [Tailwind CSS 4](https://tailwindcss.com) | Styling, colours and the blueprint look |
-| [three.js](https://threejs.org) | The 3D robot arm, loaded after the page |
+| [three.js](https://threejs.org) | The 3D robot arm and the 3D merch studio, loaded after the page |
+| [Sketchfab](https://sketchfab.com) models (CC BY 4.0) | The four garments in the merch studio, recoloured and cleaned of brand marks, credited on the page |
+| [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/) | The merch likes and notes, and the passcode pages for judges and admins |
 | Hand-written physics | Robo Sumo and the sample bench, with no physics engine |
 | [Cloudflare Workers](https://workers.cloudflare.com) | Hosting, with a fresh deploy on every push to `main` |
 | [Vitest](https://vitest.dev) | The unit tests |
@@ -219,7 +257,7 @@ Then open http://localhost:5173 and start tapping.
 | Command | What it does |
 | --- | --- |
 | `npm run dev` | The site with hot reload |
-| `npm test` | Unit tests for the club facts, Robo, Robo Sumo, the arm and the ECG |
+| `npm test` | Unit tests for the club facts, Robo, Robo Sumo, the arm, the ECG and the merch likes |
 | `npm run build` | A production build, plus the sitemap, robots file and AI-readable files |
 | `npm run preview` | The production build, running like it does on Cloudflare |
 | `npm run deploy` | Builds and deploys by hand with Wrangler |
@@ -239,9 +277,10 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 ## Privacy and security
 
-- **No accounts, no forms, no analytics, no cookies, no tracking scripts.** The [Privacy Policy](https://ro-bio.hub-muse.workers.dev/privacy) lists the few settings kept in your own browser.
+- **No accounts, no analytics, no tracking scripts.** The only cookie is a random id on the members' merch page, so each browser likes a design once. It is HttpOnly and only sent to the merch likes service. The [Privacy Policy](https://ro-bio.hub-muse.workers.dev/privacy) lists it and the few settings kept in your own browser.
 - **Two outside services.** Fonts load from Google Fonts, and the venue map on the Contact and Bot Forge pages is a Google Maps embed. The Privacy Policy explains both.
 - Every page is sent with a strict Content Security Policy and security headers ([`src/server.ts`](src/server.ts)). Clickjacking, MIME sniffing, and camera, microphone and location access are blocked.
+- The merch API only accepts likes and notes sent from the site's own pages, checks every field, and slows down floods from one network. Admin pages need a passcode kept as a Cloudflare secret, never in this repository.
 
 <br />
 
@@ -258,6 +297,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 - Bot Forge date and registration, once the club confirms them
 - Real photos for the gallery and team cards
 - Write-ups of the projects members are building
+- The designer's final artwork on the merch, then the merch page opened to everyone
 - The full list is in [roadmap.md](roadmap.md)
 
 <br />
@@ -275,24 +315,3 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 </div>
 
 <br />
-
-## Merch drafts (members only)
-
-`/merch` shows the draft club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, in three colours.
-Members can turn each piece, try their own name and number, like a piece in a colour and send a short note.
-While `merch.draft` is `true` in `src/lib/site.ts` the page is not in the menu, the sitemap or search engines:
-share the link in the club group.
-
-- **Likes:** one per browser for each piece and colour, kept in a Cloudflare Durable Object (`MERCH_STORE`).
-  A random id in an HttpOnly cookie stops a reload from liking twice. There are no accounts, so a different
-  browser or a private window can like again.
-- **Sleeve number styles:** members pick Armour, Ink slash or Kanji (`NUMBER_STYLES` in `src/lib/merch.ts`,
-  drawn in `src/components/site/merch/art.ts`) and can vote for their favourite. The votes show on the admin page.
-- **Zip:** the zip hoodie's zip can be dragged open on the model or with the slider under it
-  (`src/components/site/merch/zip-rig.ts`).
-- **Notes:** only the core team reads them, at `/merch/admin`. Add the passcode once in the Cloudflare dashboard:
-  Workers, ro-bio, Settings, Variables and Secrets, add a secret named `MERCH_ADMIN_PASSCODE`.
-- **Models:** free Sketchfab models under CC BY 4.0, credited at the foot of the page. They were recoloured,
-  cleaned of brand marks, given lowered arms and made smaller. They live in `public/merch/models/`.
-- **When the merch is decided:** delete all likes and notes from `/merch/admin`.
-
