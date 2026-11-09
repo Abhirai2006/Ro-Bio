@@ -135,6 +135,37 @@ describe("merch likes", () => {
     ).toBe(400);
   });
 
+  it("counts one vote per browser for a sleeve number style, and only for real styles", async () => {
+    const t = setup();
+    const cookie = await browser(t);
+    for (let i = 0; i < 2; i++)
+      await t.call("like", {
+        method: "POST",
+        cookie,
+        body: { kind: "number", colour: "ink", liked: true },
+      });
+    expect((await t.call("tally", { cookie })).data.counts["number:ink"]).toBe(1);
+    expect(
+      (
+        await t.call("like", {
+          method: "POST",
+          cookie,
+          body: { kind: "number", colour: "espada", liked: true },
+        })
+      ).status,
+    ).toBe(400);
+    // a note still needs a real piece and colour
+    expect(
+      (
+        await t.call("note", {
+          method: "POST",
+          cookie,
+          body: { kind: "number", colour: "ink", text: "nice" },
+        })
+      ).status,
+    ).toBe(400);
+  });
+
   it("slows down a flood from one address", async () => {
     const t = setup();
     const cookie = await browser(t);
