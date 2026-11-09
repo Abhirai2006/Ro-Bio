@@ -286,6 +286,10 @@ share the link in the club group.
 - **Likes:** one per browser for each piece and colour, kept in a Cloudflare Durable Object (`MERCH_STORE`).
   A random id in an HttpOnly cookie stops a reload from liking twice. There are no accounts, so a different
   browser or a private window can like again.
+- **Sleeve number styles:** members pick Armour, Ink slash or Kanji (`NUMBER_STYLES` in `src/lib/merch.ts`,
+  drawn in `src/components/site/merch/art.ts`) and can vote for their favourite. The votes show on the admin page.
+- **Zip:** the zip hoodie's zip can be dragged open on the model or with the slider under it
+  (`src/components/site/merch/zip-rig.ts`).
 - **Notes:** only the core team reads them, at `/merch/admin`. Add the passcode once in the Cloudflare dashboard:
   Workers, ro-bio, Settings, Variables and Secrets, add a secret named `MERCH_ADMIN_PASSCODE`.
 - **Models:** free Sketchfab models under CC BY 4.0, credited at the foot of the page. They were recoloured,
