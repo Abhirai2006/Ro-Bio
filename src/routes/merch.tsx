@@ -5,6 +5,17 @@ import { merch } from "@/lib/site";
 
 export const Route = createFileRoute("/merch")({
   head: () => ({
+    // the fonts for the sleeve number styles, only on this page; the Japanese one only carries the numerals
+    links: [
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Permanent+Marker&family=Potta+One&display=swap",
+      },
+      {
+        rel: "stylesheet",
+        href: `https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&text=${encodeURIComponent("零一二三四五六七八九十番魂")}&display=swap`,
+      },
+    ],
     meta: [
       { title: "Merch drafts for members | RO-BIO" },
       // a draft for members, shared by link: kept out of search engines until the designs are final
