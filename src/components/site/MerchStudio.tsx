@@ -10,6 +10,9 @@ import {
   colour,
   likeKey,
   merchApi,
+  NUMBER_STYLES,
+  styleKey,
+  type NumberStyle,
   pieceLikes,
   product,
   rupees,
@@ -22,7 +25,7 @@ import {
   CREST_SRC,
   LOGO_SRC,
   drawNameplate,
-  drawNumberChip,
+  drawNumber,
   fontsReady,
   loadImage,
 } from "@/components/site/merch/art";
@@ -89,8 +92,8 @@ function useTally() {
     };
   }, []);
   const toggle = useCallback(
-    async (kind: MerchKind, c: ColourId) => {
-      const k = likeKey(kind, c);
+    async (kind: string, c: string) => {
+      const k = `${kind}:${c}`;
       const liked = !tally.mine.includes(k);
       const before = tally;
       // show it at once, then settle on what the server says
@@ -122,12 +125,14 @@ export function MerchStudio() {
     colour: "black",
     name: cleanName(merch.demoName),
     number: merch.demoNumber,
+    style: "plate",
   });
   const [phase, setPhase] = useState<"loading" | "ready" | "nogl">("loading");
   const [busy, setBusy] = useState(false);
   const [spin, setSpin] = useState(false);
   const [view, setView] = useState<View | null>("front");
   const [likeError, setLikeError] = useState("");
+  const [zip, setZip] = useState(0);
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<MerchScene | null>(null);
   const first = useRef(pick);
@@ -149,6 +154,7 @@ export function MerchStudio() {
           scene.current = createMerchScene(host.current, first.current, {
             ready: () => setPhase("ready"),
             loading: setBusy,
+            zip: setZip,
             error: () => setPhase("nogl"),
             spin: (on) => {
               setSpin(on);
@@ -175,6 +181,14 @@ export function MerchStudio() {
 
   const item = product(pick.kind);
   const set = <K extends keyof Pick>(k: K, v: Pick[K]) => setPick((p) => ({ ...p, [k]: v }));
+  const moveZip = (v: number) => {
+    setZip(v);
+    scene.current?.zip(v);
+  };
+  // a fresh look at the zip hoodie starts zipped up
+  useEffect(() => {
+    if (pick.kind !== "jacket") setZip(0);
+  }, [pick.kind]);
   const goView = (v: View) => {
     setView(v);
     setSpin(false);
@@ -304,6 +318,35 @@ export function MerchStudio() {
               </button>
             </div>
           </div>
+          {pick.kind === "jacket" && (
+            <div className="mt-3 flex flex-wrap items-center gap-3 border-2 border-border bg-card px-3 py-2">
+              <label htmlFor="zip-range" className="font-pixel text-[10px] text-primary">
+                ZIP
+              </label>
+              <input
+                id="zip-range"
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round(zip * 100)}
+                onChange={(e) => moveZip(Number(e.target.value) / 100)}
+                aria-valuetext={
+                  zip < 0.02 ? "Zipped up" : zip > 0.98 ? "Open" : `${Math.round(zip * 100)}% open`
+                }
+                className="h-2 min-w-[140px] flex-1 cursor-pointer accent-[var(--primary)]"
+              />
+              <button
+                type="button"
+                onClick={() => moveZip(zip > 0.5 ? 0 : 1)}
+                className="border-2 border-border px-2.5 py-1 text-xs font-bold hover:bg-muted"
+              >
+                {zip > 0.5 ? "Zip it up" : "Unzip"}
+              </button>
+              <span className="w-full text-xs text-muted-foreground">
+                Or grab the puller on the model and drag it down.
+              </span>
+            </div>
+          )}
           <p className="mt-3 text-sm text-muted-foreground">
             Drag to turn it. Tap X, Y or Z on the gizmo to look along that axis. Pinch, use the
             buttons, or hold Ctrl and scroll to zoom. Double tap to face the front again.
@@ -439,6 +482,29 @@ export function MerchStudio() {
               Just a preview, nothing is saved. The number goes on the left sleeve and the college
               crest on the right.
             </p>
+            <p className="mt-4 text-xs font-bold">Number style</p>
+            <div className="mt-1.5 grid grid-cols-3 gap-2">
+              {NUMBER_STYLES.map((st) => (
+                <StyleCard
+                  key={st.id}
+                  id={st.id}
+                  name={st.name}
+                  on={pick.style === st.id}
+                  pick={pick}
+                  votes={tally.counts[styleKey(st.id)] ?? 0}
+                  voted={tally.mine.includes(styleKey(st.id))}
+                  onPick={() => set("style", st.id)}
+                  onVote={async () => {
+                    setLikeError("");
+                    const err = await toggle("number", st.id);
+                    if (err) setLikeError(err);
+                  }}
+                />
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Tap a style to see it on the sleeve. Tap its heart to vote for it.
+            </p>
           </Step>
 
           <Feedback kind={pick.kind} c={pick.colour} label={label} />
@@ -454,6 +520,78 @@ export function MerchStudio() {
       <Lineup />
       <Credits />
     </section>
+  );
+}
+
+/** One number style: a live preview on the fabric colour, and a heart to vote for it. */
+function StyleCard({
+  id,
+  name,
+  on,
+  pick,
+  votes,
+  voted,
+  onPick,
+  onVote,
+}: {
+  id: NumberStyle;
+  name: string;
+  on: boolean;
+  pick: Pick;
+  votes: number;
+  voted: boolean;
+  onPick: () => void;
+  onVote: () => void;
+}) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [fonts, setFonts] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void fontsReady().then(() => live && setFonts((n) => n + 1));
+    return () => {
+      live = false;
+    };
+  }, []);
+  useEffect(() => {
+    const cv = ref.current;
+    if (!cv) return;
+    const art = drawNumber(document.createElement("canvas"), pick.number, pick.colour, id);
+    cv.width = cv.height = 220;
+    const g = cv.getContext("2d")!;
+    g.fillStyle = colour(pick.colour).hex;
+    g.fillRect(0, 0, 220, 220);
+    g.drawImage(art, 0, 0, 220, 220);
+  }, [id, pick.number, pick.colour, fonts]);
+  return (
+    <div
+      className={`flex flex-col border-2 ${on ? "border-primary bg-secondary" : "border-border"}`}
+    >
+      <button
+        type="button"
+        onClick={onPick}
+        aria-pressed={on}
+        aria-label={`Show the ${name} number style`}
+        className="block"
+      >
+        <canvas ref={ref} className="block aspect-square w-full" />
+      </button>
+      <div className="flex items-center justify-between gap-1 px-1.5 py-1">
+        <span className="truncate text-[11px] font-bold leading-tight">{name}</span>
+        <button
+          type="button"
+          onClick={onVote}
+          aria-pressed={voted}
+          aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}`}
+          className="flex shrink-0 items-center gap-0.5 font-mono text-[11px]"
+        >
+          <Heart
+            aria-hidden="true"
+            className={`h-3.5 w-3.5 ${voted ? "fill-primary text-primary" : ""}`}
+          />
+          {votes}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -637,14 +775,14 @@ function PrintMap({ pick }: { pick: Pick }) {
   useEffect(() => {
     const cv = chipRef.current;
     if (!cv) return;
-    const art = drawNumberChip(document.createElement("canvas"), pick.number, pick.colour);
-    const side = art.height + 200;
+    const art = drawNumber(document.createElement("canvas"), pick.number, pick.colour, pick.style);
+    const side = art.height;
     cv.width = cv.height = side;
     const g = cv.getContext("2d")!;
     g.fillStyle = fabric;
     g.fillRect(0, 0, side, side);
-    g.drawImage(art, (side - art.width) / 2, 100);
-  }, [pick.number, pick.colour, fabric, fonts]);
+    g.drawImage(art, 0, 0);
+  }, [pick.number, pick.colour, pick.style, fabric, fonts]);
 
   const long = pick.kind === "hoodie" || pick.kind === "jacket";
   const tiles = [
@@ -657,10 +795,10 @@ function PrintMap({ pick }: { pick: Pick }) {
     },
     {
       tag: "LEFT SLEEVE",
-      title: "Number in a chip",
+      title: `Number: ${NUMBER_STYLES.find((st) => st.id === pick.style)!.name}`,
       size: `about ${long ? 7.5 : 6.6} cm tall`,
       body: <canvas ref={chipRef} className="h-full w-full" />,
-      note: "A microchip, pins and all, with the digits in the logo's own lettering.",
+      note: "Pick the style in step 03. Members can vote for the one they like best.",
     },
     {
       tag: "RIGHT SLEEVE",
