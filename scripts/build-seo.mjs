@@ -3,8 +3,17 @@
 import { readFileSync, writeFileSync } from "node:fs";
 
 try {
-  const { site, events, coreTeam, coreTeamSize, formatDate, eventDate, faculty, squadPages } =
-    await import("../src/lib/site.ts");
+  const {
+    site,
+    events,
+    coreTeam,
+    coreTeamSize,
+    formatDate,
+    eventDate,
+    faculty,
+    squadPages,
+    merch,
+  } = await import("../src/lib/site.ts");
   const { buildFaqs } = await import("../src/lib/faq-build.ts");
   const faqs = buildFaqs(site, events, formatDate, coreTeamSize);
   const bf = events.find((e) => e.slug === "bot-forge");
@@ -41,6 +50,16 @@ try {
     ["/workshops", "Workshops", `Workshops for members and students${soon("workshops")}.`],
     ["/projects", "Projects", `Projects built by the club${soon("projects")}.`],
     ["/gallery", "Gallery", `Photos from the club${soon("gallery")}.`],
+    // the merch page is shared with members only while it is a draft
+    ...(merch.draft
+      ? []
+      : [
+          [
+            "/merch",
+            "Merch",
+            "The club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, with prices and colours.",
+          ],
+        ]),
     ["/blog", "Blog", `Posts from the club${soon("blog")}.`],
     ["/contact", "Contact", "Instagram, event coordinators and the college address."],
     ["/faq", "FAQ", "Short factual answers about the club and Bot Forge."],
