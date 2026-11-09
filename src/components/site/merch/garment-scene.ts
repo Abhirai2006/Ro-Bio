@@ -10,7 +10,8 @@ import { ViewHelper } from "three/examples/jsm/helpers/ViewHelper.js";
 import type { MerchKind } from "@/lib/site";
 import type { ColourId, Pick } from "@/lib/merch";
 import { makeFabricTextures, type Knit } from "./fabric";
-import { CREST_SRC, LOGO_SRC, drawNameplate, drawNumberChip, fontsReady } from "./art";
+import { createZipRig, type ZipRig } from "./zip-rig";
+import { CREST_SRC, LOGO_SRC, drawNameplate, drawNumber, fontsReady } from "./art";
 
 export type View = "front" | "back" | "right" | "left";
 
@@ -19,6 +20,8 @@ export type MerchScene = {
   view: (v: View) => void;
   spin: (on: boolean) => void;
   zoom: (k: number) => void;
+  /** The zip on the zip hoodie: 0 is closed, 1 is open. */
+  zip: (v: number) => void;
   dispose: () => void;
 };
 
@@ -59,6 +62,7 @@ type Built = {
   metal: THREE.MeshStandardMaterial[];
   box: THREE.Box3;
   points: Record<"right" | "left" | "back", THREE.Vector3>;
+  zip: ZipRig | null;
   dispose: () => void;
 };
 
@@ -68,6 +72,7 @@ export function createMerchScene(
   on: {
     ready: () => void;
     loading: (busy: boolean) => void;
+    zip: (v: number) => void;
     spin: (on: boolean) => void;
     error: () => void;
   },
@@ -165,7 +170,7 @@ export function createMerchScene(
   };
   let pick = { ...initial };
   drawNameplate(nameCv, pick.name, pick.colour);
-  drawNumberChip(chipCv, pick.number, pick.colour);
+  drawNumber(chipCv, pick.number, pick.colour, pick.style);
   const nameTex = canvasTex(nameCv),
     chipTex = canvasTex(chipCv);
   const loader = new THREE.TextureLoader();
@@ -179,7 +184,7 @@ export function createMerchScene(
     crestTex = image(CREST_SRC);
   const redrawArt = () => {
     drawNameplate(nameCv, pick.name, pick.colour);
-    drawNumberChip(chipCv, pick.number, pick.colour);
+    drawNumber(chipCv, pick.number, pick.colour, pick.style);
     nameTex.needsUpdate = chipTex.needsUpdate = true;
     dirty = true;
   };
@@ -295,6 +300,13 @@ export function createMerchScene(
           sheenColor: new THREE.Color(P.sheen),
           side: THREE.DoubleSide,
         });
+        // the inside of the cloth reads as a lining: a touch darker than the outside
+        m.onBeforeCompile = (sh) => {
+          sh.fragmentShader = sh.fragmentShader.replace(
+            "#include <color_fragment>",
+            "#include <color_fragment>\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.62;",
+          );
+        };
         fabric.push(m);
         o.material = m;
         if (o.name !== "hood") fabricMeshes.push(o);
@@ -306,6 +318,16 @@ export function createMerchScene(
         }
       src.dispose();
     });
+    group.updateMatrixWorld(true);
+    // the zip hoodie's front can open: cut it before the prints are laid on
+    const zip =
+      kind === "jacket"
+        ? createZipRig(
+            root,
+            metal[0] ??
+              new THREE.MeshStandardMaterial({ color: P.metal, metalness: 0.9, roughness: 0.32 }),
+          )
+        : null;
     group.updateMatrixWorld(true);
 
     const pr = PRINT[kind];
@@ -349,7 +371,7 @@ export function createMerchScene(
       }
       return n ? sum / n : 0;
     };
-    const sleeve = (sd: 1 | -1, mat: THREE.Material, w: number) => {
+    const sleeve = (sd: 1 | -1, mat: THREE.Material, w: number, h = pr.badge) => {
       const up = new THREE.Vector3(-sd * Math.sin(pr.arm), Math.cos(pr.arm), 0);
       const z = sleeveZ(sd);
       return (
@@ -359,7 +381,7 @@ export function createMerchScene(
           new THREE.Vector3(sd * 1.5, pr.sleeveY + 1.5 * Math.tan(pr.tilt ?? 0), z),
           new THREE.Vector3(-sd, -Math.tan(pr.tilt ?? 0), 0),
           up,
-          [w, pr.badge],
+          [w, h],
           // shallow, so a badge on a short sleeve never wraps onto the body beside it
           pr.tilt ? 0.045 : 0.06,
           mat,
@@ -369,7 +391,8 @@ export function createMerchScene(
     };
     // the wearer's right arm is on -x, the left on +x
     const right = sleeve(-1, prints.crest, pr.badge * (568 / 632));
-    const left = sleeve(1, prints.chip, pr.badge * (640 / 720));
+    // the number art is square
+    const left = sleeve(1, prints.chip, pr.badge * 1.2, pr.badge * 1.2);
 
     const box = new THREE.Box3().setFromObject(group);
     return {
@@ -379,7 +402,9 @@ export function createMerchScene(
       metal,
       box,
       points: { back, right, left },
+      zip,
       dispose: () => {
+        zip?.dispose();
         group.traverse((o) => {
           if (o instanceof THREE.Mesh && o.geometry instanceof DecalGeometry) o.geometry.dispose();
         });
@@ -515,6 +540,7 @@ export function createMerchScene(
       gizmo.update(dt);
       moving = true;
     }
+    if (current?.zip?.update(dt)) moving = true;
     if (spinIn && current) {
       const k = Math.min(1, (now - spinIn.t0) / 700);
       current.group.rotation.y = -0.35 * (1 - ease(k));
@@ -583,6 +609,63 @@ export function createMerchScene(
     if (gizmo.handleClick(e)) dirty = true;
   };
   canvas.addEventListener("pointerdown", onGizmoDown, { capture: true });
+
+  // dragging the zip puller: it slides along the zip line, the orbit controls stay out of it
+  const pointer = new THREE.Vector2();
+  const ray = new THREE.Raycaster();
+  const aim = (e: PointerEvent) => {
+    const r = canvas.getBoundingClientRect();
+    pointer.set(
+      ((e.clientX - r.left) / r.width) * 2 - 1,
+      -((e.clientY - r.top) / r.height) * 2 + 1,
+    );
+    ray.setFromCamera(pointer, camera);
+  };
+  let dragging: number | null = null;
+  const onZipDown = (e: PointerEvent) => {
+    const z = current?.zip;
+    if (!z || inGizmo(e)) return;
+    aim(e);
+    if (!ray.intersectObjects(z.handles, false).length) return;
+    e.stopImmediatePropagation();
+    stopSpin();
+    dragging = e.pointerId;
+    canvas.setPointerCapture(e.pointerId);
+    canvas.style.cursor = "grabbing";
+  };
+  const local = new THREE.Ray(),
+    hit = new THREE.Vector3(),
+    inv = new THREE.Matrix4();
+  const onZipMove = (e: PointerEvent) => {
+    const z = current?.zip;
+    if (!z) return;
+    aim(e);
+    if (dragging === null) {
+      canvas.style.cursor = ray.intersectObjects(z.handles, false).length ? "grab" : "";
+      return;
+    }
+    e.stopImmediatePropagation();
+    // follow the pointer on an upright plane through the zip line, in the garment's own space
+    inv.copy(current!.group.matrixWorld).invert();
+    local.copy(ray.ray).applyMatrix4(inv);
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -z.lineZ(0.4));
+    if (!local.intersectPlane(plane, hit)) return;
+    const v = z.valueAt(hit.y);
+    z.setTarget(v);
+    on.zip(v);
+    dirty = true;
+  };
+  const onZipUp = (e: PointerEvent) => {
+    if (dragging === null) return;
+    e.stopImmediatePropagation();
+    canvas.releasePointerCapture(dragging);
+    dragging = null;
+    canvas.style.cursor = "";
+  };
+  canvas.addEventListener("pointerdown", onZipDown, { capture: true });
+  canvas.addEventListener("pointermove", onZipMove, { capture: true });
+  canvas.addEventListener("pointerup", onZipUp, { capture: true });
+  canvas.addEventListener("pointercancel", onZipUp, { capture: true });
   const onDbl = () => current && goTo(viewPose("front"));
   canvas.addEventListener("dblclick", onDbl);
 
@@ -607,7 +690,13 @@ export function createMerchScene(
       const prev = pick;
       pick = { ...p };
       if (p.colour !== prev.colour) tintAnim = 0.45;
-      if (p.name !== prev.name || p.number !== prev.number || p.colour !== prev.colour) redrawArt();
+      if (
+        p.name !== prev.name ||
+        p.number !== prev.number ||
+        p.colour !== prev.colour ||
+        p.style !== prev.style
+      )
+        redrawArt();
       if (p.kind !== prev.kind) {
         canvas.style.opacity = "0.2";
         void show(p.kind);
@@ -623,6 +712,10 @@ export function createMerchScene(
       const p = tween ? tween.to : pose();
       const dist = THREE.MathUtils.clamp(p.dist * k, controls.minDistance, controls.maxDistance);
       goTo({ ...pose(), dist }, 320);
+    },
+    zip(v) {
+      current?.zip?.setTarget(v);
+      dirty = true;
     },
     spin(onOff) {
       controls.autoRotate = onOff;
@@ -640,6 +733,10 @@ export function createMerchScene(
       document.removeEventListener("visibilitychange", onVis);
       canvas.removeEventListener("dblclick", onDbl);
       canvas.removeEventListener("pointerdown", onGizmoDown, { capture: true });
+      canvas.removeEventListener("pointerdown", onZipDown, { capture: true });
+      canvas.removeEventListener("pointermove", onZipMove, { capture: true });
+      canvas.removeEventListener("pointerup", onZipUp, { capture: true });
+      canvas.removeEventListener("pointercancel", onZipUp, { capture: true });
       controls.dispose();
       gizmo.dispose();
       cache.forEach((p) =>
