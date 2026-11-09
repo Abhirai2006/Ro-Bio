@@ -6,8 +6,10 @@
 - [x] 3D pick-and-place arm with human-like motion, auto and manual modes.
 - [x] Venue map shown straight away on Contact and Bot Forge.
 - [x] What we work on, vision and mission, from the club's website brief.
+- [x] Merch drafts page for members: 3D zip hoodie, hoodie, tee and polo, likes per piece and colour, and notes for the core team.
 
 ## Next
+- [ ] Merch: swap in the designer's final artwork, confirm the fleece weight (`gsm` in `merch`), then set `draft: false`.
 - [ ] Real content from the club: our story (About), workshop speakers, project write-ups, photos for Gallery and Team.
 - [ ] Bot Forge registration, once the club confirms the rules.
 - [ ] Upgrade the build tools (Vite, Wrangler, Cloudflare plugin) together and retest. Their audit warnings only affect development, not visitors.
