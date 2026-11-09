@@ -72,10 +72,14 @@ function Step({ n, title, children }: { n: string; title: string; children: Reac
   );
 }
 
+/** Likes and votes are for members while the merch is a draft; the public showcase has none, and sets no cookie. */
+const voting = merch.draft;
+
 function useTally() {
   const [tally, setTally] = useState<Tally>({ counts: {}, mine: [] });
   const [state, setState] = useState<"loading" | "ready" | "offline">("loading");
   useEffect(() => {
+    if (!voting) return;
     let live = true;
     const local = readLiked();
     if (local.length) setTally((t) => ({ ...t, mine: local }));
@@ -380,11 +384,13 @@ export function MerchStudio() {
                     </span>
                     <span className="mt-2 flex items-baseline justify-between gap-1">
                       <span className="font-mono text-sm font-semibold">{rupees(p.price)}</span>
-                      <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
-                        <Heart aria-hidden="true" className="h-3 w-3" />
-                        {pieceLikes(tally, p.kind)}
-                        <span className="sr-only"> likes</span>
-                      </span>
+                      {voting && (
+                        <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
+                          <Heart aria-hidden="true" className="h-3 w-3" />
+                          {pieceLikes(tally, p.kind)}
+                          <span className="sr-only"> likes</span>
+                        </span>
+                      )}
                     </span>
                   </label>
                 );
@@ -426,32 +432,36 @@ export function MerchStudio() {
             </div>
           </Step>
 
-          <div className="border-2 border-border bg-muted p-3">
-            <button
-              type="button"
-              onClick={onLike}
-              aria-pressed={liked}
-              disabled={state === "offline"}
-              className={`flex w-full items-center justify-center gap-2 border-2 border-border px-4 py-3 font-bold shadow-hard transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60 ${
-                liked ? "bg-primary text-primary-foreground" : "bg-background"
-              }`}
-            >
-              <Heart
-                aria-hidden="true"
-                className={`h-5 w-5 transition-transform ${liked ? "scale-110 fill-current" : ""}`}
-              />
-              {liked ? `You like the ${label}` : `Like the ${label}`}
-            </button>
-            <p className="mt-2 text-center text-sm" aria-live="polite">
-              <span className="font-mono font-semibold">{likes}</span>{" "}
-              {likes === 1 ? "member likes" : "members like"} this colour
-              {state === "offline" && " (likes are offline right now)"}
-            </p>
-            {likeError && <p className="mt-1 text-center text-sm text-destructive">{likeError}</p>}
-            <p className="mt-1 text-center text-xs text-muted-foreground">
-              One like per piece and colour from each browser. Tap again to take it back.
-            </p>
-          </div>
+          {voting && (
+            <div className="border-2 border-border bg-muted p-3">
+              <button
+                type="button"
+                onClick={onLike}
+                aria-pressed={liked}
+                disabled={state === "offline"}
+                className={`flex w-full items-center justify-center gap-2 border-2 border-border px-4 py-3 font-bold shadow-hard transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60 ${
+                  liked ? "bg-primary text-primary-foreground" : "bg-background"
+                }`}
+              >
+                <Heart
+                  aria-hidden="true"
+                  className={`h-5 w-5 transition-transform ${liked ? "scale-110 fill-current" : ""}`}
+                />
+                {liked ? `You like the ${label}` : `Like the ${label}`}
+              </button>
+              <p className="mt-2 text-center text-sm" aria-live="polite">
+                <span className="font-mono font-semibold">{likes}</span>{" "}
+                {likes === 1 ? "member likes" : "members like"} this colour
+                {state === "offline" && " (likes are offline right now)"}
+              </p>
+              {likeError && (
+                <p className="mt-1 text-center text-sm text-destructive">{likeError}</p>
+              )}
+              <p className="mt-1 text-center text-xs text-muted-foreground">
+                One like per piece and colour from each browser. Tap again to take it back.
+              </p>
+            </div>
+          )}
 
           <Step n="03" title="Try your name and number">
             <div className="grid grid-cols-[1fr_88px] gap-2">
@@ -493,6 +503,7 @@ export function MerchStudio() {
                   pick={pick}
                   votes={tally.counts[styleKey(st.id)] ?? 0}
                   voted={tally.mine.includes(styleKey(st.id))}
+                  voting={voting}
                   onPick={() => set("style", st.id)}
                   onVote={async () => {
                     setLikeError("");
@@ -503,19 +514,23 @@ export function MerchStudio() {
               ))}
             </div>
             <p className="mt-1.5 text-xs text-muted-foreground">
-              Tap a style to see it on the sleeve. Tap its heart to vote for it.
+              {voting
+                ? "Tap a style to see it on the sleeve. Tap its heart to vote for it."
+                : "Tap a style to see it on the sleeve."}
             </p>
           </Step>
 
-          <Feedback kind={pick.kind} c={pick.colour} label={label} />
+          {voting && <Feedback kind={pick.kind} c={pick.colour} label={label} />}
         </div>
       </div>
 
-      <Board
-        tally={tally}
-        state={state}
-        onPick={(kind, c) => setPick((p) => ({ ...p, kind, colour: c }))}
-      />
+      {voting && (
+        <Board
+          tally={tally}
+          state={state}
+          onPick={(kind, c) => setPick((p) => ({ ...p, kind, colour: c }))}
+        />
+      )}
       <PrintMap pick={pick} />
       <Lineup />
       <Credits />
@@ -531,6 +546,7 @@ function StyleCard({
   pick,
   votes,
   voted,
+  voting,
   onPick,
   onVote,
 }: {
@@ -540,6 +556,7 @@ function StyleCard({
   pick: Pick;
   votes: number;
   voted: boolean;
+  voting: boolean;
   onPick: () => void;
   onVote: () => void;
 }) {
@@ -577,19 +594,21 @@ function StyleCard({
       </button>
       <div className="flex items-center justify-between gap-1 px-1.5 py-1">
         <span className="truncate text-[11px] font-bold leading-tight">{name}</span>
-        <button
-          type="button"
-          onClick={onVote}
-          aria-pressed={voted}
-          aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}`}
-          className="flex shrink-0 items-center gap-0.5 font-mono text-[11px]"
-        >
-          <Heart
-            aria-hidden="true"
-            className={`h-3.5 w-3.5 ${voted ? "fill-primary text-primary" : ""}`}
-          />
-          {votes}
-        </button>
+        {voting && (
+          <button
+            type="button"
+            onClick={onVote}
+            aria-pressed={voted}
+            aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}`}
+            className="flex shrink-0 items-center gap-0.5 font-mono text-[11px]"
+          >
+            <Heart
+              aria-hidden="true"
+              className={`h-3.5 w-3.5 ${voted ? "fill-primary text-primary" : ""}`}
+            />
+            {votes}
+          </button>
+        )}
       </div>
     </div>
   );
