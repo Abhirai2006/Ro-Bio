@@ -5,7 +5,7 @@
 //   admin/*             needs the MERCH_ADMIN_PASSCODE secret (Cloudflare: Settings, Variables and Secrets)
 // No accounts. Each browser gets a random id in an HttpOnly cookie the first time it asks for the tally, and
 // the database keeps one like per id, piece and colour, so reloading the page never adds a second like.
-import { AUTHOR_MAX, NOTE_MAX, cleanText, isColour, isKind } from "@/lib/merch";
+import { AUTHOR_MAX, NOTE_MAX, cleanText, isColour, isKind, isStyle } from "@/lib/merch";
 import type { MerchStore } from "./merch-store";
 
 export type MerchEnv = {
@@ -108,7 +108,9 @@ export async function handleMerchApi(request: Request, env: MerchEnv): Promise<R
     const body = await readBody(request);
     if (!body) return json({ error: "Send the details as JSON." }, 400);
     const { kind, colour } = body;
-    if (!isKind(kind) || !isColour(colour))
+    // a like is for a piece in a colour, or (likes only) for a sleeve number style
+    const styleVote = route === "like" && kind === "number" && isStyle(colour);
+    if (!styleVote && (!isKind(kind) || !isColour(colour)))
       return json({ error: "Pick a piece and a colour." }, 400);
     if (await store.busy(await ipKey(request)))
       return json(
@@ -119,11 +121,13 @@ export async function handleMerchApi(request: Request, env: MerchEnv): Promise<R
     if (route === "like") {
       if (typeof body["liked"] !== "boolean")
         return json({ error: "Send liked as true or false." }, 400);
-      return json(await store.setLike(voter, kind, colour, body["liked"]));
+      return json(await store.setLike(voter, String(kind), String(colour), body["liked"]));
     }
     const text = cleanText(body["text"], NOTE_MAX);
     if (text.length < 2) return json({ error: "Write a few words first." }, 400);
     const name = cleanText(body["name"], AUTHOR_MAX).replace(/\n/g, " ");
+    if (!isKind(kind) || !isColour(colour))
+      return json({ error: "Pick a piece and a colour." }, 400);
     const ok = await store.addNote(voter, { kind, colour, name, text });
     if (!ok)
       return json(
