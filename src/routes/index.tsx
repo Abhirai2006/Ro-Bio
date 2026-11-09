@@ -5,6 +5,7 @@ import { Typed } from "@/components/site/Typed";
 import { LineFollower, RobotArm } from "@/components/site/RobotArm";
 import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
 import { FocusAreas } from "@/components/site/FocusAreas";
+import { MerchTeaser } from "@/components/site/MerchTeaser";
 import {
   contacts,
   coreTeamSize,
@@ -204,6 +205,8 @@ function Index() {
           </ul>
         </div>
       </section>
+
+      <MerchTeaser />
 
       <section className="mx-auto mt-20 max-w-6xl px-4" aria-label="Robo Sumo game">
         <SumoGame />
