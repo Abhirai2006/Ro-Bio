@@ -17,6 +17,7 @@ import { Route as CertificatesRouteImport } from './routes/certificates'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as MerchRouteImport } from './routes/merch'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as TeamRouteImport } from './routes/team'
@@ -25,6 +26,7 @@ import { Route as WorkshopsRouteImport } from './routes/workshops'
 import { Route as AdminCertificatesRouteImport } from './routes/admin.certificates'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
+import { Route as MerchAdminRouteImport } from './routes/merch_.admin'
 import { Route as RecruitAdminRouteImport } from './routes/recruit.admin'
 import { Route as RecruitJudgeRouteImport } from './routes/recruit.judge'
 import { Route as TeamSquadRouteImport } from './routes/team_.$squad'
@@ -73,6 +75,11 @@ const GalleryRoute = GalleryRouteImport.update({
   path: '/gallery',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MerchRoute = MerchRouteImport.update({
+  id: '/merch',
+  path: '/merch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -111,6 +118,11 @@ const EventsIndexRoute = EventsIndexRouteImport.update({
 const EventsSlugRoute = EventsSlugRouteImport.update({
   id: '/events/$slug',
   path: '/events/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchAdminRoute = MerchAdminRouteImport.update({
+  id: '/merch_/admin',
+  path: '/merch/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecruitAdminRoute = RecruitAdminRouteImport.update({
@@ -158,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
+  '/merch': typeof MerchRoute
   '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/team': typeof TeamRoute
@@ -165,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/merch/admin': typeof MerchAdminRoute
   '/recruit/admin': typeof RecruitAdminRoute
   '/recruit/judge': typeof RecruitJudgeRoute
   '/team/$squad': typeof TeamSquadRoute
@@ -183,6 +197,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
+  '/merch': typeof MerchRoute
   '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/team': typeof TeamRoute
@@ -190,6 +205,7 @@ export interface FileRoutesByTo {
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/merch/admin': typeof MerchAdminRoute
   '/recruit/admin': typeof RecruitAdminRoute
   '/recruit/judge': typeof RecruitJudgeRoute
   '/team/$squad': typeof TeamSquadRoute
@@ -209,6 +225,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/gallery': typeof GalleryRoute
+  '/merch': typeof MerchRoute
   '/privacy': typeof PrivacyRoute
   '/projects': typeof ProjectsRoute
   '/team': typeof TeamRoute
@@ -216,6 +233,7 @@ export interface FileRoutesById {
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
   '/events/$slug': typeof EventsSlugRoute
+  '/merch_/admin': typeof MerchAdminRoute
   '/recruit/admin': typeof RecruitAdminRoute
   '/recruit/judge': typeof RecruitJudgeRoute
   '/team_/$squad': typeof TeamSquadRoute
@@ -236,6 +254,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/gallery'
+    | '/merch'
     | '/privacy'
     | '/projects'
     | '/team'
@@ -243,6 +262,7 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/admin/certificates'
     | '/events/$slug'
+    | '/merch/admin'
     | '/recruit/admin'
     | '/recruit/judge'
     | '/team/$squad'
@@ -261,6 +281,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/gallery'
+    | '/merch'
     | '/privacy'
     | '/projects'
     | '/team'
@@ -268,6 +289,7 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/admin/certificates'
     | '/events/$slug'
+    | '/merch/admin'
     | '/recruit/admin'
     | '/recruit/judge'
     | '/team/$squad'
@@ -286,6 +308,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/faq'
     | '/gallery'
+    | '/merch'
     | '/privacy'
     | '/projects'
     | '/team'
@@ -293,6 +316,7 @@ export interface FileRouteTypes {
     | '/workshops'
     | '/admin/certificates'
     | '/events/$slug'
+    | '/merch_/admin'
     | '/recruit/admin'
     | '/recruit/judge'
     | '/team_/$squad'
@@ -312,6 +336,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   GalleryRoute: typeof GalleryRoute
+  MerchRoute: typeof MerchRoute
   PrivacyRoute: typeof PrivacyRoute
   ProjectsRoute: typeof ProjectsRoute
   TeamRoute: typeof TeamRoute
@@ -319,6 +344,7 @@ export interface RootRouteChildren {
   WorkshopsRoute: typeof WorkshopsRoute
   AdminCertificatesRoute: typeof AdminCertificatesRoute
   EventsSlugRoute: typeof EventsSlugRoute
+  MerchAdminRoute: typeof MerchAdminRoute
   RecruitAdminRoute: typeof RecruitAdminRoute
   RecruitJudgeRoute: typeof RecruitJudgeRoute
   TeamSquadRoute: typeof TeamSquadRoute
@@ -387,6 +413,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GalleryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/merch': {
+      id: '/merch'
+      path: '/merch'
+      fullPath: '/merch'
+      preLoaderRoute: typeof MerchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacy': {
       id: '/privacy'
       path: '/privacy'
@@ -441,6 +474,13 @@ declare module '@tanstack/react-router' {
       path: '/events/$slug'
       fullPath: '/events/$slug'
       preLoaderRoute: typeof EventsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merch_/admin': {
+      id: '/merch_/admin'
+      path: '/merch/admin'
+      fullPath: '/merch/admin'
+      preLoaderRoute: typeof MerchAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recruit/admin': {
@@ -504,6 +544,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   GalleryRoute: GalleryRoute,
+  MerchRoute: MerchRoute,
   PrivacyRoute: PrivacyRoute,
   ProjectsRoute: ProjectsRoute,
   TeamRoute: TeamRoute,
@@ -511,6 +552,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkshopsRoute: WorkshopsRoute,
   AdminCertificatesRoute: AdminCertificatesRoute,
   EventsSlugRoute: EventsSlugRoute,
+  MerchAdminRoute: MerchAdminRoute,
   RecruitAdminRoute: RecruitAdminRoute,
   RecruitJudgeRoute: RecruitJudgeRoute,
   TeamSquadRoute: TeamSquadRoute,
