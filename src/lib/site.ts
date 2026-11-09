@@ -399,7 +399,7 @@ export const merch = {
     "Draft designs. The final artwork from our designer is on its way, so this page will change.",
   priceNote: "Price is negotiable",
   /** The demo name and number on the 3D models. Members can type their own to see how it looks. */
-  demoName: "Thushar K L",
+  demoName: "Abhirai",
   demoNumber: "07",
   /** Zip hoodie and hoodie first: the club's own favourites. */
   products: [
