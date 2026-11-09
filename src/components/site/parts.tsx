@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { daysBetween, eventDate, nextEvent, site, todayInIndia } from "@/lib/site";
+import { daysBetween, eventDate, merch, nextEvent, site, todayInIndia } from "@/lib/site";
 import logo from "@/assets/robio-logo.jpg";
 import { HeaderEcg } from "@/components/site/HeaderEcg";
 
@@ -16,6 +16,8 @@ const nav = [
   { to: "/team", label: "Team", hint: "The people keeping it running" },
   { to: "/gallery", label: "Gallery", hint: "Photos and drawings" },
   { to: "/blog", label: "Blog", hint: "Lab notes" },
+  // the merch page joins the menu once it stops being a draft for members (merch.draft in src/lib/site.ts)
+  ...(merch.draft ? [] : ([{ to: "/merch", label: "Merch", hint: "The club kit in 3D" }] as const)),
   { to: "/contact", label: "Contact", hint: "Call us or DM us" },
 ] as const;
 
@@ -390,6 +392,11 @@ export function SiteFooter() {
           aria-label="Help and legal"
           className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-2 px-4 py-4 text-sm font-semibold"
         >
+          {!merch.draft && (
+            <Link to="/merch" className="underline underline-offset-4">
+              Merch
+            </Link>
+          )}
           <Link to="/faq" className="underline underline-offset-4">
             FAQ
           </Link>
