@@ -28,6 +28,7 @@ import {
   CREST_SRC,
   MONO_ASPECT,
   POSTER_ASPECT,
+  STARS_SRC,
   drawChestName,
   drawNumber,
   fontsReady,
@@ -771,6 +772,7 @@ function PrintMap({ pick }: { pick: Pick }) {
   const backRef = useRef<HTMLCanvasElement>(null);
   const chipRef = useRef<HTMLCanvasElement>(null);
   const [imgs, setImgs] = useState<{ poster?: HTMLImageElement; mono?: HTMLImageElement }>({});
+  const [stars, setStars] = useState<HTMLImageElement | null>(null);
   const [fonts, setFonts] = useState(0);
   const top = colour(printBase(pick.colour)).hex;
   const lower = colour(pick.colour).lower;
@@ -780,6 +782,9 @@ function PrintMap({ pick }: { pick: Pick }) {
   useEffect(() => {
     let live = true;
     void fontsReady().then(() => live && setFonts((n) => n + 1));
+    loadImage(STARS_SRC)
+      .then((img) => live && setStars(img))
+      .catch(() => {});
     return () => {
       live = false;
     };
@@ -800,7 +805,13 @@ function PrintMap({ pick }: { pick: Pick }) {
     cv.width = cv.height = 800;
     const g = cv.getContext("2d")!;
     g.clearRect(0, 0, 800, 800);
-    const name = drawChestName(document.createElement("canvas"), pick.name, pick.colour, layout);
+    const name = drawChestName(
+      document.createElement("canvas"),
+      pick.name,
+      pick.colour,
+      layout,
+      stars,
+    );
     const nm = CHEST_NAME[layout];
     if (layout === "patch") {
       // as worn: the name on the right chest, Mono on the left, so the name is on the left as you look at it
@@ -811,10 +822,10 @@ function PrintMap({ pick }: { pick: Pick }) {
       g.drawImage(name, 20, 400 - (nw * nm.h) / nm.w / 2, nw, (nw * nm.h) / nm.w);
     } else {
       const mw = 620;
-      if (imgs.mono) g.drawImage(imgs.mono, 90, 120, mw, mw * MONO_ASPECT);
-      g.drawImage(name, 100, 120 + mw * MONO_ASPECT + 30, 600, (600 * nm.h) / nm.w);
+      if (imgs.mono) g.drawImage(imgs.mono, 90, 70, mw, mw * MONO_ASPECT);
+      g.drawImage(name, 100, 70 + mw * MONO_ASPECT - 10, 600, (600 * nm.h) / nm.w);
     }
-  }, [imgs.mono, pick.name, pick.colour, layout, fonts]);
+  }, [imgs.mono, stars, pick.name, pick.colour, layout, fonts]);
 
   useEffect(() => {
     const cv = backRef.current;
@@ -843,8 +854,8 @@ function PrintMap({ pick }: { pick: Pick }) {
       size: long ? "Mono about 10 cm wide" : "Mono about 25 cm wide",
       body: <canvas ref={frontRef} className="h-full w-full" />,
       note: long
-        ? "The design team's robot on the left chest, your name with a sparkle on the right."
-        : "The design team's robot across the chest, your name in pixel letters under it.",
+        ? "The design team's robot on the left chest, your name over their stars on the right."
+        : "The design team's robot across the chest, your name over their stars under it.",
       bg: top,
     },
     {
@@ -859,7 +870,7 @@ function PrintMap({ pick }: { pick: Pick }) {
     {
       tag: "LEFT SLEEVE",
       title: `Number: ${NUMBER_STYLES.find((st) => st.id === pick.style)!.name}`,
-      size: `about ${long ? 7.5 : 6.6} cm tall`,
+      size: `about ${long ? 11 : 6.6} cm wide`,
       body: <canvas ref={chipRef} className="h-full w-full" />,
       note: "Pick the style in step 03. Members can vote for the one they like best.",
       bg: top,
@@ -867,7 +878,7 @@ function PrintMap({ pick }: { pick: Pick }) {
     {
       tag: "RIGHT SLEEVE",
       title: "College crest",
-      size: `about ${long ? 7.5 : 6.6} cm tall`,
+      size: `about ${long ? 7.5 : 5.5} cm tall`,
       body: (
         <div className="grid h-full w-full place-items-center">
           <img src={CREST_SRC} alt="" className="h-[58%] w-auto" />
