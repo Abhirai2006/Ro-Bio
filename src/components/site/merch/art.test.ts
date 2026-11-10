@@ -10,11 +10,14 @@ describe("merch print art", () => {
     expect(posterSrc("white")).toBe("/merch/art/poster.webp");
     expect(posterSrc("lilac")).toBe("/merch/art/poster-lilac.webp");
     expect(posterSrc("duo")).toBe("/merch/art/poster-lilac.webp");
-    // the light Mono, blue on a white disc, goes on every colour
-    for (const c of merch.colours) expect(monoSrc(c.id)).toBe("/merch/art/mono-light.webp");
+    // the light Mono, blue on a white disc, everywhere but the black tee and polo, which take the line art
     for (const c of merch.colours)
-      for (const src of [posterSrc(c.id), monoSrc(c.id), STARS_SRC])
-        expect(existsSync(resolve("public", src.slice(1)))).toBe(true);
+      for (const p of merch.products) {
+        const line = c.id === "black" && (p.kind === "tee" || p.kind === "polo");
+        expect(monoSrc(c.id, p.kind)).toBe(`/merch/art/${line ? "mono-line" : "mono-light"}.webp`);
+        for (const src of [posterSrc(c.id), monoSrc(c.id, p.kind), STARS_SRC])
+          expect(existsSync(resolve("public", src.slice(1)))).toBe(true);
+      }
   });
 
   it("breaks a long name after its first word on the hoodie chest, never on the tee", () => {
