@@ -8,6 +8,8 @@ import {
   isKind,
   isStyle,
   pieceLikes,
+  printBase,
+  swatch,
 } from "@/lib/merch";
 import { merch } from "@/lib/site";
 
@@ -33,12 +35,23 @@ describe("merch page", () => {
     expect(isKind("jacket")).toBe(true);
     expect(isKind("socks")).toBe(false);
     expect(isColour("lilac")).toBe(true);
+    expect(isColour("duo")).toBe(true);
     expect(isColour("red")).toBe(false);
   });
 
-  it("offers the three number styles the club picked", () => {
-    expect(NUMBER_STYLES.map((s) => s.id)).toEqual(["plate", "ink", "kanji"]);
+  it("matches the design team's lilac and has a two-tone with white below", () => {
+    expect(merch.colours.find((c) => c.id === "lilac")?.hex).toBe("#b997ff");
+    expect(swatch("duo")).toContain("#f1f0ec");
+    expect(swatch("black")).toBe("#1a191f");
+    // the chest and sleeve prints sit on the lilac top of the two-tone
+    expect(printBase("duo")).toBe("lilac");
+    expect(printBase("white")).toBe("white");
+  });
+
+  it("offers the three number styles the club picked and the design team's pixel style", () => {
+    expect(NUMBER_STYLES.map((s) => s.id)).toEqual(["plate", "ink", "kanji", "pixel"]);
     expect(isStyle("kanji")).toBe(true);
+    expect(isStyle("pixel")).toBe(true);
     expect(isStyle("chip")).toBe(false);
   });
 
