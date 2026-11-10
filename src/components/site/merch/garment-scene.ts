@@ -11,7 +11,17 @@ import type { MerchKind } from "@/lib/site";
 import type { ColourId, Pick } from "@/lib/merch";
 import { makeFabricTextures, type Knit } from "./fabric";
 import { createZipRig, type ZipRig } from "./zip-rig";
-import { CREST_SRC, LOGO_SRC, drawNameplate, drawNumber, fontsReady } from "./art";
+import {
+  CREST_SRC,
+  MONO_ASPECT,
+  POSTER_ASPECT,
+  CHEST_NAME,
+  drawChestName,
+  drawNumber,
+  fontsReady,
+  monoSrc,
+  posterSrc,
+} from "./art";
 
 export type View = "front" | "back" | "right" | "left";
 
@@ -25,37 +35,114 @@ export type MerchScene = {
   dispose: () => void;
 };
 
-type Palette = { fabric: string; sheen: string; cord: string; metal: string };
+/** `lower` is the cloth below the two-tone line; on a one colour piece it is the same as `fabric`. */
+type Palette = { fabric: string; lower: string; sheen: string; cord: string; metal: string };
 
 const PALETTES: Record<ColourId, Palette> = {
-  black: { fabric: "#1f1f23", sheen: "#56565f", cord: "#a979fa", metal: "#4a4a51" },
-  white: { fabric: "#efeee9", sheen: "#ffffff", cord: "#201e2d", metal: "#c9c9d0" },
-  lilac: { fabric: "#ae9be6", sheen: "#ece4ff", cord: "#fffffa", metal: "#c9c9d0" },
+  black: {
+    fabric: "#1f1f23",
+    lower: "#1f1f23",
+    sheen: "#56565f",
+    cord: "#a979fa",
+    metal: "#4a4a51",
+  },
+  white: {
+    fabric: "#efeee9",
+    lower: "#efeee9",
+    sheen: "#ffffff",
+    cord: "#201e2d",
+    metal: "#c9c9d0",
+  },
+  lilac: {
+    fabric: "#b393f8",
+    lower: "#b393f8",
+    sheen: "#ece4ff",
+    cord: "#fffffa",
+    metal: "#c9c9d0",
+  },
+  duo: { fabric: "#b393f8", lower: "#efeee9", sheen: "#f1ecff", cord: "#fffffa", metal: "#c9c9d0" },
 };
 
 /** Exposure per colour, so black keeps its folds and white does not burn out. */
-const EXPOSURE: Record<ColourId, number> = { black: 1.15, white: 0.86, lilac: 0.98 };
+const EXPOSURE: Record<ColourId, number> = { black: 1.15, white: 0.86, lilac: 0.98, duo: 0.93 };
 
 /** Knit detail for the pieces whose model has no fabric texture of its own. */
 const KNIT: Partial<Record<MerchKind, Knit>> = { tee: "jersey", polo: "pique" };
 
 /**
- * Where the prints go on each model, in metres from the hem. `arm` is how far the upper sleeve leans out from
- * hanging straight down (radians), so the sleeve badges sit upright along the arm.
+ * Where the prints go on each model, in metres from the hem. `back` is the middle of the back poster and `poster`
+ * its width. `mono` and `name` are the front prints as [x, y, width]; the wearer's left chest is +x. `arm` is how
+ * far the upper sleeve leans out from hanging straight down (radians), so the sleeve badges sit upright along
+ * the arm. `split` is the two-tone line.
  */
+type Spot = [number, number, number];
 const PRINT: Record<
   MerchKind,
-  { back: number; logo: number; sleeveY: number; arm: number; badge: number; tilt?: number }
+  {
+    back: number;
+    poster: number;
+    mono: Spot;
+    name: Spot;
+    layout: "patch" | "line";
+    sleeveY: number;
+    arm: number;
+    badge: number;
+    tilt?: number;
+    split: number;
+  }
 > = {
-  jacket: { back: 0.46, logo: 0.25, sleeveY: 0.5, arm: 0.62, badge: 0.075 },
-  hoodie: { back: 0.44, logo: 0.25, sleeveY: 0.5, arm: 0.62, badge: 0.075 },
-  tee: { back: 0.5, logo: 0.25, sleeveY: 0.59, arm: 0.95, badge: 0.055, tilt: -0.15 },
-  polo: { back: 0.49, logo: 0.24, sleeveY: 0.595, arm: 0.95, badge: 0.055, tilt: -0.15 },
+  jacket: {
+    back: 0.44,
+    poster: 0.3,
+    mono: [0.118, 0.53, 0.112],
+    name: [-0.125, 0.53, 0.13],
+    layout: "patch",
+    sleeveY: 0.5,
+    arm: 0.62,
+    badge: 0.075,
+    split: 0.27,
+  },
+  hoodie: {
+    back: 0.42,
+    poster: 0.3,
+    mono: [0.118, 0.53, 0.112],
+    name: [-0.125, 0.53, 0.13],
+    layout: "patch",
+    sleeveY: 0.5,
+    arm: 0.62,
+    badge: 0.075,
+    split: 0.27,
+  },
+  tee: {
+    back: 0.45,
+    poster: 0.3,
+    mono: [0, 0.5, 0.25],
+    name: [0, 0.37, 0.24],
+    layout: "line",
+    sleeveY: 0.59,
+    arm: 0.95,
+    badge: 0.055,
+    tilt: -0.15,
+    split: 0.25,
+  },
+  polo: {
+    back: 0.44,
+    poster: 0.29,
+    mono: [0, 0.452, 0.23],
+    name: [0, 0.335, 0.22],
+    layout: "line",
+    sleeveY: 0.595,
+    arm: 0.95,
+    badge: 0.055,
+    tilt: -0.15,
+    split: 0.25,
+  },
 };
 
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 type Built = {
+  kind: MerchKind;
   group: THREE.Group;
   fabric: THREE.MeshPhysicalMaterial[];
   cord: THREE.MeshStandardMaterial[];
@@ -160,7 +247,8 @@ export function createMerchScene(
   const aniso = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const knit = makeFabricTextures(aniso);
 
-  const nameCv = document.createElement("canvas"),
+  const patchCv = document.createElement("canvas"),
+    lineCv = document.createElement("canvas"),
     chipCv = document.createElement("canvas");
   const canvasTex = (cv: HTMLCanvasElement) => {
     const t = new THREE.CanvasTexture(cv);
@@ -169,9 +257,14 @@ export function createMerchScene(
     return t;
   };
   let pick = { ...initial };
-  drawNameplate(nameCv, pick.name, pick.colour);
-  drawNumber(chipCv, pick.number, pick.colour, pick.style);
-  const nameTex = canvasTex(nameCv),
+  const drawArt = () => {
+    drawChestName(patchCv, pick.name, pick.colour, "patch");
+    drawChestName(lineCv, pick.name, pick.colour, "line");
+    drawNumber(chipCv, pick.number, pick.colour, pick.style);
+  };
+  drawArt();
+  const patchTex = canvasTex(patchCv),
+    lineTex = canvasTex(lineCv),
     chipTex = canvasTex(chipCv);
   const loader = new THREE.TextureLoader();
   const image = (src: string) => {
@@ -180,12 +273,17 @@ export function createMerchScene(
     t.anisotropy = aniso;
     return t;
   };
-  const logoTex = image(LOGO_SRC),
-    crestTex = image(CREST_SRC);
+  const crestTex = image(CREST_SRC);
+  // the design team's art comes in versions for each fabric; each file is fetched the first time it is needed
+  const art = new Map<string, THREE.Texture>();
+  const artTex = (src: string) => {
+    let t = art.get(src);
+    if (!t) art.set(src, (t = image(src)));
+    return t;
+  };
   const redrawArt = () => {
-    drawNameplate(nameCv, pick.name, pick.colour);
-    drawNumber(chipCv, pick.number, pick.colour, pick.style);
-    nameTex.needsUpdate = chipTex.needsUpdate = true;
+    drawArt();
+    patchTex.needsUpdate = lineTex.needsUpdate = chipTex.needsUpdate = true;
     dirty = true;
   };
   void fontsReady().then(() => !disposed && redrawArt());
@@ -202,24 +300,60 @@ export function createMerchScene(
       metalness: 0,
     });
   const prints = {
-    logo: printMat(logoTex, 0.58),
-    name: printMat(nameTex),
+    poster: printMat(artTex(posterSrc(pick.colour)), 0.62),
+    mono: printMat(artTex(monoSrc(pick.colour)), 0.6),
+    patch: printMat(patchTex),
+    line: printMat(lineTex),
     chip: printMat(chipTex),
     crest: printMat(crestTex, 0.72),
+  };
+  const swapArt = () => {
+    prints.poster.map = artTex(posterSrc(pick.colour));
+    prints.mono.map = artTex(monoSrc(pick.colour));
+    dirty = true;
   };
 
   const shown: Record<keyof Palette, THREE.Color> = {
     fabric: new THREE.Color(PALETTES[pick.colour].fabric),
+    lower: new THREE.Color(PALETTES[pick.colour].lower),
     sheen: new THREE.Color(PALETTES[pick.colour].sheen),
     cord: new THREE.Color(PALETTES[pick.colour].cord),
     metal: new THREE.Color(PALETTES[pick.colour].metal),
   };
   let tintAnim = 0;
+  // the two-tone line, shared by every fabric material: the colour below it and its height on the piece on show
+  const duo = { uLower: { value: shown.lower }, uSplit: { value: PRINT[pick.kind].split } };
 
   const gltf = new GLTFLoader();
   const cache = new Map<MerchKind, Promise<Built>>();
   let current: Built | null = null;
   const raycaster = new THREE.Raycaster();
+
+  /**
+   * Keeps only the cloth that faces the same way as the print. The projection box also reaches the lining and the
+   * inside of the collar behind it, which would show the print from inside once the zip hoodie opens.
+   */
+  function keepFacing(g: THREE.BufferGeometry, n: THREE.Vector3) {
+    const pos = g.getAttribute("position"),
+      nor = g.getAttribute("normal");
+    if (!pos || !nor) return;
+    const keep: number[] = [];
+    for (let t = 0; t < pos.count; t += 3) {
+      let d = 0;
+      for (let k = 0; k < 3; k++)
+        d += nor.getX(t + k) * n.x + nor.getY(t + k) * n.y + nor.getZ(t + k) * n.z;
+      if (d > 0.3) keep.push(t, t + 1, t + 2);
+    }
+    if (keep.length === pos.count) return;
+    for (const name of Object.keys(g.attributes)) {
+      const a = g.getAttribute(name);
+      const out = new Float32Array(keep.length * a.itemSize);
+      keep.forEach((i, j) => {
+        for (let c = 0; c < a.itemSize; c++) out[j * a.itemSize + c] = a.getComponent(i, c);
+      });
+      g.setAttribute(name, new THREE.BufferAttribute(out, a.itemSize));
+    }
+  }
 
   /** Shoots a ray at the garment and lays a print where it lands, facing out, `up` along the cloth. */
   function project(
@@ -231,6 +365,7 @@ export function createMerchScene(
     depth: number,
     mat: THREE.Material,
     parent: THREE.Group,
+    made?: THREE.Mesh[],
   ) {
     raycaster.set(origin, dir.clone().normalize());
     const hit = raycaster.intersectObjects(targets, false)[0];
@@ -254,6 +389,7 @@ export function createMerchScene(
         euler,
         new THREE.Vector3(size[0], size[1], depth),
       );
+      keepFacing(g, n);
       if (!g.getAttribute("position")?.count) {
         g.dispose();
         continue;
@@ -262,6 +398,7 @@ export function createMerchScene(
       d.receiveShadow = true;
       d.renderOrder = 2;
       parent.add(d);
+      made?.push(d);
     }
     return hit.point.clone();
   }
@@ -320,11 +457,33 @@ export function createMerchScene(
         });
         // the inside of the cloth reads as a lining: a touch darker than the outside, but lit by light bouncing
         // around inside the garment, so an open neck or hood never shows a black hole
+        // On a two-tone piece the cloth below the line takes the lower colour, with a soft seam where they meet.
         m.onBeforeCompile = (sh) => {
+          sh.uniforms["uLower"] = duo.uLower;
+          sh.uniforms["uSplit"] = duo.uSplit;
+          sh.vertexShader = sh.vertexShader
+            .replace("void main() {", "varying float vDuoY;\nvoid main() {")
+            .replace(
+              "#include <project_vertex>",
+              "#include <project_vertex>\n  vDuoY = (modelMatrix * vec4(transformed, 1.0)).y;",
+            );
           sh.fragmentShader = sh.fragmentShader
             .replace(
+              "void main() {",
+              "uniform vec3 uLower;\nuniform float uSplit;\nvarying float vDuoY;\nvoid main() {",
+            )
+            .replace(
               "#include <color_fragment>",
-              "#include <color_fragment>\n  vec3 liningBase = diffuseColor.rgb;\n  if (!gl_FrontFacing) diffuseColor.rgb *= 0.8;",
+              [
+                "#include <color_fragment>",
+                "  if (distance(uLower, diffuseColor.rgb) > 0.002) {",
+                "    float duoD = vDuoY - uSplit;",
+                "    diffuseColor.rgb = mix(uLower, diffuseColor.rgb, smoothstep(-0.0012, 0.0012, duoD));",
+                "    diffuseColor.rgb *= 1.0 - 0.2 * (1.0 - smoothstep(0.0, 0.0035, abs(duoD)));",
+                "  }",
+                "  vec3 liningBase = diffuseColor.rgb;",
+                "  if (!gl_FrontFacing) diffuseColor.rgb *= 0.8;",
+              ].join("\n"),
             )
             .replace(
               "#include <dithering_fragment>",
@@ -355,29 +514,40 @@ export function createMerchScene(
     group.updateMatrixWorld(true);
 
     const pr = PRINT[kind];
-    const nameW = pr.logo * 1.02,
-      nameH = nameW * (360 / 1600);
+    const upY = new THREE.Vector3(0, 1, 0);
     const back =
       project(
         fabricMeshes,
         new THREE.Vector3(0, pr.back, -1.5),
         new THREE.Vector3(0, 0, 1),
-        new THREE.Vector3(0, 1, 0),
-        [pr.logo, pr.logo],
+        upY,
+        [pr.poster, pr.poster * POSTER_ASPECT],
         0.14,
-        prints.logo,
+        prints.poster,
         group,
       ) ?? new THREE.Vector3(0, pr.back, -0.12);
-    project(
-      fabricMeshes,
-      new THREE.Vector3(0, pr.back - pr.logo / 2 - nameH / 2 + 0.008, -1.5),
-      new THREE.Vector3(0, 0, 1),
-      new THREE.Vector3(0, 1, 0),
-      [nameW, nameH],
-      0.14,
-      prints.name,
-      group,
+    // the front: Mono and the name; on the zip hoodie they open with their side of the zip
+    const front: THREE.Mesh[] = [];
+    const onFront = (spot: Spot, h: number, mat: THREE.Material) =>
+      project(
+        fabricMeshes,
+        new THREE.Vector3(spot[0], spot[1], 1.5),
+        new THREE.Vector3(0, 0, -1),
+        upY,
+        [spot[2], h],
+        0.1,
+        mat,
+        group,
+        front,
+      );
+    onFront(pr.mono, pr.mono[2] * MONO_ASPECT, prints.mono);
+    const nm = CHEST_NAME[pr.layout];
+    onFront(
+      pr.name,
+      (pr.name[2] * nm.h) / nm.w,
+      pr.layout === "patch" ? prints.patch : prints.line,
     );
+    if (zip) for (const m of front) zip.follow(m.geometry);
     /** How far forward the sleeve on this side sits at the badge height, read off the model itself. */
     const sleeveZ = (sd: 1 | -1) => {
       const v = new THREE.Vector3();
@@ -420,6 +590,7 @@ export function createMerchScene(
 
     const box = new THREE.Box3().setFromObject(group);
     return {
+      kind,
       group,
       fabric,
       cord,
@@ -449,6 +620,7 @@ export function createMerchScene(
   };
 
   function applyPalette(b: Built) {
+    duo.uSplit.value = PRINT[b.kind].split;
     for (const m of b.fabric) {
       m.color.copy(shown.fabric);
       m.sheenColor.copy(shown.sheen);
@@ -713,7 +885,10 @@ export function createMerchScene(
     set(p) {
       const prev = pick;
       pick = { ...p };
-      if (p.colour !== prev.colour) tintAnim = 0.45;
+      if (p.colour !== prev.colour) {
+        tintAnim = 0.45;
+        swapArt();
+      }
       if (
         p.name !== prev.name ||
         p.number !== prev.number ||
@@ -770,7 +945,7 @@ export function createMerchScene(
         ),
       );
       Object.values(prints).forEach((m) => m.dispose());
-      [nameTex, chipTex, logoTex, crestTex].forEach((t) => t.dispose());
+      [patchTex, lineTex, chipTex, crestTex, ...art.values()].forEach((t) => t.dispose());
       knit.dispose();
       envRT.dispose();
       pmrem.dispose();
