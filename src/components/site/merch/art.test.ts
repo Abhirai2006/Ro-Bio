@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { merch } from "@/lib/site";
-import { monoSrc, nameLines, posterSrc } from "./art";
+import { STARS_SRC, monoSrc, nameLines, posterSrc } from "./art";
 
 describe("merch print art", () => {
   it("puts the design team's art for each fabric on every colour, and every file is there", () => {
@@ -10,11 +10,10 @@ describe("merch print art", () => {
     expect(posterSrc("white")).toBe("/merch/art/poster.webp");
     expect(posterSrc("lilac")).toBe("/merch/art/poster-lilac.webp");
     expect(posterSrc("duo")).toBe("/merch/art/poster-lilac.webp");
-    expect(monoSrc("white")).toBe("/merch/art/mono-line.webp");
-    expect(monoSrc("black")).toBe("/merch/art/mono-dark.webp");
-    expect(monoSrc("duo")).toBe("/merch/art/mono-dark.webp");
+    // the light Mono, blue on a white disc, goes on every colour
+    for (const c of merch.colours) expect(monoSrc(c.id)).toBe("/merch/art/mono-light.webp");
     for (const c of merch.colours)
-      for (const src of [posterSrc(c.id), monoSrc(c.id)])
+      for (const src of [posterSrc(c.id), monoSrc(c.id), STARS_SRC])
         expect(existsSync(resolve("public", src.slice(1)))).toBe(true);
   });
 
