@@ -163,9 +163,10 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 ## The merch studio (members only, for now)
 
-<img src="docs/screenshots/merch.jpg" alt="The merch studio: a black zip hoodie in 3D beside the piece, colour, like and name pickers" width="100%" />
+<img src="docs/screenshots/merch.jpg" alt="The merch studio: a black zip hoodie in 3D with the Mono robot and a name on the chest, beside the piece, colour, like and name pickers" width="100%" />
 
-`/merch` shows the draft club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, in three colours.
+`/merch` shows the draft club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, in black, white,
+lilac and a lilac and white two-tone, with the artwork from our design team.
 Members can turn each piece, try their own name and number, like a piece in a colour and send a short note.
 While `merch.draft` is `true` in `src/lib/site.ts` the page is not in the menu, the sitemap or search engines:
 share the link in the club group.
@@ -173,8 +174,15 @@ share the link in the club group.
 - **Likes:** one per browser for each piece and colour, kept in a Cloudflare Durable Object (`MERCH_STORE`).
   A random id in an HttpOnly cookie stops a reload from liking twice. There are no accounts, so a different
   browser or a private window can like again.
-- **Sleeve number styles:** members pick Armour, Ink slash or Kanji (`NUMBER_STYLES` in `src/lib/merch.ts`,
+- **Artwork:** the design team's files live in `public/merch/art/`: the "Define the Future" back poster (a clear
+  backed version for black and white, and the lilac version with its background cut out for lilac and the
+  two-tone) and their robot Mono for the chest (white on a blue disc for the dark colours, line art for white).
+  The front name is drawn in pixel letters in `src/components/site/merch/art.ts`: on the hoodies it sits on the
+  right chest with a sparkle, on the tee and polo under Mono.
+- **Sleeve number styles:** members pick Armour, Ink slash, Kanji or Pixel (`NUMBER_STYLES` in `src/lib/merch.ts`,
   drawn in `src/components/site/merch/art.ts`) and can vote for their favourite. The votes show on the admin page.
+- **Two-tone:** a colour with a `lower` shade in `merch.colours` is split at the waist; the height for each piece is
+  `split` in `PRINT` in `src/components/site/merch/garment-scene.ts`.
 - **Zip:** the zip hoodie's zip can be dragged open on the model or with the slider under it
   (`src/components/site/merch/zip-rig.ts`).
 - **Notes:** only the core team reads them, at `/merch/admin`. Add the passcode once in the Cloudflare dashboard:
@@ -190,13 +198,13 @@ share the link in the club group.
 <table>
   <tr>
     <td align="center" width="50%"><img src="docs/screenshots/merch-zip.jpg" alt="The zip hoodie zipped up, half open and fully open" /><br /><sub><b>A working zip</b>: drag it down and the fronts part, sway and settle</sub></td>
-    <td align="center" width="50%"><img src="docs/screenshots/merch-numbers.jpg" alt="The sleeve number in the Armour, Ink slash and Kanji styles" /><br /><sub><b>Three sleeve number styles</b> members choose and vote for</sub></td>
+    <td align="center" width="50%"><img src="docs/screenshots/merch-numbers.jpg" alt="The sleeve number in the Armour, Ink slash, Kanji and Pixel styles" /><br /><sub><b>Four sleeve number styles</b> members choose and vote for</sub></td>
   </tr>
 </table>
 
-<img src="docs/screenshots/merch-back.jpg" alt="The back of the zip hoodie with the RO-BIO logo and the name ABHIRAI" width="50%" />
+<img src="docs/screenshots/merch-back.jpg" alt="The back of the two-tone zip hoodie with the Define the Future poster" width="50%" />
 
-<sub>The back print: the club logo, the member's name and the club line under it.</sub>
+<sub>The back print: the design team's "Define the Future" poster, here on the lilac and white two-tone.</sub>
 
 <br />
 
