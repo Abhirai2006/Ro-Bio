@@ -11,7 +11,7 @@ export const Route = createFileRoute("/merch")({
       ...(merch.draft ? [] : [canonical("/merch")]),
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Permanent+Marker&family=Potta+One&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Permanent+Marker&family=Potta+One&family=Silkscreen:wght@700&display=swap",
       },
       {
         rel: "stylesheet",
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/merch")({
           {
             name: "description",
             content:
-              "Draft RO-BIO kit for members: a zip hoodie, a hoodie, a round neck tee and a polo in three colours. Turn each one in 3D, like your favourite and tell us what you think.",
+              "Draft RO-BIO kit for members: a zip hoodie, a hoodie, a round neck tee and a polo in four colours. Turn each one in 3D, like your favourite and tell us what you think.",
           },
           { property: "og:title", content: "RO-BIO merch drafts" },
           {
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/merch")({
           {
             name: "description",
             content:
-              "The RO-BIO club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo in three colours. Turn each piece, unzip the zip hoodie and try your own name and number.",
+              "The RO-BIO club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo in four colours. Turn each piece, unzip the zip hoodie and try your own name and number.",
           },
           { property: "og:title", content: "RO-BIO merch" },
           {
@@ -56,8 +56,9 @@ function Merch() {
   return (
     <>
       <PageIntro label={`RO-BIO KIT / ${merch.drop.toUpperCase()}`} title="Wear the club.">
-        A zip hoodie, a hoodie, a round neck tee and a polo. The logo on the back with a name under
-        it, the college crest on one sleeve and a number on the other.{" "}
+        A zip hoodie, a hoodie, a round neck tee and a polo, with artwork by our design team: the
+        Define the Future print on the back, the robot Mono and a name on the front, the college
+        crest on one sleeve and a number on the other.{" "}
         {merch.draft
           ? "Turn each piece around, try the colours, like the ones you would wear and tell us what to change."
           : "Turn each piece around, unzip the zip hoodie and try the colours with your own name and number."}
