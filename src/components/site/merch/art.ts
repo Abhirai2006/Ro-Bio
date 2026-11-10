@@ -1,6 +1,7 @@
 // The flat artwork that gets printed on the merch. The back poster and the Mono robot come from our design team
 // as images; the name on the front and the sleeve number in the style each member picks are drawn here, on
 // canvases, so the 3D models and the print map below them always show the same thing.
+import type { MerchKind } from "@/lib/site";
 import { printBase, type ColourId, type NumberStyle } from "@/lib/merch";
 
 export const CREST_SRC = "/merch/muse-crest.webp";
@@ -11,8 +12,14 @@ export const posterSrc = (c: ColourId) =>
 /** The poster files are 1200 x 1486. */
 export const POSTER_ASPECT = 1486 / 1200;
 
-/** Mono, the design team's robot, for the chest: the light version, a blue robot on a white disc, on every colour. */
-export const monoSrc = (_c: ColourId) => "/merch/art/mono-light.webp";
+/**
+ * Mono, the design team's robot, for the chest: the light version, a blue robot on a white disc, everywhere but on
+ * the black tee and polo, which take the line art with no background.
+ */
+export const monoSrc = (c: ColourId, kind: MerchKind) =>
+  printBase(c) === "black" && (kind === "tee" || kind === "polo")
+    ? "/merch/art/mono-line.webp"
+    : "/merch/art/mono-light.webp";
 /** The Mono file is 1000 x 799. */
 export const MONO_ASPECT = 0.8;
 
