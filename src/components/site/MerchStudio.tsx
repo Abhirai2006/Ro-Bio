@@ -14,20 +14,26 @@ import {
   styleKey,
   type NumberStyle,
   pieceLikes,
+  printBase,
   product,
   rupees,
+  swatch,
   type ColourId,
   type Pick,
   type Tally,
 } from "@/lib/merch";
 import type { MerchScene, View } from "@/components/site/merch/garment-scene";
 import {
+  CHEST_NAME,
   CREST_SRC,
-  LOGO_SRC,
-  drawNameplate,
+  MONO_ASPECT,
+  POSTER_ASPECT,
+  drawChestName,
   drawNumber,
   fontsReady,
   loadImage,
+  monoSrc,
+  posterSrc,
 } from "@/components/site/merch/art";
 
 /** The studio backdrop behind each colour: light enough for black, deep enough for white. */
@@ -35,6 +41,7 @@ const STAGE: Record<ColourId, string> = {
   black: "radial-gradient(120% 90% at 50% 38%, #f4f2f7 0%, #dedbe6 55%, #c6c2d2 100%)",
   white: "radial-gradient(120% 90% at 50% 38%, #cfcdd8 0%, #b3b0c1 55%, #9895a9 100%)",
   lilac: "radial-gradient(120% 90% at 50% 38%, #f6f4fa 0%, #e2deec 55%, #c9c4d8 100%)",
+  duo: "radial-gradient(120% 90% at 50% 38%, #dedbe6 0%, #c9c5d6 55%, #aeaabf 100%)",
 };
 
 const VIEWS: { id: View; label: string }[] = [
@@ -423,7 +430,7 @@ export function MerchStudio() {
                     <span
                       aria-hidden="true"
                       className="h-6 w-6 border-2 border-ink"
-                      style={{ background: c.hex }}
+                      style={{ background: swatch(c.id) }}
                     />
                     {c.name}
                   </label>
@@ -466,7 +473,7 @@ export function MerchStudio() {
           <Step n="03" title="Try your name and number">
             <div className="grid grid-cols-[1fr_88px] gap-2">
               <label className="flex flex-col gap-1 text-xs font-bold">
-                Name on the back
+                Name on the front
                 <input
                   value={pick.name}
                   maxLength={NAME_MAX}
@@ -493,7 +500,7 @@ export function MerchStudio() {
               crest on the right.
             </p>
             <p className="mt-4 text-xs font-bold">Number style</p>
-            <div className="mt-1.5 grid grid-cols-3 gap-2">
+            <div className="mt-1.5 grid grid-cols-4 gap-2">
               {NUMBER_STYLES.map((st) => (
                 <StyleCard
                   key={st.id}
@@ -575,7 +582,8 @@ function StyleCard({
     const art = drawNumber(document.createElement("canvas"), pick.number, pick.colour, id);
     cv.width = cv.height = 220;
     const g = cv.getContext("2d")!;
-    g.fillStyle = colour(pick.colour).hex;
+    // the sleeves sit above the two-tone line, so the card shows the top colour
+    g.fillStyle = colour(printBase(pick.colour)).hex;
     g.fillRect(0, 0, 220, 220);
     g.drawImage(art, 0, 0, 220, 220);
   }, [id, pick.number, pick.colour, fonts]);
@@ -654,7 +662,7 @@ function Feedback({ kind, c, label }: { kind: MerchKind; c: ColourId; label: str
           maxLength={NOTE_MAX}
           rows={3}
           required
-          placeholder="Love the lilac, but the back logo could be a bit smaller."
+          placeholder="Love the two-tone, but the back print could be a bit smaller."
           onChange={(e) => {
             setText(e.target.value);
             if (sent === "sent") setSent("idle");
@@ -733,7 +741,7 @@ function Board({
               <span
                 aria-hidden="true"
                 className="h-5 w-5 shrink-0 border-2 border-ink"
-                style={{ background: r.c.hex }}
+                style={{ background: swatch(r.c.id) }}
               />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-bold">
@@ -759,58 +767,94 @@ function Board({
 }
 
 function PrintMap({ pick }: { pick: Pick }) {
+  const frontRef = useRef<HTMLCanvasElement>(null);
   const backRef = useRef<HTMLCanvasElement>(null);
   const chipRef = useRef<HTMLCanvasElement>(null);
-  const [logo, setLogo] = useState<HTMLImageElement | null>(null);
+  const [imgs, setImgs] = useState<{ poster?: HTMLImageElement; mono?: HTMLImageElement }>({});
   const [fonts, setFonts] = useState(0);
-  const fabric = colour(pick.colour).hex;
+  const top = colour(printBase(pick.colour)).hex;
+  const lower = colour(pick.colour).lower;
+  const long = pick.kind === "hoodie" || pick.kind === "jacket";
+  const layout = long ? "patch" : "line";
 
   useEffect(() => {
     let live = true;
-    loadImage(LOGO_SRC)
-      .then((img) => live && setLogo(img))
-      .catch(() => {});
     void fontsReady().then(() => live && setFonts((n) => n + 1));
     return () => {
       live = false;
     };
   }, []);
+  useEffect(() => {
+    let live = true;
+    Promise.all([loadImage(posterSrc(pick.colour)), loadImage(monoSrc(pick.colour))])
+      .then(([poster, mono]) => live && setImgs({ poster, mono }))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [pick.colour]);
+
+  useEffect(() => {
+    const cv = frontRef.current;
+    if (!cv) return;
+    cv.width = cv.height = 800;
+    const g = cv.getContext("2d")!;
+    g.clearRect(0, 0, 800, 800);
+    const name = drawChestName(document.createElement("canvas"), pick.name, pick.colour, layout);
+    const nm = CHEST_NAME[layout];
+    if (layout === "patch") {
+      // as worn: the name on the right chest, Mono on the left, so the name is on the left as you look at it
+      const mw = 330,
+        nw = 400;
+      if (imgs.mono)
+        g.drawImage(imgs.mono, 430, 400 - (mw * MONO_ASPECT) / 2, mw, mw * MONO_ASPECT);
+      g.drawImage(name, 20, 400 - (nw * nm.h) / nm.w / 2, nw, (nw * nm.h) / nm.w);
+    } else {
+      const mw = 620;
+      if (imgs.mono) g.drawImage(imgs.mono, 90, 120, mw, mw * MONO_ASPECT);
+      g.drawImage(name, 100, 120 + mw * MONO_ASPECT + 30, 600, (600 * nm.h) / nm.w);
+    }
+  }, [imgs.mono, pick.name, pick.colour, layout, fonts]);
 
   useEffect(() => {
     const cv = backRef.current;
     if (!cv) return;
     cv.width = cv.height = 800;
     const g = cv.getContext("2d")!;
-    g.fillStyle = fabric;
-    g.fillRect(0, 0, 800, 800);
-    const lw = 500;
-    if (logo) g.drawImage(logo, 150, 60, lw, lw);
-    const plate = drawNameplate(document.createElement("canvas"), pick.name, pick.colour);
-    const pw = lw * 1.02,
-      ph = (pw * plate.height) / plate.width;
-    g.drawImage(plate, (800 - pw) / 2, 60 + lw + 6, pw, ph);
-  }, [logo, pick.name, pick.colour, fabric, fonts]);
+    g.clearRect(0, 0, 800, 800);
+    const h = 720,
+      w = h / POSTER_ASPECT;
+    if (imgs.poster) g.drawImage(imgs.poster, (800 - w) / 2, 40, w, h);
+  }, [imgs.poster]);
 
   useEffect(() => {
     const cv = chipRef.current;
     if (!cv) return;
     const art = drawNumber(document.createElement("canvas"), pick.number, pick.colour, pick.style);
-    const side = art.height;
-    cv.width = cv.height = side;
+    cv.width = cv.height = art.height;
     const g = cv.getContext("2d")!;
-    g.fillStyle = fabric;
-    g.fillRect(0, 0, side, side);
     g.drawImage(art, 0, 0);
-  }, [pick.number, pick.colour, pick.style, fabric, fonts]);
+  }, [pick.number, pick.colour, pick.style, fonts]);
 
-  const long = pick.kind === "hoodie" || pick.kind === "jacket";
   const tiles = [
     {
+      tag: "FRONT",
+      title: "Mono and your name",
+      size: long ? "Mono about 10 cm wide" : "Mono about 25 cm wide",
+      body: <canvas ref={frontRef} className="h-full w-full" />,
+      note: long
+        ? "The design team's robot on the left chest, your name with a sparkle on the right."
+        : "The design team's robot across the chest, your name in pixel letters under it.",
+      bg: top,
+    },
+    {
       tag: "BACK",
-      title: "Logo and name",
-      size: "about 25 cm wide",
+      title: "Define the Future",
+      size: "about 30 cm wide",
       body: <canvas ref={backRef} className="h-full w-full" />,
-      note: "The club logo, die cut with its white outline, and the name set wide under it.",
+      note: "The design team's poster, with the RO-BIO HUB mark, from the shoulders down.",
+      // on the two-tone, the white starts near the foot of the poster
+      bg: lower ? `linear-gradient(to bottom, ${top} 0 84%, ${lower} 84% 100%)` : top,
     },
     {
       tag: "LEFT SLEEVE",
@@ -818,6 +862,7 @@ function PrintMap({ pick }: { pick: Pick }) {
       size: `about ${long ? 7.5 : 6.6} cm tall`,
       body: <canvas ref={chipRef} className="h-full w-full" />,
       note: "Pick the style in step 03. Members can vote for the one they like best.",
+      bg: top,
     },
     {
       tag: "RIGHT SLEEVE",
@@ -829,6 +874,7 @@ function PrintMap({ pick }: { pick: Pick }) {
         </div>
       ),
       note: "The Mysore University School of Engineering crest, where a kit wears its badge.",
+      bg: top,
     },
   ];
 
@@ -837,9 +883,9 @@ function PrintMap({ pick }: { pick: Pick }) {
       <p className="font-pixel text-xs text-primary">PRINT MAP</p>
       <h2 className="mt-2 text-2xl font-black md:text-3xl">Where everything goes</h2>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        The same artwork the 3D model wears, laid flat on your colour. The front stays clean.
+        The same artwork the 3D model wears, laid flat on your colour. Artwork by our design team.
       </p>
-      <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
+      <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {tiles.map((t) => (
           <figure
             key={t.tag}
@@ -852,7 +898,7 @@ function PrintMap({ pick }: { pick: Pick }) {
             </div>
             <div
               className="aspect-square overflow-hidden"
-              style={{ background: fabric, transition: "background 300ms ease" }}
+              style={{ background: t.bg, transition: "background 300ms ease" }}
             >
               {t.body}
             </div>
@@ -867,12 +913,16 @@ function PrintMap({ pick }: { pick: Pick }) {
   );
 }
 
+const COUNT: Record<number, string> = { 2: "two", 3: "three", 4: "four", 5: "five", 6: "six" };
+
 function Lineup() {
   const names = merch.colours.map((c) => c.name);
   return (
     <div className="mt-16">
       <p className="font-pixel text-xs text-primary">THE LINE UP</p>
-      <h2 className="mt-2 text-2xl font-black md:text-3xl">Four pieces, three colours</h2>
+      <h2 className="mt-2 text-2xl font-black md:text-3xl">
+        Four pieces, {COUNT[merch.colours.length] ?? merch.colours.length} colours
+      </h2>
       <div className="mt-6 overflow-x-auto border-2 border-border shadow-hard">
         <table className="w-full min-w-[620px] border-collapse bg-card text-left text-sm">
           <thead className="bg-secondary">
