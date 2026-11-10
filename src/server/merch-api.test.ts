@@ -135,6 +135,19 @@ describe("merch likes", () => {
     ).toBe(400);
   });
 
+  it("takes likes for the two-tone and votes for the pixel number, but not a style as a colour", async () => {
+    const t = setup();
+    const cookie = await browser(t);
+    const like = (kind: string, colour: string) =>
+      t.call("like", { method: "POST", cookie, body: { kind, colour, liked: true } });
+    expect((await like("jacket", "duo")).status).toBe(200);
+    expect((await like("number", "pixel")).status).toBe(200);
+    expect((await like("tee", "pixel")).status).toBe(400);
+    const r = await t.call("tally", { cookie });
+    expect(r.data.counts["jacket:duo"]).toBe(1);
+    expect(r.data.counts["number:pixel"]).toBe(1);
+  });
+
   it("counts one vote per browser for a sleeve number style, and only for real styles", async () => {
     const t = setup();
     const cookie = await browser(t);
