@@ -317,7 +317,7 @@ export function createMerchScene(
     });
   const prints = {
     poster: printMat(artTex(posterSrc(pick.colour)), 0.62),
-    mono: printMat(artTex(monoSrc(pick.colour)), 0.6),
+    mono: printMat(artTex(monoSrc(pick.colour, pick.kind)), 0.6),
     patch: printMat(patchTex),
     line: printMat(lineTex),
     chip: printMat(chipTex),
@@ -325,7 +325,7 @@ export function createMerchScene(
   };
   const swapArt = () => {
     prints.poster.map = artTex(posterSrc(pick.colour));
-    prints.mono.map = artTex(monoSrc(pick.colour));
+    prints.mono.map = artTex(monoSrc(pick.colour, current?.kind ?? pick.kind));
     dirty = true;
   };
 
@@ -709,6 +709,7 @@ export function createMerchScene(
     if (current && current !== b) scene.remove(current.group);
     if (current !== b) scene.add(b.group);
     current = b;
+    swapArt();
     canvas.style.opacity = "1";
     if (first) {
       setPose({ ...viewPose("front"), az: -0.75 });
