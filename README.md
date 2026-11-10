@@ -176,9 +176,10 @@ share the link in the club group.
   browser or a private window can like again.
 - **Artwork:** the design team's files live in `public/merch/art/`: the "Define the Future" back poster (a clear
   backed version for black and white, and the lilac version with its background cut out for lilac and the
-  two-tone) and their robot Mono for the chest (white on a blue disc for the dark colours, line art for white).
-  The front name is drawn in pixel letters in `src/components/site/merch/art.ts`: on the hoodies it sits on the
-  right chest with a sparkle, on the tee and polo under Mono.
+  two-tone), their robot Mono for the chest (the light version, a blue robot on a white disc, on every colour)
+  and their two stars, which sit behind the name. The front name is drawn in pixel letters in
+  `src/components/site/merch/art.ts`: on the hoodies it sits on the right chest, on the tee and polo under Mono.
+  On white fabric the stars are tinted light blue so they show.
 - **Sleeve number styles:** members pick Armour, Ink slash, Kanji or Pixel (`NUMBER_STYLES` in `src/lib/merch.ts`,
   drawn in `src/components/site/merch/art.ts`) and can vote for their favourite. The votes show on the admin page.
 - **Two-tone:** a colour with a `lower` shade in `merch.colours` is split at the waist; the height for each piece is
