@@ -113,6 +113,8 @@ export type ZipRig = {
   valueAt: (y: number) => number;
   /** How far forward the zip line is at a height, for the drag plane. */
   lineZ: (y: number) => number;
+  /** A print laid on the front, so it opens with its panel. Call before the zip moves. */
+  follow: (geo: THREE.BufferGeometry) => void;
   dispose: () => void;
 };
 
@@ -230,6 +232,17 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
   };
 
   const tmp = [0, 0, 0];
+  // prints on the front, moved with the same weights as the cloth under them
+  const followers: {
+    p: THREE.BufferAttribute;
+    n: THREE.BufferAttribute | undefined;
+    rest: Float32Array;
+    restN: Float32Array | null;
+    idx: number[];
+    w: number[];
+    side: number[];
+    g: THREE.BufferGeometry;
+  }[] = [];
   const turn = new THREE.Quaternion(),
     nv = new THREE.Vector3(),
     up = new THREE.Vector3(0, 1, 0);
@@ -256,6 +269,22 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
     nor.needsUpdate = true;
     if (tan) tan.needsUpdate = true;
     geo.computeBoundingSphere();
+    for (const f of followers) {
+      f.idx.forEach((i, k) => {
+        const s = f.side[k]!;
+        const d = at(f.rest[i * 3 + 1]!) * f.w[k]!;
+        deform(f.rest[i * 3]!, f.rest[i * 3 + 1]!, f.rest[i * 3 + 2]!, d, s, tmp);
+        f.p.setXYZ(i, tmp[0]!, tmp[1]!, tmp[2]!);
+        if (f.n && f.restN) {
+          turn.setFromAxisAngle(up, s * d * 0.55);
+          nv.set(f.restN[i * 3]!, f.restN[i * 3 + 1]!, f.restN[i * 3 + 2]!).applyQuaternion(turn);
+          f.n.setXYZ(i, nv.x, nv.y, nv.z);
+        }
+      });
+      f.p.needsUpdate = true;
+      if (f.n) f.n.needsUpdate = true;
+      f.g.computeBoundingSphere();
+    }
   };
 
   // the drawcords hang from each side of the hood opening, so each one swings out with its own panel
@@ -380,6 +409,36 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
     handles: riders,
     valueAt: (y) => Math.min(1, Math.max(0, (TOP - y) / (TOP - BOTTOM))),
     lineZ,
+    follow(g) {
+      const p = g.getAttribute("position") as THREE.BufferAttribute;
+      const n = g.getAttribute("normal") as THREE.BufferAttribute | undefined;
+      const rest = Float32Array.from(p.array as Float32Array);
+      const idx: number[] = [],
+        w: number[] = [],
+        side: number[] = [];
+      for (let i = 0; i < p.count; i++) {
+        const x = rest[i * 3]!,
+          z = rest[i * 3 + 2]!;
+        const k = Math.exp(-Math.abs(x) / 0.085) * smooth(-0.03, 0.06, z);
+        if (k > 0.004) {
+          idx.push(i);
+          w.push(k);
+          side.push(x >= 0 ? 1 : -1);
+        }
+      }
+      if (!idx.length) return;
+      followers.push({
+        p,
+        n,
+        rest,
+        restN: n ? Float32Array.from(n.array as Float32Array) : null,
+        idx,
+        w,
+        side,
+        g,
+      });
+      apply();
+    },
     dispose: () => {
       toothGeo.dispose();
       sides.forEach((s) => s.mesh.dispose());
