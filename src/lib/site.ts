@@ -396,7 +396,7 @@ export const merch = {
   drop: "Drop 01",
   draft: true,
   draftNote:
-    "Draft designs. The final artwork from our designer is on its way, so this page will change.",
+    "Draft kit with the artwork from our design team. Tell us what you think before it goes to print.",
   priceNote: "Price is negotiable",
   /** The demo name and number on the 3D models. Members can type their own to see how it looks. */
   demoName: "Abhirai",
@@ -441,11 +441,13 @@ export const merch = {
     fabric: string;
     details: string[];
   }[],
+  /** `lower` makes a colour two-tone: `hex` on top, `lower` from the waist down, like the design team's bomber. */
   colours: [
     { id: "black", name: "Ink Black", hex: "#1a191f" },
     { id: "white", name: "Paper White", hex: "#f1f0ec" },
-    { id: "lilac", name: "Lilac", hex: "#b3a0ea" },
-  ] as { id: "black" | "white" | "lilac"; name: string; hex: string }[],
+    { id: "lilac", name: "Lilac", hex: "#b997ff" },
+    { id: "duo", name: "Two-tone", hex: "#b997ff", lower: "#f1f0ec" },
+  ] as { id: "black" | "white" | "lilac" | "duo"; name: string; hex: string; lower?: string }[],
   /**
    * The 3D garments are free models from Sketchfab under CC BY 4.0, which asks for this credit. We recoloured
    * them, took out the brand marks, lowered the arms and made the files smaller.
