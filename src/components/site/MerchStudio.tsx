@@ -791,13 +791,13 @@ function PrintMap({ pick }: { pick: Pick }) {
   }, []);
   useEffect(() => {
     let live = true;
-    Promise.all([loadImage(posterSrc(pick.colour)), loadImage(monoSrc(pick.colour))])
+    Promise.all([loadImage(posterSrc(pick.colour)), loadImage(monoSrc(pick.colour, pick.kind))])
       .then(([poster, mono]) => live && setImgs({ poster, mono }))
       .catch(() => {});
     return () => {
       live = false;
     };
-  }, [pick.colour]);
+  }, [pick.colour, pick.kind]);
 
   useEffect(() => {
     const cv = frontRef.current;
