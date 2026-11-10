@@ -18,3 +18,7 @@
 # The merch 3D models are big and rarely change, so browsers keep them for a day and check back after that.
 /merch/models/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# The design team's print files: the same, a day and then a check.
+/merch/art/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
