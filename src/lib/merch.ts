@@ -9,6 +9,7 @@ export const NUMBER_STYLES = [
   { id: "plate", name: "Armour", note: "Robot anime armour plate" },
   { id: "ink", name: "Ink slash", note: "Brush and red slash" },
   { id: "kanji", name: "Kanji", note: "Brush number with Japanese numerals" },
+  { id: "pixel", name: "Pixel", note: "8-bit blocks, like the letters on the back print" },
 ] as const;
 export type NumberStyle = (typeof NUMBER_STYLES)[number]["id"];
 
@@ -68,6 +69,15 @@ export const styleKey = (s: NumberStyle) => `number:${s}`;
 
 export const product = (kind: MerchKind) => merch.products.find((p) => p.kind === kind)!;
 export const colour = (id: ColourId) => merch.colours.find((c) => c.id === id)!;
+
+/** A CSS background for a colour chip: one flat colour, or the two-tone split across the middle. */
+export function swatch(id: ColourId) {
+  const c = colour(id);
+  return c.lower ? `linear-gradient(to bottom, ${c.hex} 0 55%, ${c.lower} 55% 100%)` : c.hex;
+}
+
+/** The fabric under the chest, sleeve and back prints. On the two-tone that is the top colour. */
+export const printBase = (id: ColourId): Exclude<ColourId, "duo"> => (id === "duo" ? "lilac" : id);
 
 export function rupees(n: number) {
   return `₹${n.toLocaleString("en-IN")}`;
