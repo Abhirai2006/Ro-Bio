@@ -29,12 +29,13 @@ export function MerchTeaser() {
           className="relative aspect-[5/4] border-b-2 border-border md:border-b-0 md:border-r-2"
           style={{
             background:
-              "radial-gradient(120% 90% at 50% 38%, #f4f2f7 0%, #dedbe6 55%, #c6c2d2 100%)",
+              // the same studio light the clip was filmed in, so its edges disappear
+              "radial-gradient(70% 80% at 50% 45%, #e9e6ee 0%, #e2dee9 60%, #d6d2df 100%)",
           }}
         >
           <video
             ref={video}
-            className="absolute inset-0 h-full w-full object-contain"
+            className="absolute inset-0 h-full w-full object-contain [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]"
             autoPlay
             muted
             loop
@@ -53,8 +54,9 @@ export function MerchTeaser() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             A zip hoodie, a hoodie, a round neck tee and a polo in {names.slice(0, -1).join(", ")}{" "}
-            and {names[names.length - 1]}. The logo on the back, your name under it, the college
-            crest on one sleeve and your number on the other.
+            and {names[names.length - 1]}. Our design team's Define the Future print on the back,
+            their robot Mono and your name on the front, the college crest on one sleeve and your
+            number on the other.
           </p>
           <p className="mt-5 font-mono text-2xl font-semibold">
             From {rupees(from)}{" "}
