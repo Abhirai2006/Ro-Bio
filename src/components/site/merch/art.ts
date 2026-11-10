@@ -1,30 +1,37 @@
-// The flat artwork that gets printed on the merch: the name under the back logo and the sleeve number in the
-// style each member picks. Drawn on canvases so the 3D models and the print map below them always show the same thing.
-import type { ColourId, NumberStyle } from "@/lib/merch";
+// The flat artwork that gets printed on the merch. The back poster and the Mono robot come from our design team
+// as images; the name on the front and the sleeve number in the style each member picks are drawn here, on
+// canvases, so the 3D models and the print map below them always show the same thing.
+import { printBase, type ColourId, type NumberStyle } from "@/lib/merch";
 
-export const LOGO_SRC = "/merch/robio-print.webp";
 export const CREST_SRC = "/merch/muse-crest.webp";
+
+/** The design team's "Define the Future" back print: clear-backed for black and white, the lilac cut for the rest. */
+export const posterSrc = (c: ColourId) =>
+  printBase(c) === "lilac" ? "/merch/art/poster-lilac.webp" : "/merch/art/poster.webp";
+/** The poster files are 1200 x 1486. */
+export const POSTER_ASPECT = 1486 / 1200;
+
+/** Mono, the design team's robot, for the chest: the white robot on its blue disc on dark and lilac, line art on white. */
+export const monoSrc = (c: ColourId) =>
+  printBase(c) === "white" ? "/merch/art/mono-line.webp" : "/merch/art/mono-dark.webp";
+/** The Mono files are 1000 x 800. */
+export const MONO_ASPECT = 0.8;
 
 const PAPER = "#fffffa";
 const INK = "#201e2d";
 const LILAC = "#a979fa";
 const VIOLET = "#725dff";
-
-/** Ink colours for each garment colour, picked so every print reads on its fabric. */
-export function inks(c: ColourId) {
-  if (c === "black")
-    return { text: PAPER, sub: LILAC, frame: LILAC, face: PAPER, stroke: LILAC, extrude: VIOLET };
-  if (c === "white")
-    return { text: INK, sub: VIOLET, frame: INK, face: PAPER, stroke: LILAC, extrude: VIOLET };
-  return { text: INK, sub: INK, frame: INK, face: PAPER, stroke: INK, extrude: VIOLET };
-}
+/** The blues from the design team's artwork. */
+const BLUE = "#5868f8";
+const BLUE_DEEP = "#3a40c4";
+const BLUE_PALE = "#a9b4ff";
+const SKY = "#68a8f8";
 
 export async function fontsReady() {
   if (typeof document === "undefined" || !document.fonts) return;
   try {
     await Promise.all([
-      document.fonts.load('italic 900 200px "Tektur"'),
-      document.fonts.load('800 200px "Tektur"'),
+      document.fonts.load('700 200px "Silkscreen"'),
       document.fonts.load('400 40px "Silkscreen"'),
       document.fonts.load('400 200px "Black Ops One"', "0123456789"),
       document.fonts.load('400 200px "Permanent Marker"', "0123456789"),
@@ -37,14 +44,22 @@ export async function fontsReady() {
 }
 
 /** Text with even letter spacing, drawn one letter at a time so it works in every browser. */
-function spaced(g: CanvasRenderingContext2D, text: string, cx: number, y: number, track: number) {
+function spaced(
+  g: CanvasRenderingContext2D,
+  text: string,
+  cx: number,
+  y: number,
+  track: number,
+  how: "fill" | "stroke" = "fill",
+) {
   const chars = [...text];
   const widths = chars.map((ch) => g.measureText(ch).width);
   const total = widths.reduce((a, b) => a + b, 0) + track * (chars.length - 1);
   let x = cx - total / 2;
   g.textAlign = "left";
   chars.forEach((ch, i) => {
-    g.fillText(ch, x, y);
+    if (how === "fill") g.fillText(ch, x, y);
+    else g.strokeText(ch, x, y);
     x += widths[i]! + track;
   });
   return total;
@@ -55,36 +70,78 @@ function spacedWidth(g: CanvasRenderingContext2D, text: string, track: number) {
   return chars.reduce((w, ch) => w + g.measureText(ch).width, 0) + track * (chars.length - 1);
 }
 
-export const NAMEPLATE = { w: 1600, h: 360 };
+/** A four point sparkle with curved sides, like the ones in the design team's poster. */
+function sparkle(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number) {
+  const k = 0.12;
+  g.beginPath();
+  g.moveTo(x, y - ry);
+  g.quadraticCurveTo(x + rx * k, y - ry * k, x + rx, y);
+  g.quadraticCurveTo(x + rx * k, y + ry * k, x, y + ry);
+  g.quadraticCurveTo(x - rx * k, y + ry * k, x - rx, y);
+  g.quadraticCurveTo(x - rx * k, y - ry * k, x, y - ry);
+  g.fill();
+}
 
-/** The name block that sits under the back logo: the name, set wide, and a small pixel line under it. */
-export function drawNameplate(cv: HTMLCanvasElement, name: string, c: ColourId) {
-  cv.width = NAMEPLATE.w;
-  cv.height = NAMEPLATE.h;
+/** The front name canvases: a two line patch with a sparkle for the hoodies, one line under Mono for the tee and polo. */
+export const CHEST_NAME = { patch: { w: 1200, h: 640 }, line: { w: 1600, h: 220 } } as const;
+export type NameLayout = keyof typeof CHEST_NAME;
+
+/** Long names break after the first word on the patch, like the design team's mockup. */
+export function nameLines(name: string, layout: NameLayout) {
+  const t = name.trim();
+  if (layout === "line" || t.length <= 9 || !t.includes(" ")) return t ? [t] : [];
+  const i = t.indexOf(" ");
+  return [t.slice(0, i), t.slice(i + 1)];
+}
+
+/** The name on the front, in the pixel letters of the design team's mockups: white with a blue edge, blue on white. */
+export function drawChestName(
+  cv: HTMLCanvasElement,
+  name: string,
+  c: ColourId,
+  layout: NameLayout,
+) {
+  const { w, h } = CHEST_NAME[layout];
+  cv.width = w;
+  cv.height = h;
   const g = cv.getContext("2d")!;
-  const ink = inks(c);
-  g.clearRect(0, 0, cv.width, cv.height);
-  const text = name.trim();
-  g.textBaseline = "alphabetic";
-  if (text) {
-    let size = 190;
-    const track = () => size * 0.16;
-    g.font = `800 ${size}px "Tektur", "Arial Black", sans-serif`;
-    while (spacedWidth(g, text, track()) > cv.width - 80 && size > 60) {
-      size -= 4;
-      g.font = `800 ${size}px "Tektur", "Arial Black", sans-serif`;
-    }
-    g.fillStyle = ink.text;
-    spaced(g, text, cv.width / 2, 200, track());
+  g.clearRect(0, 0, w, h);
+  const onWhite = printBase(c) === "white";
+  if (layout === "patch") {
+    g.fillStyle = onWhite ? SKY : PAPER;
+    sparkle(g, w * 0.6, h * 0.52, w * 0.4, h * 0.48);
+    sparkle(g, w * 0.88, h * 0.84, h * 0.09, h * 0.12);
   }
-  // The pixel line: two small squares either side, like the corner marks on a blueprint.
-  g.font = `400 58px "Silkscreen", monospace`;
-  g.fillStyle = ink.sub;
-  const line = "RO-BIO HUB / MUSE";
-  const w = spaced(g, line, cv.width / 2, 318, 12);
-  const sq = 20;
-  g.fillRect(cv.width / 2 - w / 2 - 56, 318 - 36, sq, sq);
-  g.fillRect(cv.width / 2 + w / 2 + 36, 318 - 36, sq, sq);
+  const lines = nameLines(name, layout);
+  if (!lines.length) return cv;
+  const font = (s: number) => `700 ${s}px "Silkscreen", monospace`;
+  const max = w - (layout === "patch" ? 120 : 40);
+  let size = layout === "patch" ? (lines.length > 1 ? 150 : 170) : 150;
+  const track = () => size * 0.06;
+  g.font = font(size);
+  while (Math.max(...lines.map((l) => spacedWidth(g, l, track()))) > max && size > 40) {
+    size -= 4;
+    g.font = font(size);
+  }
+  const lead = size * 1.12;
+  const top = h / 2 - ((lines.length - 1) * lead) / 2 + size * 0.36;
+  const u = size / 12;
+  g.textBaseline = "alphabetic";
+  g.lineJoin = "miter";
+  lines.forEach((line, i) => {
+    const y = top + i * lead;
+    // the stepped shadow, then the edge, then the face
+    g.fillStyle = g.strokeStyle = onWhite ? BLUE_PALE : BLUE_DEEP;
+    g.lineWidth = u * 1.6;
+    spaced(g, line, w / 2 + u * 1.1, y + u * 1.1, track(), "stroke");
+    spaced(g, line, w / 2 + u * 1.1, y + u * 1.1, track());
+    if (!onWhite) {
+      g.strokeStyle = BLUE;
+      spaced(g, line, w / 2, y, track(), "stroke");
+    }
+    g.fillStyle = onWhite ? BLUE : PAPER;
+    spaced(g, line, w / 2, y, track());
+  });
   return cv;
 }
 
@@ -164,7 +221,46 @@ function splatter(
 }
 
 /** The ink for the digits on each colour: white on black, ink on the light colours. */
-const digitInk = (c: ColourId) => (c === "black" ? PAPER : INK);
+const digitInk = (c: ColourId) => (printBase(c) === "black" ? PAPER : INK);
+
+/** Chunky 6 x 8 digits for the pixel style, two blocks thick like the letters on the back print. */
+const PIXEL_DIGITS: Record<string, string[]> = {
+  "0": [".####.", "##..##", "##..##", "##..##", "##..##", "##..##", "##..##", ".####."],
+  "1": ["..##..", ".###..", "####..", "..##..", "..##..", "..##..", "..##..", "######"],
+  "2": [".####.", "##..##", "....##", "...##.", "..##..", ".##...", "##....", "######"],
+  "3": [".####.", "##..##", "....##", "..###.", "....##", "....##", "##..##", ".####."],
+  "4": ["...##.", "..###.", ".####.", "##.##.", "######", "...##.", "...##.", "...##."],
+  "5": ["######", "##....", "#####.", "....##", "....##", "....##", "##..##", ".####."],
+  "6": [".####.", "##....", "##....", "#####.", "##..##", "##..##", "##..##", ".####."],
+  "7": ["######", "....##", "...##.", "...##.", "..##..", "..##..", "..##..", "..##.."],
+  "8": [".####.", "##..##", "##..##", ".####.", "##..##", "##..##", "##..##", ".####."],
+  "9": [".####.", "##..##", "##..##", "##..##", ".#####", "....##", "....##", ".####."],
+};
+
+/** The pixel number: white blocks with a blue edge and a deep blue stepped shadow, on a 420 unit grid. */
+function pixelNumber(g: CanvasRenderingContext2D, N: string) {
+  const digits = [...N].map((d) => PIXEL_DIGITS[d] ?? PIXEL_DIGITS["0"]!);
+  const cols = digits.length * 6 + (digits.length - 1);
+  const b = Math.min(300 / cols, 34);
+  const x0 = 210 - (cols * b) / 2 - b * 0.2,
+    y0 = 210 - 4 * b - b * 0.2;
+  const cells: [number, number][] = [];
+  digits.forEach((rows, i) =>
+    rows.forEach((row, r) =>
+      [...row].forEach((ch, col) => ch === "#" && cells.push([x0 + (i * 7 + col) * b, y0 + r * b])),
+    ),
+  );
+  const o = b * 0.34,
+    s = b * 0.5;
+  const layer = (col: string, grow: number, dx: number) => {
+    g.fillStyle = col;
+    for (const [x, y] of cells)
+      g.fillRect(x - grow + dx, y - grow + dx, b + grow * 2, b + grow * 2);
+  };
+  layer(BLUE_DEEP, o, s);
+  layer(BLUE, o, 0);
+  layer(PAPER, 0.5, 0);
+}
 
 /** Fits text into a width by shrinking the font from `size` down. */
 function fit(
@@ -184,8 +280,8 @@ function fit(
 }
 
 /**
- * The sleeve number in one of three styles the members liked: an armour plate from a robot anime, a dry brush
- * number with a red slash, and a brush number with its name in Japanese down the side.
+ * The sleeve number in one of four styles: an armour plate from a robot anime, a dry brush number with a red
+ * slash, a brush number with its name in Japanese down the side, and 8-bit blocks to match the back print.
  */
 export function drawNumber(cv: HTMLCanvasElement, num: string, c: ColourId, style: NumberStyle) {
   cv.width = cv.height = NUMBER_ART;
@@ -198,7 +294,9 @@ export function drawNumber(cv: HTMLCanvasElement, num: string, c: ColourId, styl
   const n = parseInt(N, 10) || 0;
   g.textAlign = "center";
 
-  if (style === "plate") {
+  if (style === "pixel") {
+    pixelNumber(g, N);
+  } else if (style === "plate") {
     // the plate is its own dark patch, so it reads on every colour
     const pl = [
       [70, 80],
@@ -328,11 +426,11 @@ export function drawNumber(cv: HTMLCanvasElement, num: string, c: ColourId, styl
     const step = side.length > 3 ? 48 : 60;
     g.font = `900 ${side.length > 3 ? 44 : 54}px "Noto Serif JP", serif`;
     g.textBaseline = "middle";
-    g.fillStyle = c === "lilac" ? INK : LILAC;
+    g.fillStyle = printBase(c) === "lilac" ? INK : LILAC;
     side.forEach((ch, i) => g.fillText(ch, 352, 200 - ((side.length - 1) * step) / 2 + i * step));
     g.fillStyle = RED;
     g.fillRect(330, 330, 44, 44);
-    g.fillStyle = c === "black" ? "#1f1f23" : PAPER;
+    g.fillStyle = printBase(c) === "black" ? "#1f1f23" : PAPER;
     g.font = '900 26px "Noto Serif JP", serif';
     g.fillText("魂", 352, 353);
   }
