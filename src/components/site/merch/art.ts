@@ -11,10 +11,9 @@ export const posterSrc = (c: ColourId) =>
 /** The poster files are 1200 x 1486. */
 export const POSTER_ASPECT = 1486 / 1200;
 
-/** Mono, the design team's robot, for the chest: the white robot on its blue disc on dark and lilac, line art on white. */
-export const monoSrc = (c: ColourId) =>
-  printBase(c) === "white" ? "/merch/art/mono-line.webp" : "/merch/art/mono-dark.webp";
-/** The Mono files are 1000 x 800. */
+/** Mono, the design team's robot, for the chest: the light version, a blue robot on a white disc, on every colour. */
+export const monoSrc = (_c: ColourId) => "/merch/art/mono-light.webp";
+/** The Mono file is 1000 x 799. */
 export const MONO_ASPECT = 0.8;
 
 const PAPER = "#fffffa";
@@ -70,20 +69,26 @@ function spacedWidth(g: CanvasRenderingContext2D, text: string, track: number) {
   return chars.reduce((w, ch) => w + g.measureText(ch).width, 0) + track * (chars.length - 1);
 }
 
-/** A four point sparkle with curved sides, like the ones in the design team's poster. */
-function sparkle(g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number) {
-  const k = 0.12;
-  g.beginPath();
-  g.moveTo(x, y - ry);
-  g.quadraticCurveTo(x + rx * k, y - ry * k, x + rx, y);
-  g.quadraticCurveTo(x + rx * k, y + ry * k, x, y + ry);
-  g.quadraticCurveTo(x - rx * k, y + ry * k, x - rx, y);
-  g.quadraticCurveTo(x - rx * k, y - ry * k, x, y - ry);
-  g.fill();
+/** The design team's two stars, drawn behind the name. White, so they can be tinted for white fabric. */
+export const STARS_SRC = "/merch/art/stars.webp";
+/** The stars file is 1018 x 750. */
+const STARS_ASPECT = 1018 / 750;
+
+/** The stars in one colour, at a size. */
+function tinted(stars: CanvasImageSource, col: string, w: number, h: number) {
+  const c = document.createElement("canvas");
+  c.width = Math.round(w);
+  c.height = Math.round(h);
+  const l = c.getContext("2d")!;
+  l.drawImage(stars, 0, 0, c.width, c.height);
+  l.globalCompositeOperation = "source-in";
+  l.fillStyle = col;
+  l.fillRect(0, 0, c.width, c.height);
+  return c;
 }
 
-/** The front name canvases: a two line patch with a sparkle for the hoodies, one line under Mono for the tee and polo. */
-export const CHEST_NAME = { patch: { w: 1200, h: 640 }, line: { w: 1600, h: 220 } } as const;
+/** The front name canvases, each with the stars behind: a patch for the hoodies, one line under Mono for the tee and polo. */
+export const CHEST_NAME = { patch: { w: 1200, h: 640 }, line: { w: 1600, h: 440 } } as const;
 export type NameLayout = keyof typeof CHEST_NAME;
 
 /** Long names break after the first word on the patch, like the design team's mockup. */
@@ -94,12 +99,16 @@ export function nameLines(name: string, layout: NameLayout) {
   return [t.slice(0, i), t.slice(i + 1)];
 }
 
-/** The name on the front, in the pixel letters of the design team's mockups: white with a blue edge, blue on white. */
+/**
+ * The name on the front, in the pixel letters of the design team's mockups: white with a blue edge, blue on white.
+ * `stars` is the design team's stars image, once it has loaded; they are light blue on white fabric so they show.
+ */
 export function drawChestName(
   cv: HTMLCanvasElement,
   name: string,
   c: ColourId,
   layout: NameLayout,
+  stars?: CanvasImageSource | null,
 ) {
   const { w, h } = CHEST_NAME[layout];
   cv.width = w;
@@ -107,10 +116,12 @@ export function drawChestName(
   const g = cv.getContext("2d")!;
   g.clearRect(0, 0, w, h);
   const onWhite = printBase(c) === "white";
-  if (layout === "patch") {
-    g.fillStyle = onWhite ? SKY : PAPER;
-    sparkle(g, w * 0.6, h * 0.52, w * 0.4, h * 0.48);
-    sparkle(g, w * 0.88, h * 0.84, h * 0.09, h * 0.12);
+  if (stars) {
+    const sh = h,
+      sw = sh * STARS_ASPECT;
+    // on the patch the stars sit a little right of the name, as in the mockup; under Mono they are centred
+    const cx = w * (layout === "patch" ? 0.55 : 0.5);
+    g.drawImage(tinted(stars, onWhite ? SKY : PAPER, sw, sh), cx - sw / 2, 0, sw, sh);
   }
   const lines = nameLines(name, layout);
   if (!lines.length) return cv;
