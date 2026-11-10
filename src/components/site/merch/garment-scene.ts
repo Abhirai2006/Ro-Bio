@@ -16,9 +16,11 @@ import {
   MONO_ASPECT,
   POSTER_ASPECT,
   CHEST_NAME,
+  STARS_SRC,
   drawChestName,
   drawNumber,
   fontsReady,
+  loadImage,
   monoSrc,
   posterSrc,
 } from "./art";
@@ -87,12 +89,15 @@ const PRINT: Record<
     sleeveY: number;
     arm: number;
     badge: number;
+    /** How much bigger the sleeve number is than the crest badge. */
+    num: number;
     tilt?: number;
     split: number;
   }
 > = {
   jacket: {
-    back: 0.44,
+    // the zip hoodie's hood hangs lower than the hoodie's, so its poster sits lower to stay clear of it
+    back: 0.385,
     poster: 0.3,
     mono: [0.118, 0.53, 0.112],
     name: [-0.125, 0.53, 0.13],
@@ -100,10 +105,11 @@ const PRINT: Record<
     sleeveY: 0.5,
     arm: 0.62,
     badge: 0.075,
+    num: 1.5,
     split: 0.27,
   },
   hoodie: {
-    back: 0.42,
+    back: 0.38,
     poster: 0.3,
     mono: [0.118, 0.53, 0.112],
     name: [-0.125, 0.53, 0.13],
@@ -111,29 +117,32 @@ const PRINT: Record<
     sleeveY: 0.5,
     arm: 0.62,
     badge: 0.075,
+    num: 1.5,
     split: 0.27,
   },
   tee: {
-    back: 0.45,
+    back: 0.41,
     poster: 0.3,
     mono: [0, 0.5, 0.25],
-    name: [0, 0.37, 0.24],
+    name: [0, 0.355, 0.24],
     layout: "line",
     sleeveY: 0.59,
     arm: 0.95,
     badge: 0.055,
+    num: 1.2,
     tilt: -0.15,
     split: 0.25,
   },
   polo: {
-    back: 0.44,
+    back: 0.4,
     poster: 0.29,
     mono: [0, 0.452, 0.23],
-    name: [0, 0.335, 0.22],
+    name: [0, 0.32, 0.22],
     layout: "line",
     sleeveY: 0.595,
     arm: 0.95,
     badge: 0.055,
+    num: 1.2,
     tilt: -0.15,
     split: 0.25,
   },
@@ -257,9 +266,10 @@ export function createMerchScene(
     return t;
   };
   let pick = { ...initial };
+  let stars: HTMLImageElement | null = null;
   const drawArt = () => {
-    drawChestName(patchCv, pick.name, pick.colour, "patch");
-    drawChestName(lineCv, pick.name, pick.colour, "line");
+    drawChestName(patchCv, pick.name, pick.colour, "patch", stars);
+    drawChestName(lineCv, pick.name, pick.colour, "line", stars);
     drawNumber(chipCv, pick.number, pick.colour, pick.style);
   };
   drawArt();
@@ -287,6 +297,12 @@ export function createMerchScene(
     dirty = true;
   };
   void fontsReady().then(() => !disposed && redrawArt());
+  loadImage(STARS_SRC)
+    .then((img) => {
+      stars = img;
+      if (!disposed) redrawArt();
+    })
+    .catch(() => {});
 
   const printMat = (map: THREE.Texture, roughness = 0.6) =>
     new THREE.MeshStandardMaterial({
@@ -586,7 +602,7 @@ export function createMerchScene(
     // the wearer's right arm is on -x, the left on +x
     const right = sleeve(-1, prints.crest, pr.badge * (568 / 632));
     // the number art is square
-    const left = sleeve(1, prints.chip, pr.badge * 1.2, pr.badge * 1.2);
+    const left = sleeve(1, prints.chip, pr.badge * pr.num, pr.badge * pr.num);
 
     const box = new THREE.Box3().setFromObject(group);
     return {
