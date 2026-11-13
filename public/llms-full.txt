@@ -75,7 +75,8 @@ No. There are no accounts, forms or analytics, and the site itself sets no cooki
 - [Workshops](https://ro-bio.hub-muse.workers.dev/workshops): Workshops for members and students (content coming soon).
 - [Projects](https://ro-bio.hub-muse.workers.dev/projects): Projects built by the club.
 - [Gallery](https://ro-bio.hub-muse.workers.dev/gallery): Photos from the club.
-- [Blog](https://ro-bio.hub-muse.workers.dev/blog): Posts from the club (content coming soon).
+- [Blog](https://ro-bio.hub-muse.workers.dev/blog): Posts from the club: 1 so far, the latest on 4 Nov 2026.
+- [Sparking the Future: How We Kicked Off RO-BIO with Robo Spark!](https://ro-bio.hub-muse.workers.dev/blog/robo-spark-kickoff): By Abdul Muhaymin Khan, 4 Nov 2026. How our first event went: first years designing robots without their phones, a few dal-serving drones, and what this blog is for.
 - [Contact](https://ro-bio.hub-muse.workers.dev/contact): Instagram, event coordinators and the college address.
 - [FAQ](https://ro-bio.hub-muse.workers.dev/faq): Short factual answers about the club and Bot Forge.
 - [Privacy Policy](https://ro-bio.hub-muse.workers.dev/privacy): No accounts, forms, analytics or cookies.
