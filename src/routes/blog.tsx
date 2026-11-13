@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro, Pending } from "@/components/site/parts";
-import { nextEvent, shortDate, squadOf, teamPhotos, todayInIndia } from "@/lib/site";
+import { bylineOf, nextEvent, shortDate, teamPhotos, todayInIndia } from "@/lib/site";
 import { sortedPosts } from "@/lib/blog";
 
 export const Route = createFileRoute("/blog")({
@@ -31,7 +31,7 @@ function Blog() {
           <ol className="grid gap-6">
             {list.map((p) => {
               const photo = teamPhotos[p.author];
-              const squad = squadOf(p.author);
+              const by = bylineOf(p.author);
               return (
                 <li key={p.slug}>
                   <article className="grid gap-5 border-2 border-border bg-card p-5 shadow-hard md:grid-cols-[180px_1fr] md:p-6">
@@ -71,9 +71,7 @@ function Blog() {
                         )}
                         <span>
                           <span className="font-bold">{p.author}</span>
-                          {squad && (
-                            <span className="text-muted-foreground"> / {squad.title} squad</span>
-                          )}
+                          {by && <span className="text-muted-foreground"> / {by.label}</span>}
                         </span>
                       </p>
                       <Link
