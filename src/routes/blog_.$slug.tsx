@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { JsonLd } from "@/components/site/JsonLd";
 import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
-import { formatDate, site, squadOf, teamLinkedIn, teamPhotos } from "@/lib/site";
+import { bylineOf, formatDate, site, teamLinkedIn, teamPhotos } from "@/lib/site";
 import { pieces, postBySlug } from "@/lib/blog";
 
 export const Route = createFileRoute("/blog_/$slug")({
@@ -46,7 +46,7 @@ export const Route = createFileRoute("/blog_/$slug")({
 function PostPage() {
   const { post: p } = Route.useLoaderData();
   const photo = teamPhotos[p.author];
-  const squad = squadOf(p.author);
+  const by = bylineOf(p.author);
   const linkedIn = teamLinkedIn[p.author];
   return (
     <>
@@ -86,15 +86,15 @@ function PostPage() {
             )}
             <span>
               <span className="block font-bold">{p.author}</span>
-              {squad?.slug ? (
+              {by?.slug ? (
                 <Link
-                  to={`/team/${squad.slug}` as "/"}
+                  to={`/team/${by.slug}` as "/"}
                   className="text-sm text-muted-foreground underline underline-offset-2"
                 >
-                  {squad.title} squad
+                  {by.label}
                 </Link>
-              ) : squad ? (
-                <span className="text-sm text-muted-foreground">{squad.title} squad</span>
+              ) : by ? (
+                <span className="text-sm text-muted-foreground">{by.label}</span>
               ) : null}
             </span>
           </p>
