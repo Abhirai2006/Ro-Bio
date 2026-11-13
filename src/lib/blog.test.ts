@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { pieces, plainText, posts, sortedPosts, writeUpOf } from "./blog";
-import { events, squadOf } from "./site";
+import { events, personLink, squadOf, teamLinkedIn } from "./site";
 import { GREET } from "./robo-talk";
 
 /** The en dash and the em dash, built from their codes so this file never contains one. */
@@ -26,7 +26,11 @@ describe("blog", () => {
     for (const p of posts) {
       for (const text of [p.title, p.summary, ...p.paragraphs]) expect(text).not.toMatch(DASHES);
       for (const para of p.paragraphs)
-        for (const bit of pieces(para)) if (bit.to) expect(routes.has(bit.to), bit.to).toBe(true);
+        for (const bit of pieces(para)) {
+          if (bit.to) expect(routes.has(bit.to), bit.to).toBe(true);
+          if (bit.person)
+            expect(personLink(bit.person), `${bit.person} is not on the team`).not.toBeNull();
+        }
     }
   });
 
@@ -41,6 +45,21 @@ describe("blog", () => {
     // only links inside this site
     expect(pieces("[x](https://evil.test)")).toEqual([{ text: "[x](https://evil.test)" }]);
     expect(plainText("Check out our [Events page](/events)!")).toBe("Check out our Events page!");
+    expect(pieces("Thanks [Preetham](@Preetham Gowda S R).")).toEqual([
+      { text: "Thanks " },
+      { text: "Preetham", person: "Preetham Gowda S R" },
+      { text: "." },
+    ]);
+  });
+
+  it("links a person to their LinkedIn if they gave one, otherwise to the team page", () => {
+    expect(personLink("Preetham Gowda S R")).toEqual({
+      href: teamLinkedIn["Preetham Gowda S R"],
+      external: true,
+    });
+    // faculty without a LinkedIn link go to the team page, where they are listed
+    expect(personLink("Archana G")).toEqual({ href: "/team", external: false });
+    expect(personLink("Nobody Here")).toBeNull();
   });
 
   it("lists the newest post first, links Robo Spark to its write-up and gives Robo a line for each post", () => {
