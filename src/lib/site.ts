@@ -350,6 +350,15 @@ export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
 export const squadOf = (name: string) =>
   coreTeam.find((s) => s.members.some((m) => m.name === name));
 
+/** What a byline says under someone's name: their role if they have one, otherwise their squad. */
+export function bylineOf(name: string): { label: string; slug?: string | undefined } | null {
+  const squad = squadOf(name);
+  if (!squad) return null;
+  const role = squad.members.find((m) => m.name === name)?.role;
+  if (role) return { label: role };
+  return { label: `${squad.title} squad`, slug: squad.slug };
+}
+
 /** What the club works on. From the club's own website brief, kept short. */
 export const focusAreas: { tag: string; title: string; text: string }[] = [
   {
