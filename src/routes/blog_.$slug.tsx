@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { JsonLd } from "@/components/site/JsonLd";
 import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
-import { bylineOf, formatDate, site, teamLinkedIn, teamPhotos } from "@/lib/site";
+import { bylineOf, formatDate, personLink, site, teamLinkedIn, teamPhotos } from "@/lib/site";
 import { pieces, postBySlug } from "@/lib/blog";
 
 export const Route = createFileRoute("/blog_/$slug")({
@@ -42,6 +42,8 @@ export const Route = createFileRoute("/blog_/$slug")({
   },
   component: PostPage,
 });
+
+const LINK = "font-bold text-primary underline underline-offset-4";
 
 function PostPage() {
   const { post: p } = Route.useLoaderData();
@@ -101,19 +103,29 @@ function PostPage() {
           <div className="mt-8 grid gap-5 text-lg leading-relaxed">
             {p.paragraphs.map((para, i) => (
               <p key={i}>
-                {pieces(para).map((bit, j) =>
-                  bit.to ? (
-                    <Link
-                      key={j}
-                      to={bit.to as "/"}
-                      className="font-bold text-primary underline underline-offset-4"
-                    >
-                      {bit.text}
-                    </Link>
-                  ) : (
-                    <span key={j}>{bit.text}</span>
-                  ),
-                )}
+                {pieces(para).map((bit, j) => {
+                  const link = bit.person ? personLink(bit.person) : null;
+                  const to = bit.to ?? (link && !link.external ? link.href : null);
+                  if (link?.external)
+                    return (
+                      <a
+                        key={j}
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={LINK}
+                      >
+                        {bit.text}
+                      </a>
+                    );
+                  if (to)
+                    return (
+                      <Link key={j} to={to as "/"} className={LINK}>
+                        {bit.text}
+                      </Link>
+                    );
+                  return <span key={j}>{bit.text}</span>;
+                })}
               </p>
             ))}
           </div>
