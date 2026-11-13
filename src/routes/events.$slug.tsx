@@ -4,6 +4,7 @@ import { address, canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
 import { VenueMap } from "@/components/site/VenueMap";
 import { contacts, eventDate, events, site, type ClubEvent } from "@/lib/site";
+import { writeUpOf } from "@/lib/blog";
 
 /** The college address gets the full map; any other venue gets its name and a Maps search, never a guessed pin. */
 const atCollege = (e: ClubEvent) => e.venue === site.address;
@@ -109,6 +110,15 @@ function EventPage() {
           {e.about && <p className="max-w-2xl text-lg">{e.about}</p>}
           {e.slug === "robo-spark" && (
             <div className="mt-6 flex flex-wrap gap-3">
+              {writeUpOf(e.slug) && (
+                <Link
+                  to="/blog/$slug"
+                  params={{ slug: writeUpOf(e.slug)!.slug }}
+                  className="border-2 border-border bg-ink px-4 py-2 font-bold text-paper shadow-hard"
+                >
+                  Read the write-up
+                </Link>
+              )}
               <Link
                 to="/certificates"
                 className="border-2 border-border bg-primary px-4 py-2 font-bold text-primary-foreground shadow-hard"
