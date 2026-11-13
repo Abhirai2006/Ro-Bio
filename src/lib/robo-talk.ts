@@ -15,6 +15,7 @@ import {
   teamPhotos,
   type Member,
 } from "./site";
+import { posts } from "./blog";
 
 /** How many of the core team have a photo up, counted from site.ts, so the line stays true as photos arrive. */
 const withPhoto = coreTeam.flatMap((sq) => sq.members).filter((m) => teamPhotos[m.name]).length;
@@ -59,7 +60,15 @@ export const GREET: Record<string, string> = {
   "/gallery": gallery.length
     ? `Gallery. ${gallery.length} frames filled. I am in none of them.`
     : "Gallery. Empty frames. Ready for my close-up.",
-  "/blog": "Blog. No posts yet. I checked.",
+  "/blog": posts.length
+    ? `Blog. ${posts.length} ${posts.length === 1 ? "post" : "posts"}. I read every word.`
+    : "Blog. No posts yet. I checked.",
+  ...Object.fromEntries(
+    posts.map((p) => [
+      `/blog/${p.slug}`,
+      `A post by ${p.author.split(" ")[0]}. Reading mode on. Do not talk to me.`,
+    ]),
+  ),
   "/contact": "Contact page. Instagram is the quickest way to reach the humans.",
   "/faq": "FAQ. I have read every answer. Twice.",
   "/privacy": "Privacy. This site keeps almost nothing. I checked.",
