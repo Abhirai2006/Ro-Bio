@@ -254,6 +254,8 @@ Club members do not need to touch the code to update the site. Every fact lives 
 | Venue map | `mapUrl` and `mapEmbed` |
 | Live web address | `url`, once a custom domain is connected |
 
+**Blog posts** live in [`src/lib/blog.ts`](src/lib/blog.ts). Add a new entry at the top of `posts`: a `slug`, `title`, `date`, the `author` exactly as their name is in `coreTeam`, a short `summary` and the `paragraphs`. A paragraph links to a page on the site as `[the words](/events)`. The post gets its own page under `/blog/`, the blog page lists it, it joins the sitemap and llms.txt, and `event` links it from that event's page. The tests check the author is on the team and that there are no em or en dashes.
+
 <br />
 
 ## Run it on your computer
