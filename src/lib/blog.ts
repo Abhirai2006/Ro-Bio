@@ -19,6 +19,25 @@ export type Post = {
 
 export const posts: Post[] = [
   {
+    slug: "how-i-built-the-website",
+    title: "How I built the RO-BIO website",
+    date: "2026-11-13",
+    author: "Abhishek Rai A",
+    summary:
+      "A robot arm, a sumo ring, a heartbeat and a robot called Robo: how the club's website came together, who helped, and what is coming next.",
+    paragraphs: [
+      "Hi, I'm Abhishek, and I built the website you're reading this on. Abdul wrote our first post, about Robo Spark, so it felt right that the second one should be about the place it lives.",
+      "I actually started working on the site on 20 October, before I had even joined RO-BIO. The idea was simple. RO-BIO works on robots and on the human body, and both run the same loop: sense, decide, act, feed back. So the site tries to be a little bit of both.",
+      "That's why the home page has a 3D robot arm you can use to pick up and place samples, a Robo Sumo game where you push a CPU robot out of the ring, and a heartbeat beating in the header. Then there's Robo, the small robot who walks across every page and has something to say about each one. Say hi to him.",
+      "There's also the serious stuff: a page for every squad on the team, every event with its poster and venue, an FAQ, and this blog. For Robo Spark I built the things we needed on the day too: the presentation, the missions and judging guide, a scoring page for the judges, and the certificates, which anyone can verify on the site. And there are no ads and no analytics, so nobody is tracking you while you look around.",
+      "I didn't do it alone. Preetham Gowda S R from the Design squad helped me a lot by giving me the assets, the images and everything else the site needed. The coding was my part.",
+      "I'll be honest about one thing: I used some AI help along the way. But I didn't depend on it completely. Every feature still had to be planned, checked and tested, and so far the project has more than 800 commits.",
+      "There's a lot more coming. Bot Forge, our first competition, will get its registration on the site once the rules are confirmed. The Gallery will fill up with photos from our events, the Projects page will get write-ups of what we build, and this blog will get a new post every week, written by different members of the club.",
+      "I'm also the club's Secretary now, so along with the website I'll be looking after the club's records and documentation. If something on the site is broken, or you have an idea for it, tell me. You can find me on the [Team page](/team).",
+      "Thank you to Archana ma'am for trusting me with this, to Preetham for all the assets, and to Abdul for writing our first post. This site is for the whole club, and I want it to keep growing with all of us.",
+    ],
+  },
+  {
     slug: "robo-spark-kickoff",
     title: "Sparking the Future: How We Kicked Off RO-BIO with Robo Spark!",
     date: "2026-11-04",
