@@ -72,7 +72,7 @@ export const events: ClubEvent[] = [
       "Prof. K.S. Rangappa Auditorium, School of Planning and Architecture, University of Mysore",
     audience: "First year students of MUSE",
     about:
-      "An interactive session for this year's first years. Teams of five to ten take on a robotics problem, and a few teams present their solution on stage.",
+      "An interactive session for this year's first years. Teams of five take on a robotics problem, and a few teams present their solution on stage.",
     poster: "/events/robo-spark.jpg",
     activities: [
       { name: "Icebreaker", tag: "SESSION" },
@@ -345,6 +345,10 @@ export const squadPages = () =>
 
 /** How many people are on the core team, counted from the list above. */
 export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
+
+/** The squad someone is in, by their name exactly as it appears in `coreTeam`. */
+export const squadOf = (name: string) =>
+  coreTeam.find((s) => s.members.some((m) => m.name === name));
 
 /** What the club works on. From the club's own website brief, kept short. */
 export const focusAreas: { tag: string; title: string; text: string }[] = [
