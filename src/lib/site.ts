@@ -350,6 +350,18 @@ export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
 export const squadOf = (name: string) =>
   coreTeam.find((s) => s.members.some((m) => m.name === name));
 
+/**
+ * Where a mention of someone in a blog post links: their LinkedIn if they gave one, otherwise their squad's page,
+ * or the Team page for faculty. Null for a name that is not on the team.
+ */
+export function personLink(name: string): { href: string; external: boolean } | null {
+  if (teamLinkedIn[name]) return { href: teamLinkedIn[name]!, external: true };
+  const squad = squadOf(name);
+  if (squad) return { href: squad.slug ? `/team/${squad.slug}` : "/team", external: false };
+  if (faculty.some((f) => f.name === name)) return { href: "/team", external: false };
+  return null;
+}
+
 /** What a byline says under someone's name: their role if they have one, otherwise their squad. */
 export function bylineOf(name: string): { label: string; slug?: string | undefined } | null {
   const squad = squadOf(name);
