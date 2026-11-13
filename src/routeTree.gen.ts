@@ -24,6 +24,7 @@ import { Route as TeamRouteImport } from './routes/team'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WorkshopsRouteImport } from './routes/workshops'
 import { Route as AdminCertificatesRouteImport } from './routes/admin.certificates'
+import { Route as BlogSlugRouteImport } from './routes/blog_.$slug'
 import { Route as EventsIndexRouteImport } from './routes/events.index'
 import { Route as EventsSlugRouteImport } from './routes/events.$slug'
 import { Route as MerchAdminRouteImport } from './routes/merch_.admin'
@@ -110,6 +111,11 @@ const AdminCertificatesRoute = AdminCertificatesRouteImport.update({
   path: '/admin/certificates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog_/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/merch/admin': typeof MerchAdminRoute
   '/recruit/admin': typeof RecruitAdminRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/merch/admin': typeof MerchAdminRoute
   '/recruit/admin': typeof RecruitAdminRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/workshops': typeof WorkshopsRoute
   '/admin/certificates': typeof AdminCertificatesRoute
+  '/blog_/$slug': typeof BlogSlugRoute
   '/events/$slug': typeof EventsSlugRoute
   '/merch_/admin': typeof MerchAdminRoute
   '/recruit/admin': typeof RecruitAdminRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/workshops'
     | '/admin/certificates'
+    | '/blog/$slug'
     | '/events/$slug'
     | '/merch/admin'
     | '/recruit/admin'
@@ -288,6 +298,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/workshops'
     | '/admin/certificates'
+    | '/blog/$slug'
     | '/events/$slug'
     | '/merch/admin'
     | '/recruit/admin'
@@ -315,6 +326,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/workshops'
     | '/admin/certificates'
+    | '/blog_/$slug'
     | '/events/$slug'
     | '/merch_/admin'
     | '/recruit/admin'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WorkshopsRoute: typeof WorkshopsRoute
   AdminCertificatesRoute: typeof AdminCertificatesRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   EventsSlugRoute: typeof EventsSlugRoute
   MerchAdminRoute: typeof MerchAdminRoute
   RecruitAdminRoute: typeof RecruitAdminRoute
@@ -462,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCertificatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog_/$slug': {
+      id: '/blog_/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/': {
       id: '/events/'
       path: '/events'
@@ -551,6 +571,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WorkshopsRoute: WorkshopsRoute,
   AdminCertificatesRoute: AdminCertificatesRoute,
+  BlogSlugRoute: BlogSlugRoute,
   EventsSlugRoute: EventsSlugRoute,
   MerchAdminRoute: MerchAdminRoute,
   RecruitAdminRoute: RecruitAdminRoute,
