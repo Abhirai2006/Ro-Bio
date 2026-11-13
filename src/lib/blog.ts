@@ -1,5 +1,7 @@
 // The blog posts. Add a new post at the top of `posts`: the blog page, its own page, the sitemap, llms.txt and
-// what Robo says all read this list. A paragraph can link to a page on this site as [the words](/path).
+// what Robo says all read this list. A paragraph can link to a page on this site as [the words](/path), and to a
+// person as [the words](@Their Name), with the name exactly as in `coreTeam` or `faculty` in site.ts: the link goes
+// to their LinkedIn if site.ts has one, otherwise to their place on the Team page.
 // No imports, so the Node script that writes the sitemap can read it too.
 
 export type Post = {
@@ -26,15 +28,12 @@ export const posts: Post[] = [
     summary:
       "A robot arm, a sumo ring, a heartbeat and a robot called Robo: how the club's website came together, who helped, and what is coming next.",
     paragraphs: [
-      "Hi, I'm Abhishek, and I built the website you're reading this on. Abdul wrote our first post, about Robo Spark, so it felt right that the second one should be about the place it lives.",
-      "I actually started working on the site on 20 October, before I had even joined RO-BIO. The idea was simple. RO-BIO works on robots and on the human body, and both run the same loop: sense, decide, act, feed back. So the site tries to be a little bit of both.",
-      "That's why the home page has a 3D robot arm you can use to pick up and place samples, a Robo Sumo game where you push a CPU robot out of the ring, and a heartbeat beating in the header. Then there's Robo, the small robot who walks across every page and has something to say about each one. Say hi to him.",
-      "There's also the serious stuff: a page for every squad on the team, every event with its poster and venue, an FAQ, and this blog. For Robo Spark I built the things we needed on the day too: the presentation, the missions and judging guide, a scoring page for the judges, and the certificates, which anyone can verify on the site. And there are no ads and no analytics, so nobody is tracking you while you look around.",
-      "I didn't do it alone. Preetham Gowda S R from the Design squad helped me a lot by giving me the assets, the images and everything else the site needed. The coding was my part.",
-      "I'll be honest about one thing: I used some AI help along the way. But I didn't depend on it completely. Every feature still had to be planned, checked and tested, and so far the project has more than 800 commits.",
-      "There's a lot more coming. Bot Forge, our first competition, will get its registration on the site once the rules are confirmed. The Gallery will fill up with photos from our events, the Projects page will get write-ups of what we build, and this blog will get a new post every week, written by different members of the club.",
-      "I'm also the club's Secretary now, so along with the website I'll be looking after the club's records and documentation. If something on the site is broken, or you have an idea for it, tell me. You can find me on the [Team page](/team).",
-      "Thank you to Archana ma'am for trusting me with this, to Preetham for all the assets, and to Abdul for writing our first post. This site is for the whole club, and I want it to keep growing with all of us.",
+      "Hi, I'm Abhishek, and I built the website you're reading this on. I started on 20 October, before I had even joined RO-BIO.",
+      "RO-BIO works on robots and on the human body, and both run the same loop: sense, decide, act, feed back. So the site is a bit of both: a 3D robot arm you can pick and place with, a Robo Sumo game, a heartbeat in the header, and Robo, the small robot who walks across every page. Say hi to him.",
+      "For Robo Spark I also built what we needed on the day: the presentation, the judging guide, a scoring page for the judges, and certificates that anyone can verify on the site. And there are no ads and no analytics.",
+      "[Preetham Gowda S R](@Preetham Gowda S R) from the Design squad gave me the assets and images, and I did the coding. I used some AI help along the way, but I didn't depend on it completely. Every feature still had to be planned, checked and tested, over more than 800 commits.",
+      "Next up: Bot Forge registration once the rules are confirmed, photos in the Gallery, write-ups of our projects, and a new blog post every week from different members of the club.",
+      "I'm also the club's Secretary now, so along with the site I'll be looking after the club's records and documentation. Found something broken, or have an idea? Tell me. And thank you to [Archana ma'am](@Archana G) for trusting me with this.",
     ],
   },
   {
@@ -71,16 +70,24 @@ export const postBySlug = (slug: string) => posts.find((p) => p.slug === slug);
 /** The newest post that writes up an event, if there is one. */
 export const writeUpOf = (eventSlug: string) => sortedPosts().find((p) => p.event === eventSlug);
 
-export type Piece = { text: string; to?: string };
+export type Piece = { text: string; to?: string; person?: string };
 
-/** Splits a paragraph into plain text and links. Only links to pages on this site (starting with "/") are kept. */
+/**
+ * Splits a paragraph into plain text, links and people. Only links to pages on this site (starting with "/") and
+ * mentions of people (starting with "@") are kept; anything else stays as plain text.
+ */
 export function pieces(paragraph: string): Piece[] {
   const out: Piece[] = [];
-  const re = /\[([^\]]+)\]\((\/[^)\s]*)\)/g;
+  const re = /\[([^\]]+)\]\((\/[^)\s]*|@[^)]+)\)/g;
   let at = 0;
   for (let m = re.exec(paragraph); m; m = re.exec(paragraph)) {
     if (m.index > at) out.push({ text: paragraph.slice(at, m.index) });
-    out.push({ text: m[1]!, to: m[2]! });
+    const target = m[2]!;
+    out.push(
+      target.startsWith("@")
+        ? { text: m[1]!, person: target.slice(1) }
+        : { text: m[1]!, to: target },
+    );
     at = m.index + m[0].length;
   }
   if (at < paragraph.length) out.push({ text: paragraph.slice(at) });
