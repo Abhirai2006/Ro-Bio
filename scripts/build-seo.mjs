@@ -15,6 +15,8 @@ try {
     merch,
   } = await import("../src/lib/site.ts");
   const { buildFaqs } = await import("../src/lib/faq-build.ts");
+  const { sortedPosts } = await import("../src/lib/blog.ts");
+  const posts = sortedPosts();
   const faqs = buildFaqs(site, events, formatDate, coreTeamSize);
   const bf = events.find((e) => e.slug === "bot-forge");
   const others = events.filter((e) => e !== bf);
@@ -60,7 +62,18 @@ try {
             "The club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, with prices and colours.",
           ],
         ]),
-    ["/blog", "Blog", `Posts from the club${soon("blog")}.`],
+    [
+      "/blog",
+      "Blog",
+      posts.length
+        ? `Posts from the club: ${posts.length} so far, the latest on ${plain(posts[0].date)}.`
+        : "Posts from the club (content coming soon).",
+    ],
+    ...posts.map((p) => [
+      `/blog/${p.slug}`,
+      p.title,
+      `By ${p.author}, ${plain(p.date)}. ${p.summary}`,
+    ]),
     ["/contact", "Contact", "Instagram, event coordinators and the college address."],
     ["/faq", "FAQ", "Short factual answers about the club and Bot Forge."],
     ["/privacy", "Privacy Policy", "No accounts, forms, analytics or cookies."],
