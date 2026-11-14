@@ -3,6 +3,7 @@ import { JsonLd } from "@/components/site/JsonLd";
 import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
 import { bylineOf, formatDate, personLink, site, teamLinkedIn, teamPhotos } from "@/lib/site";
+import { personThought } from "@/lib/robo-talk";
 import { pieces, postBySlug } from "@/lib/blog";
 
 export const Route = createFileRoute("/blog_/$slug")({
@@ -76,7 +77,7 @@ function PostPage() {
       </PageIntro>
       <article className="mx-auto grid max-w-6xl items-start gap-10 px-4 py-14 md:grid-cols-[2fr_1fr]">
         <div className="max-w-2xl">
-          <p className="flex items-center gap-3">
+          <p className="flex items-center gap-3" data-thought={personThought(p.author)}>
             {photo && (
               <img
                 src={photo}
@@ -100,27 +101,27 @@ function PostPage() {
               ) : null}
             </span>
           </p>
-          <div className="mt-8 grid gap-5 text-lg leading-relaxed">
+          <div className="mt-8 grid gap-5 text-lg leading-relaxed" data-robo-say={`post:${p.slug}`}>
             {p.paragraphs.map((para, i) => (
               <p key={i}>
                 {pieces(para).map((bit, j) => {
-                  const link = bit.person ? personLink(bit.person) : null;
-                  const to = bit.to ?? (link && !link.external ? link.href : null);
-                  if (link?.external)
+                  // a person goes to their card on the team pages, which lights up when it opens
+                  const person = bit.person ? personLink(bit.person) : null;
+                  if (bit.person && person)
                     return (
-                      <a
+                      <Link
                         key={j}
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        to={person.to as "/"}
+                        hash={person.hash}
                         className={LINK}
+                        data-thought={personThought(bit.person)}
                       >
                         {bit.text}
-                      </a>
+                      </Link>
                     );
-                  if (to)
+                  if (bit.to)
                     return (
-                      <Link key={j} to={to as "/"} className={LINK}>
+                      <Link key={j} to={bit.to as "/"} className={LINK}>
                         {bit.text}
                       </Link>
                     );
