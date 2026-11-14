@@ -28,7 +28,7 @@ function Blog() {
       <PageIntro label="BLOG / LAB NOTES" title="Lab notes." />
       <section className="mx-auto max-w-6xl px-4 py-14">
         {list.length ? (
-          <ol className="grid gap-6">
+          <ol className="grid gap-6" data-robo-say="blog">
             {list.map((p) => {
               const photo = teamPhotos[p.author];
               const by = bylineOf(p.author);
