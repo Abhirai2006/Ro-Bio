@@ -1,9 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { MemberCard } from "@/components/site/TeamCards";
+import { useHashSpotlight } from "@/components/site/use-hash-spotlight";
 import { SquadArt } from "@/components/site/SquadArt";
 import { SquadLinks } from "@/components/site/SquadLinks";
-import { site, squadPages } from "@/lib/site";
+import { personId, site, squadPages } from "@/lib/site";
 
 // /team/technical and the other squad pages. The underscore keeps this page separate from /team.
 export const Route = createFileRoute("/team_/$squad")({
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/team_/$squad")({
 
 function SquadPage() {
   const { squad } = Route.useLoaderData();
+  useHashSpotlight();
   const others = squadPages().filter((s) => s.slug !== squad.slug);
   const members = [...squad.members].sort((a, b) => Number(!!b.head) - Number(!!a.head));
   return (
@@ -68,7 +70,7 @@ function SquadPage() {
           data-robo-say={`members:${squad.slug}`}
         >
           {members.map((m, i) => (
-            <li key={m.name + m.sem}>
+            <li key={m.name + m.sem} id={personId(m.name)} className="scroll-mt-28">
               <MemberCard member={m} index={i} squadTitle={squad.title} />
             </li>
           ))}
