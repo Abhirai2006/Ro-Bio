@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { canonical } from "@/lib/seo";
 import { PageIntro } from "@/components/site/parts";
 import { MemberCard, Portrait } from "@/components/site/TeamCards";
+import { useHashSpotlight } from "@/components/site/use-hash-spotlight";
 import { SquadLinks } from "@/components/site/SquadLinks";
-import { coreTeam, faculty, squadPages } from "@/lib/site";
+import { coreTeam, faculty, personId, squadPages } from "@/lib/site";
 
 export const Route = createFileRoute("/team")({
   head: () => ({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/team")({
 const officeBearers = coreTeam.find((s) => s.title === "Office Bearers");
 
 function Team() {
+  useHashSpotlight();
   const squads = squadPages();
   return (
     <>
@@ -38,7 +40,11 @@ function Team() {
           data-robo-say="faculty"
         >
           {faculty.map((c) => (
-            <li key={c.name} className="flex border-2 border-border bg-card shadow-hard">
+            <li
+              key={c.name}
+              id={personId(c.name)}
+              className="flex scroll-mt-28 border-2 border-border bg-card shadow-hard"
+            >
               <Portrait name={c.name} className="w-32 shrink-0 border-r-2 border-border sm:w-40" />
               <div className="p-5">
                 <p className="font-pixel text-[10px] text-primary">{c.role.toUpperCase()}</p>
@@ -66,7 +72,7 @@ function Team() {
               data-robo-say="office"
             >
               {officeBearers.members.map((m, i) => (
-                <li key={m.name}>
+                <li key={m.name} id={personId(m.name)} className="scroll-mt-28">
                   <MemberCard member={m} index={i} />
                 </li>
               ))}
