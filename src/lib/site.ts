@@ -350,15 +350,21 @@ export const coreTeamSize = coreTeam.reduce((n, s) => n + s.members.length, 0);
 export const squadOf = (name: string) =>
   coreTeam.find((s) => s.members.some((m) => m.name === name));
 
+/** The anchor for someone's card on the team pages, like "preetham-gowda-s-r". */
+export const personId = (name: string) =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
 /**
- * Where a mention of someone in a blog post links: their LinkedIn if they gave one, otherwise their squad's page,
- * or the Team page for faculty. Null for a name that is not on the team.
+ * Where a mention of someone in a blog post links: their card on their squad's page, or on the Team page for
+ * office bearers and faculty. The page scrolls to the card and lights it up. Null for a name not on the team.
  */
-export function personLink(name: string): { href: string; external: boolean } | null {
-  if (teamLinkedIn[name]) return { href: teamLinkedIn[name]!, external: true };
+export function personLink(name: string): { to: string; hash: string } | null {
   const squad = squadOf(name);
-  if (squad) return { href: squad.slug ? `/team/${squad.slug}` : "/team", external: false };
-  if (faculty.some((f) => f.name === name)) return { href: "/team", external: false };
+  if (squad) return { to: squad.slug ? `/team/${squad.slug}` : "/team", hash: personId(name) };
+  if (faculty.some((f) => f.name === name)) return { to: "/team", hash: personId(name) };
   return null;
 }
 
