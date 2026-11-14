@@ -157,3 +157,23 @@
     visibility: hidden;
   }
 }
+
+/* A card someone was sent to from a blog post: a ring that pulses a few times. */
+[data-spotlight] > article,
+[data-spotlight]:not(:has(> article)) {
+  outline: 4px solid var(--primary);
+  outline-offset: 5px;
+  animation: spotlight-pulse 1.1s ease-in-out 3;
+}
+@keyframes spotlight-pulse {
+  50% {
+    outline-offset: 9px;
+    outline-color: var(--lilac);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-spotlight] > article,
+  [data-spotlight]:not(:has(> article)) {
+    animation: none;
+  }
+}
