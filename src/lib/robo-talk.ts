@@ -2,6 +2,7 @@
 // so nothing here goes stale when a date or the team changes. Robot logic first, then a human feeling.
 import {
   botForge,
+  bylineOf,
   coreTeam,
   coreTeamSize,
   currentSem,
@@ -10,12 +11,13 @@ import {
   formatDate,
   gallery,
   roleDuties,
+  shortDate,
   site,
   squadDuties,
   teamPhotos,
   type Member,
 } from "./site";
-import { posts } from "./blog";
+import { pieces, posts, sortedPosts, type Post } from "./blog";
 
 /** How many of the core team have a photo up, counted from site.ts, so the line stays true as photos arrive. */
 const withPhoto = coreTeam.flatMap((sq) => sq.members).filter((m) => teamPhotos[m.name]).length;
@@ -44,6 +46,36 @@ export const LOST = "Uh oh. Nothing here. I checked twice.";
 /** Said now and then while he idles. */
 export const FORGE_IDLE = `${bf.title} ${when}. Still tuning my motors.`;
 
+const firstName = (name: string) => name.split(" ")[0]!;
+
+/** Who someone is, in a few words: their role, their squad, or their faculty title. */
+export function whoIs(name: string): string {
+  return bylineOf(name)?.label ?? faculty.find((f) => f.name === name)?.role ?? "";
+}
+
+/** What Robo thinks when you point at a person named in a blog post. */
+export const personThought = (name: string) =>
+  `${name}${whoIs(name) ? `, ${whoIs(name)}` : ""}. Tap the name to see them on the team page.`;
+
+/** The people a post links to, in the order they come up. */
+const mentionsOf = (p: Post) => [
+  ...new Set(
+    p.paragraphs.flatMap((para) => pieces(para).flatMap((b) => (b.person ? [b.person] : []))),
+  ),
+];
+
+/** What Robo says about one post as people read it: who wrote it, what it is about, and who it mentions. */
+function postLines(p: Post): string[] {
+  const by = whoIs(p.author);
+  const event = p.event ? events.find((e) => e.slug === p.event) : undefined;
+  return [
+    `${p.author}${by ? `, ${by},` : ""} wrote this on ${shortDate(p.date)}.`,
+    p.summary,
+    ...mentionsOf(p).map((n) => personThought(n)),
+    ...(event ? [`It is about ${event.title}. The event page has the poster.`] : []),
+  ];
+}
+
 export const GREET: Record<string, string> = {
   "/": "Home page loaded. Arm, sumo ring, heartbeat. Everything I love.",
   "/about": "About page. This is where they explain me. Sort of.",
@@ -61,12 +93,12 @@ export const GREET: Record<string, string> = {
     ? `Gallery. ${gallery.length} frames filled. I am in none of them.`
     : "Gallery. Empty frames. Ready for my close-up.",
   "/blog": posts.length
-    ? `Blog. ${posts.length} ${posts.length === 1 ? "post" : "posts"}. I read every word.`
+    ? `Blog. ${posts.length} ${posts.length === 1 ? "post" : "posts"}. Newest: "${sortedPosts()[0]!.title}" by ${firstName(sortedPosts()[0]!.author)}.`
     : "Blog. No posts yet. I checked.",
   ...Object.fromEntries(
     posts.map((p) => [
       `/blog/${p.slug}`,
-      `A post by ${p.author.split(" ")[0]}. Reading mode on. Do not talk to me.`,
+      `"${p.title}". By ${p.author}, ${shortDate(p.date)}. Reading mode on.`,
     ]),
   ),
   "/contact": "Contact page. Instagram is the quickest way to reach the humans.",
@@ -225,10 +257,19 @@ const squadBySlug = (slug: string) => coreTeam.find((s) => s.slug === slug);
 
 /**
  * What Robo says when a part of a team page comes into view as people scroll. The key comes from the
- * part's data-robo-say attribute: "faculty", "office", "squads", "squad:technical" or "members:technical".
+ * part's data-robo-say attribute: "faculty", "office", "squads", "squad:technical", "members:technical", or on
+ * the blog, "blog" for the list and "post:<slug>" for one post.
  * Returns no lines for a key it does not know.
  */
 export function narration(key: string): string[] {
+  if (key === "blog")
+    return sortedPosts().map(
+      (p) => `"${p.title}", by ${p.author}, ${shortDate(p.date)}. ${p.summary}`,
+    );
+  if (key.startsWith("post:")) {
+    const p = posts.find((x) => x.slug === key.slice(5));
+    return p ? postLines(p) : [];
+  }
   if (key === "faculty")
     return faculty.map((f) => `${f.name}, ${f.role}. ${dutyOf(f.role)}`.trim());
   if (key === "office")
