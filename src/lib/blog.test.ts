@@ -2,8 +2,8 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { pieces, plainText, posts, sortedPosts, writeUpOf } from "./blog";
-import { events, personLink, squadOf, teamLinkedIn } from "./site";
-import { GREET } from "./robo-talk";
+import { coreTeam, events, personId, personLink, squadOf } from "./site";
+import { GREET, narration } from "./robo-talk";
 
 /** The en dash and the em dash, built from their codes so this file never contains one. */
 const DASHES = new RegExp(`[${String.fromCharCode(0x2013, 0x2014)}]`);
@@ -52,14 +52,35 @@ describe("blog", () => {
     ]);
   });
 
-  it("links a person to their LinkedIn if they gave one, otherwise to the team page", () => {
+  it("links a person to their own card on the team pages, never off the site", () => {
     expect(personLink("Preetham Gowda S R")).toEqual({
-      href: teamLinkedIn["Preetham Gowda S R"],
-      external: true,
+      to: "/team/design",
+      hash: "preetham-gowda-s-r",
     });
-    // faculty without a LinkedIn link go to the team page, where they are listed
-    expect(personLink("Archana G")).toEqual({ href: "/team", external: false });
+    // office bearers and faculty are on the main team page
+    expect(personLink("Abhishek Rai A")).toEqual({ to: "/team", hash: "abhishek-rai-a" });
+    expect(personLink("Archana G")).toEqual({ to: "/team", hash: "archana-g" });
     expect(personLink("Nobody Here")).toBeNull();
+    // and every card has the anchor the link points at
+    for (const sq of coreTeam)
+      for (const m of sq.members) expect(personId(m.name)).toMatch(/^[a-z0-9-]+$/);
+  });
+
+  it("tells Robo who wrote each post, what it is about and who it mentions", () => {
+    expect(narration("blog")).toHaveLength(posts.length);
+    for (const p of posts) {
+      const lines = narration(`post:${p.slug}`);
+      expect(lines[0]).toContain(p.author);
+      expect(lines).toContain(p.summary);
+      expect(GREET[`/blog/${p.slug}`]).toContain(p.title);
+    }
+    const built = narration("post:how-i-built-the-website").join(" ");
+    expect(built).toContain("Preetham Gowda S R, Design squad");
+    expect(built).toContain("Archana G, Faculty coordinator");
+    expect(narration("post:robo-spark-kickoff").join(" ")).toContain("Robo Spark");
+    expect(narration("post:nope")).toEqual([]);
+    for (const line of [...narration("blog"), ...posts.flatMap((p) => narration(`post:${p.slug}`))])
+      expect(line).not.toMatch(DASHES);
   });
 
   it("lists the newest post first, links Robo Spark to its write-up and gives Robo a line for each post", () => {
