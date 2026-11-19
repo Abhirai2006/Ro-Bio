@@ -260,6 +260,7 @@ export const teamPhotos: Record<string, string> = {
   "Shrishant Bashetty": "/team/people/shrishant-bashetty.webp",
   "Brunda H S": "/team/people/brunda-h-s.webp",
   "Varsha H K": "/team/people/varsha-h-k.webp",
+  "Shloka D Raj": "/team/people/shloka-d-raj.webp",
   "Pushkal Sai A": "/team/people/pushkal-sai-a.webp",
   "Monica S": "/team/people/monica-s.webp",
   "Gagan Yadav A": "/team/people/gagan-yadav-a.webp",
