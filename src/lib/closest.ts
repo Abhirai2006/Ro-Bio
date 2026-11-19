@@ -7,6 +7,7 @@ export const PAGES = [
   "/workshops",
   "/projects",
   "/team",
+  "/join",
   "/gallery",
   "/blog",
   "/contact",
