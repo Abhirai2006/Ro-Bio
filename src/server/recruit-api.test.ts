@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { handleRecruitApi, type RecruitEnv } from "./recruit-api";
 import { RecruitStore } from "./recruit-store";
 import { sqliteState } from "@/test/sqlite-state";
+import { recruitment } from "@/lib/site";
 
 const ADMIN = "admin-pass";
 const JUDGE = "judge-pass";
@@ -51,7 +52,7 @@ const student = (usn: string, first: string, extra: Record<string, unknown> = {}
   sem: 1,
   first,
   second: null,
-  day: "Fri 20 Nov",
+  day: "Mon 23 Nov",
   ...extra,
 });
 
@@ -236,12 +237,12 @@ describe("1st semester students without a USN", () => {
     await call("admin", "add", { method: "POST", body: { rows: [noUsn("Gita", "gita@x.in")] } });
     const r = await call("admin", "add", {
       method: "POST",
-      body: { rows: [noUsn("Gita R", "GITA@x.in", { day: "Sat 21 Nov" })] },
+      body: { rows: [noUsn("Gita R", "GITA@x.in", { day: "Mon 23 Nov" })] },
     });
     expect(r.data).toMatchObject({ added: 0, updated: 1 });
     const rows = await rowsOf(call);
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ name: "Gita R", day: "Sat 21 Nov" });
+    expect(rows[0]).toMatchObject({ name: "Gita R", day: "Mon 23 Nov" });
   });
 
   it("fills in the USN when they get one later, keeping their marks", async () => {
@@ -288,7 +289,7 @@ describe("upgrading a store made by the first version", () => {
       "CREATE TABLE sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge))",
     );
     sql.exec(
-      "INSERT INTO candidates (id, usn, name, email, phone, branch, sem, first, day, wildcard, status, added_at) VALUES (7, '4MU24A001', 'Old Student', 'old@x.in', '', 'Computer Science & Design', 3, 'Events', 'Fri 20 Nov', 1, 'core', 1)",
+      "INSERT INTO candidates (id, usn, name, email, phone, branch, sem, first, day, wildcard, status, added_at) VALUES (7, '4MU24A001', 'Old Student', 'old@x.in', '', 'Computer Science & Design', 3, 'Events', 'Mon 23 Nov', 1, 'core', 1)",
     );
     sql.exec("INSERT INTO sheets VALUES (7, 'Archana', 'Teacher', '[3,3,3,3,3]', '', 1)");
     const { call } = setup({}, state);
@@ -306,8 +307,9 @@ describe("upgrading a store made by the first version", () => {
 });
 
 describe("the public /join sign-up", () => {
-  const BEFORE = Date.parse("2026-11-19T20:00:00+05:30");
-  const AFTER = Date.parse("2026-11-20T14:00:01+05:30");
+  // One day before sign-ups close, and one second after (recruitment.closesAt in site.ts).
+  const BEFORE = Date.parse(recruitment.closesAt) - 86400000;
+  const AFTER = Date.parse(recruitment.closesAt) + 1000;
   const form = (extra: Record<string, unknown> = {}) => ({
     name: "asha r",
     sem: 1,
@@ -317,7 +319,7 @@ describe("the public /join sign-up", () => {
     phone: "+91 90000 00001",
     first: "Design",
     second: "Events",
-    day: "Fri 20 Nov",
+    day: "Mon 23 Nov",
     consent: true,
     website: "",
     ...extra,
@@ -364,7 +366,7 @@ describe("the public /join sign-up", () => {
     expect((await apply()).data).toEqual({ open: true, reason: "" });
     const r = await apply(form());
     expect(r.status).toBe(200);
-    expect(r.data).toMatchObject({ ok: true, first: "Design", room: "G-07", day: "Fri 20 Nov" });
+    expect(r.data).toMatchObject({ ok: true, first: "Design", room: "G-07", day: "Mon 23 Nov" });
     expect(store.list()).toMatchObject([
       {
         name: "Asha R",
