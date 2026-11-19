@@ -345,7 +345,7 @@ export type SquadCall = {
  * Core member recruitment: the /join page, the "Join" menu item, the home page strip and the
  * "Join a squad" tile on /team all read this.
  * "soon": opens soon, follow Instagram. "open": the /join sign-up form is live. "closed": this round is over.
- * The interview days and rooms are in src/lib/recruit.ts (DAYS and ROOMS), because the judge page uses them too.
+ * The interview days and semesters are in src/lib/recruit.ts (DAYS and SEMS), because the judge page uses them too.
  */
 export const recruitment: {
   status: "soon" | "open" | "closed";
@@ -353,8 +353,8 @@ export const recruitment: {
   who: string;
   /** Each interview day's time and when students should be at the door, by its name in DAYS (src/lib/recruit.ts). */
   schedule: Record<string, { time: string; arriveBy: string; note?: string }>;
-  /** Where the two rooms are. */
-  building: string;
+  /** Where the interviews happen. Every squad sits in this one room, each in its own corner. */
+  venue: string;
   /** Sign-ups stop at this moment (India time). The admin page can also pause them earlier. */
   closesAt: string;
   /** The same moment, as people read it. */
@@ -366,7 +366,7 @@ export const recruitment: {
   squads: Record<NonNullable<Squad["slug"]>, SquadCall>;
 } = {
   status: "open",
-  who: "1st and 3rd semester students of every branch",
+  who: "1st, 3rd and 5th semester students of every branch",
   schedule: {
     "Mon 23 Nov": {
       time: "12 to 1 pm",
@@ -374,7 +374,7 @@ export const recruitment: {
       note: "If many students come, we keep going past 1 pm until everyone has been seen.",
     },
   },
-  building: "Second year block",
+  venue: "the classroom opposite the MUSE auditorium",
   closesAt: "2026-11-23T11:00:00+05:30",
   closesLabel: "Mon 23 Nov, 11 am",
   mailFrom: "ro.bio.muse@gmail.com",
