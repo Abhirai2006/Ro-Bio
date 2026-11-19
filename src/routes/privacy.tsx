@@ -10,13 +10,13 @@ export const Route = createFileRoute("/privacy")({
       {
         name: "description",
         content:
-          "What the RO-BIO website stores and shares: no accounts, no analytics, one cookie for merch likes.",
+          "What the RO-BIO website stores and shares: the recruitment sign-up, no accounts, no analytics, one cookie for merch likes.",
       },
       { property: "og:title", content: "Privacy Policy | RO-BIO" },
       {
         property: "og:description",
         content:
-          "What the RO-BIO website stores and shares: no accounts, no analytics, one cookie for merch likes.",
+          "What the RO-BIO website stores and shares: the recruitment sign-up, no accounts, no analytics, one cookie for merch likes.",
       },
     ],
     links: [canonical("/privacy")],
@@ -34,10 +34,11 @@ function Page() {
 
       <h2>The short version</h2>
       <p>
-        We do not ask visitors for personal information on this site. There are no accounts, public
-        forms or newsletters. We do not use analytics or advertising trackers. The site sets one
-        cookie of its own, only if you open the members' merch page (see below), and the Google map
-        on the Contact and Bot Forge pages comes from Google.
+        The only place this site asks for personal information is the core recruitment sign-up on
+        the Join page (see below). There are no accounts or newsletters. We do not use analytics or
+        advertising trackers. The site sets one cookie of its own, only if you open the members'
+        merch page (see below), and the Google map on the Contact and Bot Forge pages comes from
+        Google.
       </p>
 
       <h2>What our hosting provider sees</h2>
@@ -74,8 +75,9 @@ function Page() {
         Club judges and admins who use the recruitment pages also store{" "}
         <strong>robio-recruit-judge</strong> (local storage: the judge's name, squad and passcode,
         so they stay signed in), <strong>robio-recruit-drafts</strong> (local storage: marks not
-        saved yet) and <strong>robio-recruit-admin</strong> (session storage: the admin passcode
-        until the tab closes). Signing out removes them.
+        saved yet), <strong>robio-recruit-admin</strong> (session storage: the admin passcode until
+        the tab closes) and <strong>robio-recruit-sent</strong> (local storage, admins only: which
+        result emails were opened, as numbers, no names). Signing out removes the passcodes.
       </p>
 
       <h2>Other companies involved</h2>
@@ -129,22 +131,24 @@ function Page() {
       </p>
       <h2>Core member recruitment</h2>
       <p>
-        Students who apply to join the core team fill in a Google Form run by the club. Google
-        handles the form under its own privacy policy. We then copy the answers into a private part
-        of this site so our judges can mark interviews: name, USN, email address, WhatsApp number,
-        branch, semester, squad choices and interview day, plus the judges' marks and short notes.
+        Students who apply to join the core team sign up on the Join page of this site. We store
+        what they type in a private part of this site so our judges can run the interviews: name,
+        USN, email address, WhatsApp number, branch, semester, squad choices and interview day, plus
+        the judges' marks and short notes. To slow down spam we keep a scrambled code made from the
+        sender's IP address for ten minutes, never the address itself.
       </p>
       <p>
         Only the club's admins and interview judges can see this, behind passcodes. Judges see a
         student's name, USN, branch, semester and squad, never their email or phone number. We use
-        it only to choose new members and to tell applicants their results. We delete it from this
-        site after recruitment ends, and you can ask us to delete yours sooner.
+        it only to choose new members and to tell applicants their results, by email and WhatsApp
+        from the club's own accounts. We delete it from this site after recruitment ends, and you
+        can ask us to delete yours sooner.
       </p>
 
       <h2>If we add registration later</h2>
       <p>
-        Bot Forge registration is not open yet. Before we collect any personal information, we will
-        update this policy to say what we collect, why, who can see it and how long we keep it.
+        Bot Forge registration is not open yet. Before it opens, we will update this policy to say
+        what it collects, why, who can see it and how long we keep it.
       </p>
 
       <h2>Your rights</h2>
