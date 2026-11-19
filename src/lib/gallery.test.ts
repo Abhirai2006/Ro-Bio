@@ -20,9 +20,10 @@ describe("gallery and recruitment in site.ts", () => {
     }
   });
 
-  it("has a form link whenever recruitment is open", () => {
+  it("gives recruitment a known status and a closing time in India", () => {
     expect(["soon", "open", "closed"]).toContain(recruitment.status);
-    if (recruitment.status === "open") expect(recruitment.formUrl).toMatch(/^https:\/\//);
+    expect(recruitment.closesAt).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\+05:30$/);
+    expect(Number.isNaN(Date.parse(recruitment.closesAt))).toBe(false);
   });
 
   it("lets Robo count the team photos from site.ts instead of saying they are missing", () => {
