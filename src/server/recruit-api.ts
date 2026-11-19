@@ -1,4 +1,5 @@
-// /api/recruit/*: core member recruitment. judge/* needs the judge passcode and admin/* the admin passcode.
+// /api/recruit/*: core member recruitment. apply is the public /join form. judge/* needs the judge passcode
+// and admin/* the admin passcode.
 // Both live only in Cloudflare (Settings, Variables and Secrets: RECRUIT_JUDGE_PASSCODE and RECRUIT_ADMIN_PASSCODE),
 // never in this public repo. Judges never get a student's email or phone, or another judge's marks.
 import {
@@ -7,10 +8,13 @@ import {
   isStatus,
   MAX_ROWS,
   parseSheet,
+  ROOMS,
   toJudgeView,
+  validateApplication,
   validateCandidate,
   type NewCandidate,
 } from "@/lib/recruit";
+import { recruitment, recruitmentOpen } from "@/lib/site";
 import { cleanName } from "@/lib/judging";
 import type { RecruitStore } from "./recruit-store";
 
@@ -40,11 +44,71 @@ const readBody = async (request: Request): Promise<Record<string, unknown> | nul
   return b && typeof b === "object" && !Array.isArray(b) ? (b as Record<string, unknown>) : null;
 };
 
-export async function handleRecruitApi(request: Request, env: RecruitEnv): Promise<Response> {
+/** The address, only as a salted hash: enough to slow a flood down, never stored in the clear. */
+async function scramble(ip: string) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`robio-recruit:${ip}`));
+  return [...new Uint8Array(d)]
+    .slice(0, 12)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+type Store = ReturnType<DurableObjectNamespace<RecruitStore>["get"]>;
+
+/** Why the /join form is not taking sign-ups right now, or "" when it is. */
+async function closedReason(store: Store, now: number): Promise<string> {
+  if (recruitment.status !== "open") return "Sign-ups for this round are closed.";
+  if (!recruitmentOpen(now))
+    return `Sign-ups closed on ${recruitment.closesLabel}. If you still want to apply, come to the interview room and ask an organiser.`;
+  if (await store.isPaused())
+    return "Sign-ups are paused for now. Check the WhatsApp group, or ask an organiser at the interview room.";
+  return "";
+}
+
+/** GET tells the /join page whether it is open; POST signs a student up. No passcode. */
+async function handleApply(request: Request, store: Store, now: number): Promise<Response> {
+  if (request.method === "GET") {
+    const reason = await closedReason(store, now);
+    return json({ open: !reason, reason });
+  }
+  if (request.method !== "POST") return json({ error: "Use POST." }, 405);
+  const body = await readBody(request);
+  if (!body) return json({ error: "Fill in the form first." }, 400);
+  const reason = await closedReason(store, now);
+  if (reason) return json({ error: reason }, 403);
+  if (await store.signupLimited(await scramble(request.headers.get("cf-connecting-ip") ?? "local")))
+    return json(
+      { error: "Too many sign-ups from this network. Wait 10 minutes and try again." },
+      429,
+    );
+  // A field people never see. Bots fill it in; they get a polite answer and nothing is saved.
+  if (typeof body["website"] === "string" && body["website"].trim()) return json({ ok: true });
+  const v = validateApplication(body);
+  if (!v.ok) return json({ error: v.error }, 400);
+  const saved = await store.register(v.candidate);
+  if ("duplicate" in saved)
+    return json(
+      {
+        error:
+          "You are already registered: we found your USN or email. To change your squad or day, tell an organiser at the interview room.",
+      },
+      409,
+    );
+  if ("full" in saved)
+    return json({ error: "The list is full. Please ask an organiser at the interview room." }, 503);
+  const c = v.candidate;
+  return json({ ok: true, name: c.name, first: c.first, room: ROOMS[c.first], day: c.day });
+}
+
+export async function handleRecruitApi(
+  request: Request,
+  env: RecruitEnv,
+  now = Date.now(),
+): Promise<Response> {
   const url = new URL(request.url);
   const route = url.pathname.replace(/^\/api\/recruit\/?/, "");
   const role = route.startsWith("judge/") ? "judge" : route.startsWith("admin/") ? "admin" : null;
-  if (!role) return json({ error: "Not found." }, 404);
+  if (!role && route !== "apply") return json({ error: "Not found." }, 404);
   if (!env.RECRUIT_STORE)
     return json(
       {
@@ -52,6 +116,12 @@ export async function handleRecruitApi(request: Request, env: RecruitEnv): Promi
           "Recruitment storage is not connected. Check the durable_objects entry in wrangler.jsonc.",
       },
       503,
+    );
+  if (!role)
+    return handleApply(
+      request,
+      env.RECRUIT_STORE.get(env.RECRUIT_STORE.idFromName("core-2026")),
+      now,
     );
 
   const secret = role === "admin" ? "RECRUIT_ADMIN_PASSCODE" : "RECRUIT_JUDGE_PASSCODE";
@@ -134,7 +204,16 @@ export async function handleRecruitApi(request: Request, env: RecruitEnv): Promi
       candidates: await store.list(),
       sheets: await store.sheets(),
       locked: await store.isLocked(),
+      paused: await store.isPaused(),
+      signups: { reason: await closedReason(store, now) },
     });
+
+  if (action === "signups" && method === "PUT") {
+    const paused = (await readBody(request))?.["paused"];
+    if (typeof paused !== "boolean") return json({ error: "Send paused as true or false." }, 400);
+    await store.setPaused(paused);
+    return json({ paused });
+  }
 
   if (action === "add") {
     if (method !== "POST") return json({ error: "Use POST." }, 405);
