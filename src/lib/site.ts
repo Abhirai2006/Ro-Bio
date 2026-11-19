@@ -321,13 +321,133 @@ export const squadDuties: Record<NonNullable<Squad["slug"]>, string[]> = {
   ],
 };
 
-/**
- * Core member recruitment, for the "Join a squad" tile at the end of the squad list on /team.
- * "soon": opens soon, follow Instagram. "open": shows an Apply button to `formUrl`. "closed": this round is over.
- */
-export const recruitment: { status: "soon" | "open" | "closed"; formUrl?: string } = {
-  status: "soon",
+/** What one squad tells applicants on /join. Keyed by the squad page slug. */
+export type SquadCall = {
+  /** Who fits. Applicants need any one of these, not all. */
+  lookFor: string[];
+  /** Small hints about the interview, so nobody walks in blind. Never the actual questions. */
+  expect: string[];
+  /** Squad-specific things to bring, on top of `recruitment.bring`. */
+  bring?: string[];
+  /** A rule in bold, like the Design squad's "no generative AI". */
+  rule?: string;
 };
+
+/**
+ * Core member recruitment: the /join page, the "Join" menu item, the home page strip and the
+ * "Join a squad" tile on /team all read this.
+ * "soon": opens soon, follow Instagram. "open": the /join sign-up form is live. "closed": this round is over.
+ * The interview days and rooms are in src/lib/recruit.ts (DAYS and ROOMS), because the judge page uses them too.
+ */
+export const recruitment: {
+  status: "soon" | "open" | "closed";
+  /** Who may apply. */
+  who: string;
+  /** Interview time on each day. */
+  time: string;
+  /** When students should be at the door. */
+  arriveBy: string;
+  /** Where the two rooms are. */
+  building: string;
+  /** Sign-ups stop at this moment (India time). The admin page can also pause them earlier. */
+  closesAt: string;
+  /** The same moment, as people read it. */
+  closesLabel: string;
+  /** What every applicant brings, written to fit after "Bring:" or "with". */
+  bring: string[];
+  /** The club Gmail the result emails go out from. The admin page opens Gmail drafts in this account. */
+  mailFrom: string;
+  /** How many days a selected student has to reply to the result email. */
+  replyWithinDays: number;
+  squads: Record<NonNullable<Squad["slug"]>, SquadCall>;
+} = {
+  status: "open",
+  who: "1st and 3rd semester students of every branch",
+  time: "3:30 to 5 pm",
+  arriveBy: "3:15 pm",
+  building: "Second year block",
+  closesAt: "2026-11-20T14:00:00+05:30",
+  closesLabel: "Fri 20 Nov, 2 pm",
+  bring: ["your college ID card", "your phone, charged"],
+  mailFrom: "ro.bio.muse@gmail.com",
+  replyWithinDays: 2,
+  squads: {
+    projects: {
+      lookFor: [
+        "You like building, fixing or taking things apart",
+        "A school, hobby or college project you can talk about, even a small one",
+        "A basic idea of Arduino, sensors or motors (not needed in 1st sem)",
+        "You like planning: splitting work, keeping track, meeting a deadline",
+      ],
+      expect: [
+        "Turning an idea into a small first version: what you would build first, and what parts it needs",
+        "How you would split a project between a few people",
+        "Something you tried that did not work, and what you did next",
+      ],
+    },
+    events: {
+      lookFor: [
+        "You have helped run something: a school fest, a class event, a family function",
+        "You are comfortable talking to people you do not know",
+        "You stay calm when plans change at the last minute",
+        "You can be there on event days, including Saturdays",
+      ],
+      expect: [
+        '"What would you do if..." moments at an event: something breaks, a queue builds up, someone is late',
+        "Planning a short session or a checklist out loud",
+        "An event you were part of, and one thing that went wrong",
+      ],
+    },
+    technical: {
+      lookFor: [
+        "Curiosity about how things work inside",
+        "Some programming in any language: C, Python, anything",
+        "Electronics, Arduino, soldering or web development",
+        "You have opened up or repaired a device just to see how it works",
+      ],
+      expect: [
+        "Thinking out loud about how simple robots and sensors work. A sensible guess counts",
+        "How you would find the fault when something stops working",
+        "An honest answer about what you have used so far. Never built a robot? That is fine",
+      ],
+    },
+    "social-media": {
+      lookFor: [
+        "You write captions, scripts or short posts people want to read",
+        "Photography, or shooting and editing video (CapCut, Premiere, anything)",
+        "You have run a page or a channel, for yourself or for someone else",
+        "You are happy to speak to a class or a group of CRs",
+      ],
+      expect: [
+        "Pitching RO-BIO, or writing a caption, in a few lines out loud",
+        "Planning simple posts or a short reel for an event",
+        "An account you follow, and why it makes you stop scrolling",
+      ],
+      bring: ["Samples of your posts, photos or edits on your phone, if you have them"],
+    },
+    design: {
+      lookFor: [
+        "Graphic design skills",
+        "Traditional (paper) or digital illustration, digital preferred",
+        "3D design and modelling",
+        "Animation skills",
+      ],
+      expect: [
+        "You get a topic when you arrive and about 15 minutes to make it, on paper or on a device",
+        "You present it in about 1 minute and say why you made each choice",
+        "Questions about your tools, and about your work if you show some",
+      ],
+      bring: [
+        "Your digital illustration device or tools, if you want them: iPad, laptop, colour pencils, anything",
+      ],
+      rule: "Absolutely no generative AI.",
+    },
+  },
+};
+
+/** True while the /join sign-up form takes new students, on the clock `now` (milliseconds). */
+export const recruitmentOpen = (now = Date.now()) =>
+  recruitment.status === "open" && now < Date.parse(recruitment.closesAt);
 
 /**
  * The gallery page. Put the files in public/gallery/ and add one line each, newest first.
