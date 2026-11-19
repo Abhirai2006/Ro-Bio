@@ -8,7 +8,6 @@ import {
   isStatus,
   MAX_ROWS,
   parseSheet,
-  ROOMS,
   toJudgeView,
   validateApplication,
   validateCandidate,
@@ -97,7 +96,7 @@ async function handleApply(request: Request, store: Store, now: number): Promise
   if ("full" in saved)
     return json({ error: "The list is full. Please ask an organiser at the interview room." }, 503);
   const c = v.candidate;
-  return json({ ok: true, name: c.name, first: c.first, room: ROOMS[c.first], day: c.day });
+  return json({ ok: true, name: c.name, first: c.first, day: c.day });
 }
 
 export async function handleRecruitApi(
