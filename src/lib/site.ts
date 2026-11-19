@@ -352,7 +352,7 @@ export const recruitment: {
   /** Who may apply. */
   who: string;
   /** Each interview day's time and when students should be at the door, by its name in DAYS (src/lib/recruit.ts). */
-  schedule: Record<string, { time: string; arriveBy: string }>;
+  schedule: Record<string, { time: string; arriveBy: string; note?: string }>;
   /** Where the two rooms are. */
   building: string;
   /** Sign-ups stop at this moment (India time). The admin page can also pause them earlier. */
@@ -368,12 +368,15 @@ export const recruitment: {
   status: "open",
   who: "1st and 3rd semester students of every branch",
   schedule: {
-    "Fri 20 Nov": { time: "3:30 to 5 pm", arriveBy: "3:15 pm" },
-    "Sat 21 Nov": { time: "from 11 am", arriveBy: "10:45 am" },
+    "Mon 23 Nov": {
+      time: "12 to 1 pm",
+      arriveBy: "12 pm",
+      note: "If many students come, we keep going past 1 pm until everyone has been seen.",
+    },
   },
   building: "Second year block",
-  closesAt: "2026-11-20T14:00:00+05:30",
-  closesLabel: "Fri 20 Nov, 2 pm",
+  closesAt: "2026-11-23T11:00:00+05:30",
+  closesLabel: "Mon 23 Nov, 11 am",
   mailFrom: "ro.bio.muse@gmail.com",
   replyWithinDays: 2,
   squads: {
