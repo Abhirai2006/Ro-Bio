@@ -22,6 +22,7 @@ import {
   type Candidate,
   type Sheet,
 } from "@/lib/recruit";
+import { recruitment } from "@/lib/site";
 
 const cand = (
   id: number,
@@ -341,10 +342,13 @@ describe("cleanMobile", () => {
 });
 
 describe("interview days", () => {
-  it("gives every day a date and a note", () => {
+  it("gives every day a date, a note, a time and an arrival time", () => {
     for (const d of DAYS) {
       expect(DAY_DATES[d]).toMatch(/^2026-11-\d\d$/);
       expect(DAY_NOTES[d]).toBeTruthy();
+      expect(recruitment.schedule[d]?.time, d).toBeTruthy();
+      expect(recruitment.schedule[d]?.arriveBy, d).toMatch(/^\d{1,2}:\d\d (am|pm)$/);
     }
+    expect(Object.keys(recruitment.schedule).sort()).toEqual([...DAYS].sort());
   });
 });
