@@ -179,8 +179,10 @@ function RootComponent() {
         <Outlet />
       </main>
       <SiteFooter />
-      {/* On the judge, certificate and recruitment pages Robo would walk over the buttons on phones, so he sits those out. */}
-      {!/^\/(events\/robo-spark\/judge|certificates|verify\/|admin\/|recruit\/)/.test(path) && (
+      {/* On the judge, certificate, sign-up and recruitment pages Robo would walk over the buttons on phones, so he sits those out. */}
+      {!/^\/(events\/robo-spark\/judge|certificates|verify\/|admin\/|recruit\/|join)/.test(
+        path,
+      ) && (
         <>
           <RoboLayer />
           <ClickSpark />
