@@ -143,7 +143,10 @@ function HowItWorks() {
         <Window tag="ABOUT 15 MINUTES" title="You sit with a small group, not alone">
           <ol className="mt-3 list-decimal space-y-2 pl-5">
             <li>Check in at the door with your name or USN. We send you to your squad's corner.</li>
-            <li>You sit in a group of about 4 students, with 2 or 3 seniors from that squad.</li>
+            <li>
+              You sit in a group of about 4 students, with 2 seniors from that squad. A faculty
+              member or office bearer may sit in too.
+            </li>
             <li>
               Introduce yourself: your name, branch and one thing you have made, fixed or organised.
             </li>
