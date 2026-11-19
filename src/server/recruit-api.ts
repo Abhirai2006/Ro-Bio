@@ -90,7 +90,7 @@ async function handleApply(request: Request, store: Store, now: number): Promise
     return json(
       {
         error:
-          "You are already registered: we found your USN or email. To change your squad or day, tell an organiser at the interview room.",
+          "You are already registered: we found your USN or email. To change your squad, tell an organiser at the interview room.",
       },
       409,
     );
