@@ -12,6 +12,11 @@ import {
   toJudgeView,
   validateCandidate,
   weightedTotal,
+  validateApplication,
+  cleanMobile,
+  DAYS,
+  DAY_DATES,
+  DAY_NOTES,
   cleanUsn,
   studentKey,
   type Candidate,
@@ -32,7 +37,7 @@ const cand = (
   sem: 1,
   first,
   second: null,
-  day: "Wed 11 Nov",
+  day: "Fri 20 Nov",
   wildcard: false,
   status: "undecided",
   addedAt: 0,
@@ -167,7 +172,7 @@ describe("cleanUsn and validateCandidate", () => {
       sem: 3,
       first: "Events",
       second: "Events",
-      day: "Thu 12 Nov",
+      day: "Sat 21 Nov",
       wildcard: true,
     });
     expect(r.ok && r.candidate).toMatchObject({
@@ -223,10 +228,10 @@ describe("readRecruitCsv", () => {
     `11/8/2026 10:00:00,${name.toLowerCase()}@x.in,${name},${usn},9000000000,Computer Science & Design,3rd,Design,No second choice,Either day is fine,Yes,${extra}`;
   const csv = [
     head,
-    row("4mu24cs001", "Asha", "Thu 12 Nov"),
-    row("4MU24CS002", "Ben", "Wed 11 Nov"),
+    row("4mu24cs001", "Asha", "Sat 21 Nov"),
+    row("4MU24CS002", "Ben", "Fri 20 Nov"),
     row("4MU24CS003", "Chandra", ""),
-    row("4MU24CS001", "Asha", "Wed 11 Nov"),
+    row("4MU24CS001", "Asha", "Fri 20 Nov"),
   ].join("\n");
 
   it("reads the form's columns and prefers Assigned day", () => {
@@ -237,14 +242,14 @@ describe("readRecruitCsv", () => {
       sem: 3,
       first: "Design",
       second: null,
-      day: "Wed 11 Nov",
+      day: "Fri 20 Nov",
       line: 3,
     });
   });
   it("upper-cases USNs and keeps the last line for a repeated USN", () => {
     const { rows } = readRecruitCsv(csv);
     expect(rows[0]!.problems).toContain("replaced by line 5");
-    expect(rows[3]).toMatchObject({ usn: "4MU24CS001", day: "Wed 11 Nov", problems: [] });
+    expect(rows[3]).toMatchObject({ usn: "4MU24CS001", day: "Fri 20 Nov", problems: [] });
   });
   it("warns when an either-day student has no day yet but keeps the row usable", () => {
     const { rows } = readRecruitCsv(csv);
@@ -253,19 +258,19 @@ describe("readRecruitCsv", () => {
   it("imports a 1st semester student with a blank USN, and spots their repeat by email", () => {
     const text = [
       head,
-      row("", "Gita", "Wed 11 Nov"),
-      row("", "Hari", "Wed 11 Nov"),
-      row("", "Gita", "Thu 12 Nov"),
+      row("", "Gita", "Fri 20 Nov"),
+      row("", "Hari", "Fri 20 Nov"),
+      row("", "Gita", "Sat 21 Nov"),
     ].join("\n");
     const { rows } = readRecruitCsv(text);
     expect(rows[1]).toMatchObject({ usn: "", name: "Hari", problems: [] });
     expect(rows[0]!.problems).toEqual(["replaced by line 4"]);
-    expect(rows[2]).toMatchObject({ day: "Thu 12 Nov", problems: [] });
+    expect(rows[2]).toMatchObject({ day: "Sat 21 Nov", problems: [] });
   });
   it("leaves out a row with no USN, email or WhatsApp number", () => {
     const text = [
       head,
-      "11/8/2026 10:00:00,,Ivy,,,Computer Science & Design,1st,Design,No second choice,Wed 11 Nov,Yes,Wed 11 Nov",
+      "11/8/2026 10:00:00,,Ivy,,,Computer Science & Design,1st,Design,No second choice,Fri 20 Nov,Yes,Fri 20 Nov",
     ].join("\n");
     const [r] = readRecruitCsv(text).rows;
     expect(r!.problems).toContain("no USN, email or WhatsApp number");
@@ -285,5 +290,61 @@ describe("coreCount and resultsCsv", () => {
     const text = resultsCsv(results);
     expect(text.split("\n")[0]).toBe("Squad,Rank,Name,USN,Branch,Sem,Average,Judges,Status,Notes");
     expect(text).toContain('"A: calm, clear"');
+  });
+});
+
+describe("validateApplication (the public /join form)", () => {
+  const form = (extra: Record<string, unknown> = {}) => ({
+    name: "Asha R",
+    sem: 1,
+    usn: "",
+    branch: "Computer Science & Design",
+    email: "asha@x.in",
+    phone: "09000000001",
+    first: "Projects",
+    second: "Projects",
+    day: "Sat 21 Nov",
+    consent: true,
+    wildcard: true,
+    ...extra,
+  });
+  it("lets a 1st semester student sign up without a USN", () => {
+    const v = validateApplication(form());
+    expect(v).toMatchObject({
+      ok: true,
+      candidate: { usn: "", phone: "9000000001", second: null, day: "Sat 21 Nov", wildcard: false },
+    });
+  });
+  it("needs a USN from a 3rd semester student", () => {
+    expect(validateApplication(form({ sem: 3 }))).toMatchObject({ ok: false });
+    expect(validateApplication(form({ sem: 3, usn: "4mu23cs010" }))).toMatchObject({
+      ok: true,
+      candidate: { usn: "4MU23CS010", sem: 3 },
+    });
+  });
+  it("needs consent, an email, a WhatsApp number and a day", () => {
+    expect(validateApplication(form({ consent: "yes" }))).toMatchObject({ ok: false });
+    expect(validateApplication(form({ email: "nope" }))).toMatchObject({ ok: false });
+    expect(validateApplication(form({ phone: "" }))).toMatchObject({ ok: false });
+    expect(validateApplication(form({ day: null }))).toMatchObject({ ok: false });
+  });
+});
+
+describe("cleanMobile", () => {
+  it("keeps 10 digit Indian mobile numbers and drops the rest", () => {
+    expect(cleanMobile("+91 98450 12345")).toBe("9845012345");
+    expect(cleanMobile("098450-12345")).toBe("9845012345");
+    expect(cleanMobile("9845012345")).toBe("9845012345");
+    expect(cleanMobile("12345")).toBe("");
+    expect(cleanMobile("5845012345")).toBe("");
+  });
+});
+
+describe("interview days", () => {
+  it("gives every day a date and a note", () => {
+    for (const d of DAYS) {
+      expect(DAY_DATES[d]).toMatch(/^2026-11-\d\d$/);
+      expect(DAY_NOTES[d]).toBeTruthy();
+    }
   });
 });
