@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { cleanName } from "@/lib/judging";
+import { todayInIndia } from "@/lib/site";
 import {
   CRITERIA,
+  DAY_DATES,
   DAYS,
   ROOMS,
   SQUAD_SKILL,
@@ -152,7 +154,7 @@ function Gate({ onIn }: { onIn: (l: Login) => void }) {
                 {s} (room {ROOMS[s]})
               </option>
             ))}
-            <option value="Teacher">Teacher (all squads)</option>
+            <option value="Teacher">Teacher or office bearer (all squads)</option>
           </select>
         </label>
         {error && (
@@ -177,7 +179,11 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
   const [locked, setLocked] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
-  const [day, setDay] = useState<string>(() => (new Date().getDate() === 12 ? DAYS[1] : DAYS[0]));
+  // Opens on today's list on an interview day, otherwise on every day. Students who picked Saturday may
+  // still come on Friday, so "All days" is one tap away.
+  const [day, setDay] = useState<string>(
+    () => DAYS.find((d) => DAY_DATES[d] === todayInIndia()) ?? "",
+  );
   const [squadFilter, setSquadFilter] = useState("");
   const [q, setQ] = useState("");
   const [picked, setPicked] = useState<number[]>([]);
@@ -232,7 +238,7 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
         <p className="text-sm">
           <b>{login.name}</b>,{" "}
           {teacher
-            ? "Teacher (all squads)"
+            ? "Teacher or office bearer (all squads)"
             : `${login.squad} squad, room ${ROOMS[login.squad as keyof typeof ROOMS]}`}
           .{" "}
           <button type="button" className="text-primary underline" onClick={onOut}>
