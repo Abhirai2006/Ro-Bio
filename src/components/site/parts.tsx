@@ -1,7 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { daysBetween, eventDate, merch, nextEvent, site, todayInIndia } from "@/lib/site";
+import {
+  daysBetween,
+  eventDate,
+  merch,
+  nextEvent,
+  recruitment,
+  site,
+  todayInIndia,
+} from "@/lib/site";
 import logo from "@/assets/robio-logo.jpg";
 import { HeaderEcg } from "@/components/site/HeaderEcg";
 
@@ -19,6 +27,10 @@ const nav = [
   // the merch page joins the menu once it stops being a draft for members (merch.draft in src/lib/site.ts)
   ...(merch.draft ? [] : ([{ to: "/merch", label: "Merch", hint: "The club kit in 3D" }] as const)),
   { to: "/contact", label: "Contact", hint: "Call us or DM us" },
+  // the sign-up page joins the menu while recruitment is open (recruitment.status in src/lib/site.ts)
+  ...(recruitment.status === "open"
+    ? ([{ to: "/join", label: "Join", hint: "Core recruitment is open" }] as const)
+    : []),
 ] as const;
 
 /** Today's date in India, available only after hydration to keep SSR stable. */
