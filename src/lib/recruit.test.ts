@@ -38,7 +38,7 @@ const cand = (
   sem: 1,
   first,
   second: null,
-  day: "Fri 20 Nov",
+  day: "Mon 23 Nov",
   wildcard: false,
   status: "undecided",
   addedAt: 0,
@@ -173,7 +173,7 @@ describe("cleanUsn and validateCandidate", () => {
       sem: 3,
       first: "Events",
       second: "Events",
-      day: "Sat 21 Nov",
+      day: "Mon 23 Nov",
       wildcard: true,
     });
     expect(r.ok && r.candidate).toMatchObject({
@@ -229,10 +229,10 @@ describe("readRecruitCsv", () => {
     `11/8/2026 10:00:00,${name.toLowerCase()}@x.in,${name},${usn},9000000000,Computer Science & Design,3rd,Design,No second choice,Either day is fine,Yes,${extra}`;
   const csv = [
     head,
-    row("4mu24cs001", "Asha", "Sat 21 Nov"),
-    row("4MU24CS002", "Ben", "Fri 20 Nov"),
+    row("4mu24cs001", "Asha", "Mon 23 Nov"),
+    row("4MU24CS002", "Ben", "Mon 23 Nov"),
     row("4MU24CS003", "Chandra", ""),
-    row("4MU24CS001", "Asha", "Fri 20 Nov"),
+    row("4MU24CS001", "Asha", "Mon 23 Nov"),
   ].join("\n");
 
   it("reads the form's columns and prefers Assigned day", () => {
@@ -243,14 +243,14 @@ describe("readRecruitCsv", () => {
       sem: 3,
       first: "Design",
       second: null,
-      day: "Fri 20 Nov",
+      day: "Mon 23 Nov",
       line: 3,
     });
   });
   it("upper-cases USNs and keeps the last line for a repeated USN", () => {
     const { rows } = readRecruitCsv(csv);
     expect(rows[0]!.problems).toContain("replaced by line 5");
-    expect(rows[3]).toMatchObject({ usn: "4MU24CS001", day: "Fri 20 Nov", problems: [] });
+    expect(rows[3]).toMatchObject({ usn: "4MU24CS001", day: "Mon 23 Nov", problems: [] });
   });
   it("warns when an either-day student has no day yet but keeps the row usable", () => {
     const { rows } = readRecruitCsv(csv);
@@ -259,19 +259,19 @@ describe("readRecruitCsv", () => {
   it("imports a 1st semester student with a blank USN, and spots their repeat by email", () => {
     const text = [
       head,
-      row("", "Gita", "Fri 20 Nov"),
-      row("", "Hari", "Fri 20 Nov"),
-      row("", "Gita", "Sat 21 Nov"),
+      row("", "Gita", "Mon 23 Nov"),
+      row("", "Hari", "Mon 23 Nov"),
+      row("", "Gita", "Mon 23 Nov"),
     ].join("\n");
     const { rows } = readRecruitCsv(text);
     expect(rows[1]).toMatchObject({ usn: "", name: "Hari", problems: [] });
     expect(rows[0]!.problems).toEqual(["replaced by line 4"]);
-    expect(rows[2]).toMatchObject({ day: "Sat 21 Nov", problems: [] });
+    expect(rows[2]).toMatchObject({ day: "Mon 23 Nov", problems: [] });
   });
   it("leaves out a row with no USN, email or WhatsApp number", () => {
     const text = [
       head,
-      "11/8/2026 10:00:00,,Ivy,,,Computer Science & Design,1st,Design,No second choice,Fri 20 Nov,Yes,Fri 20 Nov",
+      "11/8/2026 10:00:00,,Ivy,,,Computer Science & Design,1st,Design,No second choice,Mon 23 Nov,Yes,Mon 23 Nov",
     ].join("\n");
     const [r] = readRecruitCsv(text).rows;
     expect(r!.problems).toContain("no USN, email or WhatsApp number");
@@ -304,7 +304,7 @@ describe("validateApplication (the public /join form)", () => {
     phone: "09000000001",
     first: "Projects",
     second: "Projects",
-    day: "Sat 21 Nov",
+    day: "Mon 23 Nov",
     consent: true,
     wildcard: true,
     ...extra,
@@ -313,7 +313,7 @@ describe("validateApplication (the public /join form)", () => {
     const v = validateApplication(form());
     expect(v).toMatchObject({
       ok: true,
-      candidate: { usn: "", phone: "9000000001", second: null, day: "Sat 21 Nov", wildcard: false },
+      candidate: { usn: "", phone: "9000000001", second: null, day: "Mon 23 Nov", wildcard: false },
     });
   });
   it("needs a USN from a 3rd semester student", () => {
@@ -347,7 +347,7 @@ describe("interview days", () => {
       expect(DAY_DATES[d]).toMatch(/^2026-11-\d\d$/);
       expect(DAY_NOTES[d]).toBeTruthy();
       expect(recruitment.schedule[d]?.time, d).toBeTruthy();
-      expect(recruitment.schedule[d]?.arriveBy, d).toMatch(/^\d{1,2}:\d\d (am|pm)$/);
+      expect(recruitment.schedule[d]?.arriveBy, d).toMatch(/^\d{1,2}(:\d\d)? (am|pm)$/);
     }
     expect(Object.keys(recruitment.schedule).sort()).toEqual([...DAYS].sort());
   });
