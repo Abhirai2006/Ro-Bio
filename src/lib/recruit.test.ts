@@ -13,6 +13,8 @@ import {
   validateCandidate,
   weightedTotal,
   validateApplication,
+  SEMS,
+  semLabel,
   cleanMobile,
   DAYS,
   DAY_DATES,
@@ -193,7 +195,7 @@ describe("cleanUsn and validateCandidate", () => {
     };
     expect(validateCandidate({ ...base, first: "Office Bearers" }).ok).toBe(false);
     expect(validateCandidate({ ...base, branch: "Mechanical" }).ok).toBe(false);
-    expect(validateCandidate({ ...base, sem: 5 }).ok).toBe(false);
+    expect(validateCandidate({ ...base, sem: 7 }).ok).toBe(false);
     expect(validateCandidate({ ...base, usn: "" }).ok).toBe(false);
   });
 });
@@ -328,6 +330,28 @@ describe("validateApplication (the public /join form)", () => {
     expect(validateApplication(form({ email: "nope" }))).toMatchObject({ ok: false });
     expect(validateApplication(form({ phone: "" }))).toMatchObject({ ok: false });
     expect(validateApplication(form({ day: null }))).toMatchObject({ ok: false });
+  });
+});
+
+describe("semesters", () => {
+  it("takes 1st, 3rd and 5th semester students only", () => {
+    expect([...SEMS]).toEqual([1, 3, 5]);
+    expect(SEMS.map(semLabel)).toEqual(["1st", "3rd", "5th"]);
+    const base = {
+      name: "Ravi K",
+      email: "r@x.in",
+      branch: "Computer Science & Design",
+      first: "Events",
+    };
+    expect(validateCandidate({ ...base, sem: 5, usn: "4MU22CS001" })).toMatchObject({ ok: true });
+    expect(validateCandidate({ ...base, sem: 2, usn: "4MU22CS001" })).toMatchObject({ ok: false });
+  });
+  it("reads a 5th semester row from a CSV", () => {
+    const csv = [
+      "Email address,Full name,USN,WhatsApp number,Branch,Semester,First choice squad,Interview day",
+      "r@x.in,Ravi K,4MU22CS001,9000000005,Computer Science & Design,5th,Events,Mon 23 Nov",
+    ].join("\n");
+    expect(readRecruitCsv(csv).rows[0]).toMatchObject({ sem: 5, problems: [] });
   });
 });
 
