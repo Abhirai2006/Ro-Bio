@@ -46,6 +46,8 @@ const squadInfo = (s: Squad) => coreTeam.find((t) => t.title === s);
 const btn =
   "inline-block rounded-full border-2 border-border bg-primary px-6 py-3 font-bold text-primary-foreground shadow-hard transition-transform hover:-translate-y-0.5 disabled:opacity-60";
 const field = "mt-1 block w-full border-2 border-border bg-background px-3 py-2.5 text-base";
+/** A day's time and arrival time from site.ts. */
+const when = (day: string) => recruitment.schedule[day] ?? { time: "", arriveBy: "" };
 const choice = (on: boolean) =>
   `flex cursor-pointer items-start gap-2 border-2 border-border px-4 py-2.5 ${on ? "bg-primary text-primary-foreground" : "bg-background"}`;
 
@@ -103,15 +105,16 @@ function Facts() {
     <section className="mx-auto max-w-6xl px-4 pt-12" aria-label="When and where">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Fact label="WHEN">
-          {DAYS[0]}, {recruitment.time}
+          {DAYS[0]}, {when(DAYS[0]).time}
           <span className="mt-1 block text-sm font-normal text-muted-foreground">
-            {DAYS[1]} only if Friday is full. We confirm on WhatsApp.
+            {DAYS[1]} {when(DAYS[1]).time}, only if Friday is full. We confirm on WhatsApp.
           </span>
         </Fact>
         <Fact label="BE THERE BY">
-          {recruitment.arriveBy}
+          {when(DAYS[0]).arriveBy}
           <span className="mt-1 block text-sm font-normal text-muted-foreground">
-            So we can check you in and seat your group on time.
+            On {DAYS[1]}, {when(DAYS[1]).arriveBy}. So we can check you in and seat your group on
+            time.
           </span>
         </Fact>
         <Fact label={`WHERE: ${recruitment.building.toUpperCase()}`}>
@@ -121,7 +124,7 @@ function Facts() {
         <Fact label="SIGN UP BY">
           {recruitment.closesLabel}
           <span className="mt-1 block text-sm font-normal text-muted-foreground">
-            Bring {recruitment.bring.join(" and ")}.
+            The form is at the end of this page. It takes two minutes.
           </span>
         </Fact>
       </div>
@@ -335,13 +338,13 @@ function SignUp() {
           <p className="mt-2 text-2xl font-black">See you there, {done.name.split(" ")[0]}.</p>
           <p className="mt-3">
             <b>{done.first}</b> squad interviews are in room <b>{done.room}</b>,{" "}
-            {recruitment.building}. Come on <b>{done.day}</b> by <b>{recruitment.arriveBy}</b>, with{" "}
-            {recruitment.bring.join(" and ")}.
+            {recruitment.building}. Come on <b>{done.day}</b> by{" "}
+            <b>{when(done.day ?? DAYS[0]).arriveBy}</b>.
           </p>
           {done.day === DAYS[1] && (
             <p className="mt-2">
               {DAYS[1]} runs only if Friday is full. We will confirm on WhatsApp. If it does not
-              run, please come on {DAYS[0]}.
+              run, please come on {DAYS[0]} by {when(DAYS[0]).arriveBy}.
             </p>
           )}
           <p className="mt-3 text-sm text-muted-foreground">
@@ -508,7 +511,9 @@ function SignUp() {
                   />
                   <span>
                     <b>{d}</b>
-                    <span className="block text-sm">{DAY_NOTES[d]}</span>
+                    <span className="block text-sm">
+                      {when(d).time.replace(/^./, (c) => c.toUpperCase())}. {DAY_NOTES[d]}
+                    </span>
                   </span>
                 </label>
               ))}
