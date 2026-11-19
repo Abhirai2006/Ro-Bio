@@ -42,7 +42,7 @@ const toCandidate = (r: CandidateRow): Candidate => ({
   email: r.email,
   phone: r.phone,
   branch: r.branch,
-  sem: r.sem === 3 ? 3 : 1,
+  sem: r.sem === 5 ? 5 : r.sem === 3 ? 3 : 1,
   first: r.first as Candidate["first"],
   second: (r.second ?? null) as Candidate["second"],
   day: (r.day ?? null) as Candidate["day"],
