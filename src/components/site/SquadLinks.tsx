@@ -41,48 +41,54 @@ function Faces({ members }: { members: Squad["members"] }) {
   );
 }
 
-/** The last tile on /team: how to join a squad, from `recruitment` in site.ts. */
+/** The last tile on /team: how to join a squad, from `recruitment` in site.ts. While it is open it goes to /join. */
 function JoinTile() {
-  const open = recruitment.status === "open" && recruitment.formUrl;
+  const open = recruitment.status === "open";
   const line = open
-    ? "Recruitment is open. Pick a squad and apply."
+    ? `Recruitment is open for ${recruitment.who}. See what each squad looks for and sign up.`
     : recruitment.status === "closed"
       ? "This round of recruitment is closed. Follow us to hear about the next one."
       : `Recruitment opens soon, for ${site.openTo}. Follow us to hear first.`;
+  const inside = (
+    <>
+      <span className="sq-num font-pixel">+</span>
+      <svg
+        viewBox="0 0 48 48"
+        className="sq-glyph"
+        aria-hidden="true"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      >
+        <path className="sq-plus" d="M24 12v24M12 24h24" />
+      </svg>
+      <span className="sq-body">
+        <span className="sq-title font-display">Join a squad</span>
+        <span className="sq-about">{line}</span>
+        <span className="sq-meta font-mono">
+          {open ? `Sign up by ${recruitment.closesLabel}` : `Instagram ${site.instagramHandle}`}
+        </span>
+      </span>
+      <span className="sq-go font-pixel" aria-hidden="true">
+        {open ? "JOIN" : "FOLLOW"}
+        <svg viewBox="0 0 16 16" width="16" height="16">
+          <path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" strokeWidth="2.5" />
+        </svg>
+      </span>
+    </>
+  );
   return (
     <li>
-      <a
-        href={open ? recruitment.formUrl : site.instagram}
-        target="_blank"
-        rel="noreferrer"
-        className="sq-link sq-join group"
-      >
-        <span className="sq-num font-pixel">+</span>
-        <svg
-          viewBox="0 0 48 48"
-          className="sq-glyph"
-          aria-hidden="true"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-        >
-          <path className="sq-plus" d="M24 12v24M12 24h24" />
-        </svg>
-        <span className="sq-body">
-          <span className="sq-title font-display">Join a squad</span>
-          <span className="sq-about">{line}</span>
-          <span className="sq-meta font-mono">
-            {open ? "Apply form" : `Instagram ${site.instagramHandle}`}
-          </span>
-        </span>
-        <span className="sq-go font-pixel" aria-hidden="true">
-          {open ? "APPLY" : "FOLLOW"}
-          <svg viewBox="0 0 16 16" width="16" height="16">
-            <path d="M4 12L12 4M6 4h6v6" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          </svg>
-        </span>
-      </a>
+      {open ? (
+        <Link to="/join" className="sq-link sq-join group">
+          {inside}
+        </Link>
+      ) : (
+        <a href={site.instagram} target="_blank" rel="noreferrer" className="sq-link sq-join group">
+          {inside}
+        </a>
+      )}
     </li>
   );
 }
