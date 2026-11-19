@@ -24,6 +24,8 @@ import {
   type Status,
 } from "@/lib/recruit";
 import { Window } from "@/components/site/parts";
+import { gmailLink, MAILED, resultMail } from "@/lib/recruit-mail";
+import { recruitment } from "@/lib/site";
 
 export const Route = createFileRoute("/recruit/admin")({
   head: () => ({
@@ -171,6 +173,8 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [sheets, setSheets] = useState<Sheet[]>([]);
   const [locked, setLocked] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [closedWhy, setClosedWhy] = useState("");
   const [loaded, setLoaded] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [editing, setEditing] = useState<Candidate | null>(null);
@@ -189,10 +193,18 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
 
   const refresh = useCallback(async () => {
     try {
-      const r = await call<{ candidates: Candidate[]; sheets: Sheet[]; locked: boolean }>("list");
+      const r = await call<{
+        candidates: Candidate[];
+        sheets: Sheet[];
+        locked: boolean;
+        paused?: boolean;
+        signups?: { reason: string };
+      }>("list");
       setCandidates(r.candidates);
       setSheets(r.sheets);
       setLocked(r.locked);
+      setPaused(r.paused === true);
+      setClosedWhy(r.signups?.reason ?? "");
       setLoaded(true);
     } catch (err) {
       setNote({ kind: "err", text: `Could not load the students: ${(err as Error).message}` });
@@ -223,6 +235,13 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
       <h1 className="mt-3 text-4xl font-black">Recruitment</h1>
       <NoteBox note={note} />
       <div className="mt-8 space-y-10">
+        <SignUps
+          count={candidates.length}
+          paused={paused}
+          closedWhy={closedWhy}
+          call={call}
+          onChange={refresh}
+        />
         <Import call={call} known={known} onDone={refresh} />
         <StudentForm
           key={editing?.id ?? "new"}
@@ -245,6 +264,7 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
           }}
           onChange={refresh}
         />
+        <Emails candidates={candidates} />
         <Finish results={results} locked={locked} call={call} onChange={refresh} />
       </div>
     </div>
@@ -898,6 +918,139 @@ function AllStudents({
   );
 }
 
+/** The /join form: whether it takes sign-ups, and a switch to pause it. */
+function SignUps({
+  count,
+  paused,
+  closedWhy,
+  call,
+  onChange,
+}: {
+  count: number;
+  paused: boolean;
+  closedWhy: string;
+  call: Call;
+  onChange: () => Promise<void>;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<Note>(null);
+  const toggle = async () => {
+    setBusy(true);
+    setNote(null);
+    try {
+      await call("signups", { method: "PUT", body: JSON.stringify({ paused: !paused }) });
+      await onChange();
+    } catch (err) {
+      setNote({ kind: "err", text: (err as Error).message });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Window tag="0. SIGN-UPS" title="The /join form">
+      <p className="mt-2">
+        {closedWhy ? (
+          <>
+            <b>Not taking sign-ups.</b> Students see: "{closedWhy}"
+          </>
+        ) : (
+          <>
+            <b>Open.</b> It closes by itself on {recruitment.closesLabel}.
+          </>
+        )}{" "}
+        {count} students on the list.
+      </p>
+      <button
+        type="button"
+        className={`${plain} mt-3`}
+        disabled={busy}
+        onClick={() => void toggle()}
+      >
+        {paused ? "Resume sign-ups" : "Pause sign-ups"}
+      </button>
+      <p className="mt-2 text-sm text-muted-foreground">
+        To change the closing time, or to close the round, edit <code>recruitment</code> in
+        src/lib/site.ts. Late students can still be added below as walk-ins.
+      </p>
+      <NoteBox note={note} />
+    </Window>
+  );
+}
+
+const SENT_KEY = "robio-recruit-sent";
+const readSent = (): number[] => {
+  try {
+    return JSON.parse(localStorage.getItem(SENT_KEY) ?? "[]") as number[];
+  } catch {
+    return [];
+  }
+};
+
+/** One Gmail draft per decided student, so a person reads each result email before sending it. */
+function Emails({ candidates }: { candidates: Candidate[] }) {
+  const [sent, setSent] = useState<number[]>([]);
+  useEffect(() => setSent(readSent()), []);
+  const mark = (id: number) =>
+    setSent((s) => {
+      const next = s.includes(id) ? s : [...s, id];
+      try {
+        localStorage.setItem(SENT_KEY, JSON.stringify(next));
+      } catch {
+        /* storage blocked: the ticks last until the page is closed */
+      }
+      return next;
+    });
+  const undecided = candidates.filter((c) => c.status === "undecided").length;
+  return (
+    <Window tag="6. EMAIL RESULTS" title="Send each student their result">
+      <p className="mt-1 text-sm text-muted-foreground">
+        Sign in to Gmail as {recruitment.mailFrom} first. Each button opens a ready draft: read it,
+        then press Send. Tick marks stay on this device only.{" "}
+        {undecided > 0 && <b>{undecided} students are still undecided and get no email yet.</b>}
+      </p>
+      {MAILED.map((status) => {
+        const list = candidates.filter((c) => c.status === status);
+        if (!list.length) return null;
+        return (
+          <div key={status} className="mt-4">
+            <h4 className="font-bold">
+              {STATUSES.find((x) => x.value === status)?.label} ({list.length})
+            </h4>
+            <ul className="mt-2 divide-y-2 divide-border border-2 border-border">
+              {list.map((c) => {
+                const mail = resultMail(c);
+                return (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 p-2">
+                    <span>
+                      <b>{c.name}</b>{" "}
+                      <span className="text-sm text-muted-foreground">
+                        {c.first}, {c.email || "no email"}
+                      </span>
+                    </span>
+                    {mail ? (
+                      <a
+                        href={gmailLink(mail)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={plain}
+                        onClick={() => mark(c.id)}
+                      >
+                        {sent.includes(c.id) ? "Opened. Open again" : "Open email in Gmail"}
+                      </a>
+                    ) : (
+                      <span className="text-sm">Add an email address first</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
+    </Window>
+  );
+}
+
 function Finish({
   results,
   locked,
@@ -937,7 +1090,7 @@ function Finish({
   };
 
   return (
-    <Window tag="6. WHEN YOU ARE DONE" title="Lock, export and clean up">
+    <Window tag="7. WHEN YOU ARE DONE" title="Lock, export and clean up">
       <div className="mt-3 flex flex-wrap gap-3">
         <button
           type="button"
@@ -965,8 +1118,8 @@ function Finish({
       <div className="mt-6 border-2 border-destructive p-4">
         <p className="font-bold">Delete all recruitment data</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          The form promised students their details are deleted after recruitment. Download the
-          results first. This removes every student and every mark, and cannot be undone.
+          The sign-up form promised students their details are deleted after recruitment. Download
+          the results first. This removes every student and every mark, and cannot be undone.
         </p>
         <label className="mt-3 block max-w-xs">
           <span className="text-sm font-bold">Type DELETE to confirm</span>
