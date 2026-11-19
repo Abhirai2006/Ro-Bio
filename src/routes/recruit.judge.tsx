@@ -6,7 +6,6 @@ import {
   CRITERIA,
   DAY_DATES,
   DAYS,
-  ROOMS,
   SQUAD_SKILL,
   SQUADS,
   recruitApi,
@@ -151,7 +150,7 @@ function Gate({ onIn }: { onIn: (l: Login) => void }) {
             </option>
             {SQUADS.map((s) => (
               <option key={s} value={s}>
-                {s} (room {ROOMS[s]})
+                {s}
               </option>
             ))}
             <option value="Teacher">Teacher or office bearer (all squads)</option>
@@ -237,10 +236,7 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
         <p className="font-pixel text-xs text-primary">CORE RECRUITMENT / JUDGING</p>
         <p className="text-sm">
           <b>{login.name}</b>,{" "}
-          {teacher
-            ? "Teacher or office bearer (all squads)"
-            : `${login.squad} squad, room ${ROOMS[login.squad as keyof typeof ROOMS]}`}
-          .{" "}
+          {teacher ? "Teacher or office bearer (all squads)" : `${login.squad} squad`}.{" "}
           <button type="button" className="text-primary underline" onClick={onOut}>
             Change
           </button>
