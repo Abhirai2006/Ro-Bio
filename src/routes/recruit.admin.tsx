@@ -12,7 +12,6 @@ import {
   readRecruitCsv,
   recruitApi,
   resultsCsv,
-  ROOMS,
   SQUADS,
   STATUSES,
   summarize,
@@ -535,6 +534,7 @@ function StudentForm({
             <select id={id("sem")} className={input} value={form.sem} onChange={set("sem")}>
               <option value="1">1st</option>
               <option value="3">3rd</option>
+              <option value="5">5th</option>
             </select>
           </label>
           <label>
@@ -626,7 +626,6 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
           <thead>
             <tr>
               <th className={th}>Squad</th>
-              <th className={th}>Room</th>
               {DAYS.map((d) => (
                 <th key={d} className={th}>
                   {d}
@@ -640,7 +639,6 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
             {SQUADS.map((s) => (
               <tr key={s}>
                 <td className={`${td} font-bold`}>{s}</td>
-                <td className={td}>{ROOMS[s]}</td>
                 {DAYS.map((d) => {
                   const n = count(s, d);
                   return (
