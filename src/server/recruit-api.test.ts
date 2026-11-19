@@ -51,7 +51,7 @@ const student = (usn: string, first: string, extra: Record<string, unknown> = {}
   sem: 1,
   first,
   second: null,
-  day: "Wed 11 Nov",
+  day: "Fri 20 Nov",
   ...extra,
 });
 
@@ -236,12 +236,12 @@ describe("1st semester students without a USN", () => {
     await call("admin", "add", { method: "POST", body: { rows: [noUsn("Gita", "gita@x.in")] } });
     const r = await call("admin", "add", {
       method: "POST",
-      body: { rows: [noUsn("Gita R", "GITA@x.in", { day: "Thu 12 Nov" })] },
+      body: { rows: [noUsn("Gita R", "GITA@x.in", { day: "Sat 21 Nov" })] },
     });
     expect(r.data).toMatchObject({ added: 0, updated: 1 });
     const rows = await rowsOf(call);
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ name: "Gita R", day: "Thu 12 Nov" });
+    expect(rows[0]).toMatchObject({ name: "Gita R", day: "Sat 21 Nov" });
   });
 
   it("fills in the USN when they get one later, keeping their marks", async () => {
@@ -288,7 +288,7 @@ describe("upgrading a store made by the first version", () => {
       "CREATE TABLE sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge))",
     );
     sql.exec(
-      "INSERT INTO candidates (id, usn, name, email, phone, branch, sem, first, day, wildcard, status, added_at) VALUES (7, '4MU24A001', 'Old Student', 'old@x.in', '', 'Computer Science & Design', 3, 'Events', 'Wed 11 Nov', 1, 'core', 1)",
+      "INSERT INTO candidates (id, usn, name, email, phone, branch, sem, first, day, wildcard, status, added_at) VALUES (7, '4MU24A001', 'Old Student', 'old@x.in', '', 'Computer Science & Design', 3, 'Events', 'Fri 20 Nov', 1, 'core', 1)",
     );
     sql.exec("INSERT INTO sheets VALUES (7, 'Archana', 'Teacher', '[3,3,3,3,3]', '', 1)");
     const { call } = setup({}, state);
@@ -302,5 +302,135 @@ describe("upgrading a store made by the first version", () => {
       body: { rows: [student("", "Events", { name: "New", email: "new@x.in" })] },
     });
     expect(r.data).toMatchObject({ added: 1 });
+  });
+});
+
+describe("the public /join sign-up", () => {
+  const BEFORE = Date.parse("2026-11-19T20:00:00+05:30");
+  const AFTER = Date.parse("2026-11-20T14:00:01+05:30");
+  const form = (extra: Record<string, unknown> = {}) => ({
+    name: "asha r",
+    sem: 1,
+    usn: "",
+    branch: "Computer Science & Design",
+    email: "Asha@X.in",
+    phone: "+91 90000 00001",
+    first: "Design",
+    second: "Events",
+    day: "Fri 20 Nov",
+    consent: true,
+    website: "",
+    ...extra,
+  });
+  function applySetup(env: Partial<RecruitEnv> = {}) {
+    const store = new RecruitStore(sqliteState(), {});
+    const full: RecruitEnv = {
+      RECRUIT_STORE: {
+        idFromName: () => ({ toString: () => "core-2026" }),
+        get: () => store as never,
+      },
+      RECRUIT_ADMIN_PASSCODE: ADMIN,
+      ...env,
+    };
+    const apply = async (body?: unknown, now = BEFORE, ip = "2.2.2.2") => {
+      const res = await handleRecruitApi(
+        new Request("https://x.test/api/recruit/apply", {
+          method: body === undefined ? "GET" : "POST",
+          headers: { "content-type": "application/json", "cf-connecting-ip": ip },
+          ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+        }),
+        full,
+        now,
+      );
+      return { status: res.status, data: (await res.json()) as Record<string, unknown> };
+    };
+    const admin = async (path: string, init: { method?: string; body?: unknown } = {}) => {
+      const res = await handleRecruitApi(
+        new Request(`https://x.test/api/recruit/admin/${path}`, {
+          method: init.method ?? "GET",
+          headers: { "content-type": "application/json", "x-admin-passcode": ADMIN },
+          ...(init.body !== undefined ? { body: JSON.stringify(init.body) } : {}),
+        }),
+        full,
+        BEFORE,
+      );
+      return { status: res.status, data: (await res.json()) as Record<string, unknown> };
+    };
+    return { store, apply, admin };
+  }
+
+  it("needs no passcode, and works before the passcodes are set", async () => {
+    const { apply, store } = applySetup({ RECRUIT_ADMIN_PASSCODE: "" });
+    expect((await apply()).data).toEqual({ open: true, reason: "" });
+    const r = await apply(form());
+    expect(r.status).toBe(200);
+    expect(r.data).toMatchObject({ ok: true, first: "Design", room: "G-07", day: "Fri 20 Nov" });
+    expect(store.list()).toMatchObject([
+      {
+        name: "Asha R",
+        usn: "",
+        email: "asha@x.in",
+        phone: "9000000001",
+        second: "Events",
+        wildcard: false,
+        status: "undecided",
+      },
+    ]);
+  });
+
+  it("never overwrites a student who is already registered", async () => {
+    const { apply, store } = applySetup();
+    await apply(form({ sem: 3, usn: "4mu24cs001" }));
+    const again = await apply(
+      form({ sem: 3, usn: "4MU24CS001", email: "other@x.in", first: "Events" }),
+    );
+    expect(again.status).toBe(409);
+    const sameEmail = await apply(form({ email: "asha@x.in", first: "Technical" }));
+    expect(sameEmail.status).toBe(409);
+    expect(store.list()).toMatchObject([{ usn: "4MU24CS001", first: "Design" }]);
+  });
+
+  it("asks for what the form needs", async () => {
+    const { apply } = applySetup();
+    expect((await apply(form({ consent: false }))).status).toBe(400);
+    expect((await apply(form({ email: "" }))).status).toBe(400);
+    expect((await apply(form({ phone: "12345" }))).status).toBe(400);
+    expect((await apply(form({ sem: 3, usn: "" }))).data["error"]).toMatch(/USN/);
+    expect((await apply(form({ day: "Wed 11 Nov" }))).status).toBe(400);
+    expect((await apply(form({ branch: "Mechanical" }))).status).toBe(400);
+    expect((await apply(form({ first: "Office Bearers" }))).status).toBe(400);
+  });
+
+  it("closes by itself at the closing time", async () => {
+    const { apply, store } = applySetup();
+    const state = await apply(undefined, AFTER);
+    expect(state.data["open"]).toBe(false);
+    expect(state.data["reason"]).toMatch(/closed/);
+    expect((await apply(form(), AFTER)).status).toBe(403);
+    expect(store.list()).toHaveLength(0);
+  });
+
+  it("can be paused and resumed from the admin page", async () => {
+    const { apply, admin } = applySetup();
+    expect((await admin("signups", { method: "PUT", body: { paused: true } })).status).toBe(200);
+    expect((await apply()).data["open"]).toBe(false);
+    expect((await apply(form())).status).toBe(403);
+    expect((await admin("list")).data).toMatchObject({ paused: true });
+    await admin("signups", { method: "PUT", body: { paused: false } });
+    expect((await apply(form())).status).toBe(200);
+  });
+
+  it("saves nothing when the hidden box is filled in", async () => {
+    const { apply, store } = applySetup();
+    const r = await apply(form({ website: "http://spam.example" }));
+    expect(r.status).toBe(200);
+    expect(store.list()).toHaveLength(0);
+  });
+
+  it("slows down a flood from one network but not from another", async () => {
+    const { apply } = applySetup();
+    for (let i = 0; i < 60; i++) await apply(form({ email: `s${i}@x.in`, phone: "" }));
+    expect((await apply(form({ email: "late@x.in" }))).status).toBe(429);
+    expect((await apply(form({ email: "late@x.in" }), BEFORE, "3.3.3.3")).status).toBe(200);
   });
 });
