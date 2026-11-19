@@ -8,6 +8,7 @@ try {
     events,
     coreTeam,
     coreTeamSize,
+    recruitment,
     formatDate,
     eventDate,
     faculty,
@@ -49,6 +50,16 @@ try {
     ]),
     ["/team", "Team", `The ${coreTeamSize} students on the core team.`],
     ...squadPages().map((q) => [`/team/${q.slug}`, `${q.title} squad`, q.about]),
+    // the sign-up page is listed while core recruitment is open
+    ...(recruitment.status === "open"
+      ? [
+          [
+            "/join",
+            "Join a squad",
+            `Core member recruitment for ${recruitment.who}: what each squad looks for, what the interview is like, and the sign-up form (closes ${recruitment.closesLabel}).`,
+          ],
+        ]
+      : []),
     ["/workshops", "Workshops", `Workshops for members and students${soon("workshops")}.`],
     ["/projects", "Projects", `Projects built by the club${soon("projects")}.`],
     ["/gallery", "Gallery", `Photos from the club${soon("gallery")}.`],
@@ -76,7 +87,11 @@ try {
     ]),
     ["/contact", "Contact", "Instagram, event coordinators and the college address."],
     ["/faq", "FAQ", "Short factual answers about the club and Bot Forge."],
-    ["/privacy", "Privacy Policy", "No accounts, forms, analytics or cookies."],
+    [
+      "/privacy",
+      "Privacy Policy",
+      "What the site stores: the recruitment sign-up, no accounts, analytics or tracking cookies.",
+    ],
     ["/terms", "Terms of Use", "Rules for using the site."],
     ["/accessibility", "Accessibility Statement", "What works and what does not yet."],
   ];
