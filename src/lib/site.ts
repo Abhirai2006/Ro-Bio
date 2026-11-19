@@ -297,6 +297,13 @@ export const roleDuties: Record<string, string> = {
   "Lead Video Editor": "Cuts, colours and finishes every reel and video RO-BIO posts.",
 };
 
+/**
+ * Squads whose picture is not ready yet: their page shows a "coming soon" box instead, and its link preview
+ * uses the site's own image. The Design squad is drawing its own. When the files arrive in public/team/art
+ * (the same names as the other squads'), take the squad out of this list.
+ */
+export const squadArtPending: NonNullable<Squad["slug"]>[] = ["design"];
+
 /** What each squad does, a few short lines each. Robo says these as people scroll the team pages. */
 export const squadDuties: Record<NonNullable<Squad["slug"]>, string[]> = {
   projects: [
