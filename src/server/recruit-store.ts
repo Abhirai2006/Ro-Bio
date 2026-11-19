@@ -30,6 +30,10 @@ type SheetRow = {
 
 const FAIL_WINDOW = 10 * 60000;
 const FAIL_LIMIT = 15;
+/** Sign-ups from one network in 10 minutes. High on purpose: a whole class can share the college Wi-Fi. */
+const SIGNUP_LIMIT = 60;
+/** The most students the list takes from the public form, so a flood cannot fill the database. */
+export const SIGNUP_CAP = 1000;
 
 const toCandidate = (r: CandidateRow): Candidate => ({
   id: r.id,
@@ -85,6 +89,8 @@ export class RecruitStore extends DurableObject {
       );
       sql.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
       sql.exec("CREATE TABLE IF NOT EXISTS failures (ip TEXT NOT NULL, at INTEGER NOT NULL)");
+      // Recent sign-ups by a scrambled code made from the address (never the address), to slow down spam.
+      sql.exec("CREATE TABLE IF NOT EXISTS signups (who TEXT NOT NULL, at INTEGER NOT NULL)");
     });
   }
 
@@ -166,6 +172,51 @@ export class RecruitStore extends DurableObject {
       }
     }
     return { added, updated };
+  }
+
+  /**
+   * Adds one student from the public /join form. Never changes a student already here, so nobody can
+   * overwrite someone else's sign-up by typing their USN: a student who needs a change asks the organisers.
+   */
+  register(c: NewCandidate): { id: number } | { duplicate: true } | { full: true } {
+    if (this.find(c) !== null) return { duplicate: true };
+    const sql = this.ctx.storage.sql;
+    const { n } = sql.exec<{ n: number }>("SELECT COUNT(*) AS n FROM applicants").one();
+    if (n >= SIGNUP_CAP) return { full: true };
+    try {
+      this.add([c]);
+    } catch {
+      return { duplicate: true };
+    }
+    return { id: this.find(c) ?? 0 };
+  }
+
+  /** True when the admin has paused the /join form. */
+  isPaused(): boolean {
+    return (
+      this.ctx.storage.sql
+        .exec<{ value: string }>("SELECT value FROM settings WHERE key = 'paused'")
+        .toArray()[0]?.value === "1"
+    );
+  }
+
+  setPaused(paused: boolean): void {
+    this.ctx.storage.sql.exec(
+      "INSERT INTO settings (key, value) VALUES ('paused', ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value",
+      paused ? "1" : "0",
+    );
+  }
+
+  /** Counts one sign-up attempt from `who` and says whether that network has sent too many lately. */
+  signupLimited(who: string): boolean {
+    const sql = this.ctx.storage.sql;
+    sql.exec("DELETE FROM signups WHERE at < ?", Date.now() - FAIL_WINDOW);
+    const { n } = sql
+      .exec<{ n: number }>("SELECT COUNT(*) AS n FROM signups WHERE who = ?", who)
+      .one();
+    if (n >= SIGNUP_LIMIT) return true;
+    sql.exec("INSERT INTO signups (who, at) VALUES (?, ?)", who, Date.now());
+    return false;
   }
 
   /** Changes one student's details. Returns null when there is no such student. Throws if the USN is taken. */
@@ -252,6 +303,7 @@ export class RecruitStore extends DurableObject {
     sql.exec("DELETE FROM sheets");
     sql.exec("DELETE FROM applicants");
     sql.exec("DELETE FROM settings");
+    sql.exec("DELETE FROM signups");
   }
 
   /** True when this address got a passcode wrong too often in the last 10 minutes. */
