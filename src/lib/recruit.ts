@@ -1,5 +1,5 @@
-// Core member recruitment, November 2026: the rules shared by the admin page, the judge page and the server.
-// The squads, rooms and days must match recruitment/form/Code.gs (a test checks this).
+// Core member recruitment, November 2026: the rules shared by the /join page, the admin page, the judge page
+// and the server. Students sign up on /join; the CSV import stays for anyone added from a spreadsheet.
 import {
   BRANCHES,
   cleanEmail,
@@ -28,8 +28,19 @@ export const ROOMS: Record<Squad, "G-07" | "G-09"> = {
   "Social Media and Outreach": "G-09",
 };
 
-export const DAYS = ["Wed 11 Nov", "Thu 12 Nov"] as const;
+/** The interview days. Saturday runs only if Friday has more students than the panels can see. */
+export const DAYS = ["Fri 20 Nov", "Sat 21 Nov"] as const;
 export type Day = (typeof DAYS)[number];
+/** Each day's date in India, so the judge page can open on today's list. */
+export const DAY_DATES: Record<Day, string> = {
+  "Fri 20 Nov": "2026-11-20",
+  "Sat 21 Nov": "2026-11-21",
+};
+/** What the /join form says next to each day. */
+export const DAY_NOTES: Record<Day, string> = {
+  "Fri 20 Nov": "The main day",
+  "Sat 21 Nov": "Only if Friday is full. We confirm on WhatsApp",
+};
 
 /** About this many core members in total. The admin page turns the counter red above it. */
 export const CORE_CAP = 15;
@@ -217,6 +228,44 @@ export function studentKey(c: Pick<NewCandidate, "usn" | "email" | "phone">): st
   if (c.email) return `email:${c.email.toLowerCase()}`;
   if (c.phone) return `phone:${c.phone}`;
   return "";
+}
+
+/** A WhatsApp number: 10 digits starting 6 to 9, with an optional +91 or 0 in front. "" when it is not one. */
+export function cleanMobile(raw: unknown): string {
+  const digits = typeof raw === "string" ? raw.replace(/[^\d]/g, "") : "";
+  const ten =
+    digits.length === 12 && digits.startsWith("91")
+      ? digits.slice(2)
+      : digits.length === 11 && digits.startsWith("0")
+        ? digits.slice(1)
+        : digits;
+  return /^[6-9]\d{9}$/.test(ten) ? ten : "";
+}
+
+/**
+ * Checks a sign-up from the public /join form. Stricter than the admin's form: email, WhatsApp number and day
+ * are required, a 3rd semester student must give a USN, and the student must agree to how the details are used.
+ * A 1st semester student may leave the USN blank, because many do not have one yet.
+ */
+export function validateApplication(
+  raw: unknown,
+): { ok: true; candidate: NewCandidate } | { ok: false; error: string } {
+  if (!raw || typeof raw !== "object") return { ok: false, error: "Fill in the form first." };
+  const b = raw as Record<string, unknown>;
+  if (b["consent"] !== true)
+    return { ok: false, error: "Tick the box to say we may use your details for recruitment." };
+  const email = cleanEmail(b["email"]);
+  if (!email || !isEmail(email)) return { ok: false, error: "Type your email address." };
+  const phone = cleanMobile(b["phone"]);
+  if (!phone) return { ok: false, error: "Type your 10 digit WhatsApp number." };
+  const sem = Number(b["sem"]);
+  const usn = typeof b["usn"] === "string" ? b["usn"].trim() : "";
+  if (sem === 3 && !usn)
+    return { ok: false, error: "Type your USN. Every 3rd semester student has one." };
+  if (!isDay(b["day"])) return { ok: false, error: "Pick the day that suits you." };
+  const v = validateCandidate({ ...b, usn, email, phone, wildcard: false });
+  if (!v.ok) return v;
+  return { ok: true, candidate: { ...v.candidate, wildcard: false } };
 }
 
 export type CsvRow = NewCandidate & { line: number; problems: string[] };
