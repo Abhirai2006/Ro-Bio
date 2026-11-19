@@ -105,16 +105,23 @@ function Facts() {
     <section className="mx-auto max-w-6xl px-4 pt-12" aria-label="When and where">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Fact label="WHEN">
-          {DAYS[0]}, {when(DAYS[0]).time}
-          <span className="mt-1 block text-sm font-normal text-muted-foreground">
-            {DAYS[1]} {when(DAYS[1]).time}, only if Friday is full. We confirm on WhatsApp.
-          </span>
+          {DAYS.map((d) => (
+            <span key={d} className="block">
+              {d}, {when(d).time}
+            </span>
+          ))}
+          {DAYS.map((d) =>
+            when(d).note ? (
+              <span key={d} className="mt-1 block text-sm font-normal text-muted-foreground">
+                {when(d).note}
+              </span>
+            ) : null,
+          )}
         </Fact>
         <Fact label="BE THERE BY">
           {when(DAYS[0]).arriveBy}
           <span className="mt-1 block text-sm font-normal text-muted-foreground">
-            On {DAYS[1]}, {when(DAYS[1]).arriveBy}. So we can check you in and seat your group on
-            time.
+            Interviews start right away, so please be on time.
           </span>
         </Fact>
         <Fact label={`WHERE: ${recruitment.building.toUpperCase()}`}>
@@ -344,14 +351,8 @@ function SignUp() {
             {recruitment.building}. Come on <b>{done.day}</b> by{" "}
             <b>{when(done.day ?? DAYS[0]).arriveBy}</b>.
           </p>
-          {done.day === DAYS[1] && (
-            <p className="mt-2">
-              {DAYS[1]} runs only if Friday is full. We will confirm on WhatsApp. If it does not
-              run, please come on {DAYS[0]} by {when(DAYS[0]).arriveBy}.
-            </p>
-          )}
           <p className="mt-3 text-sm text-muted-foreground">
-            Take a screenshot of this. To change your squad or day, tell an organiser at the door.
+            Take a screenshot of this. To change your squad, tell an organiser at the door.
           </p>
           <button
             type="button"
@@ -498,30 +499,32 @@ function SignUp() {
           <p className="-mt-2 text-sm text-muted-foreground">
             Your first choice squad interviews you. If they cannot take you, your second choice may.
           </p>
-          <fieldset>
-            <legend className="font-bold">Which day suits you? *</legend>
-            <div className="mt-1 grid gap-3 sm:grid-cols-2">
-              {DAYS.map((d) => (
-                <label key={d} className={choice(form.day === d)}>
-                  <input
-                    type="radio"
-                    name="day"
-                    value={d}
-                    required
-                    checked={form.day === d}
-                    onChange={set("day")}
-                    className="mt-1.5"
-                  />
-                  <span>
-                    <b>{d}</b>
-                    <span className="block text-sm">
-                      {when(d).time.replace(/^./, (c) => c.toUpperCase())}. {DAY_NOTES[d]}
+          {DAYS.length > 1 && (
+            <fieldset>
+              <legend className="font-bold">Which day suits you? *</legend>
+              <div className="mt-1 grid gap-3 sm:grid-cols-2">
+                {DAYS.map((d) => (
+                  <label key={d} className={choice(form.day === d)}>
+                    <input
+                      type="radio"
+                      name="day"
+                      value={d}
+                      required
+                      checked={form.day === d}
+                      onChange={set("day")}
+                      className="mt-1.5"
+                    />
+                    <span>
+                      <b>{d}</b>
+                      <span className="block text-sm">
+                        {when(d).time.replace(/^./, (c) => c.toUpperCase())}. {DAY_NOTES[d]}
+                      </span>
                     </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
           {/* People never see this box. Bots fill it in, and the server then saves nothing. */}
           <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
             <label>
