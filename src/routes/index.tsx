@@ -12,6 +12,7 @@ import {
   daysBetween,
   eventDate,
   nextEvent,
+  recruitment,
   site,
   todayInIndia,
   type ClubEvent,
@@ -87,6 +88,25 @@ function Hero() {
           <p className="mt-4 font-mono text-sm text-muted-foreground">
             At {next.title}: <Typed words={next.activities.map((a) => a.name)} />
           </p>
+          {recruitment.status === "open" && (
+            <Link
+              to="/join"
+              className="mt-5 flex max-w-md items-center justify-between gap-3 border-2 border-border bg-card p-3 shadow-hard transition-transform hover:-translate-y-0.5"
+            >
+              <span>
+                <span className="block font-pixel text-[10px] text-primary">
+                  CORE RECRUITMENT IS OPEN
+                </span>
+                <span className="mt-1 block font-bold">
+                  {recruitment.who.replace(/^./, (c) => c.toUpperCase())}: sign up by{" "}
+                  {recruitment.closesLabel}
+                </span>
+              </span>
+              <span className="shrink-0 font-pixel text-xs" aria-hidden="true">
+                JOIN &gt;
+              </span>
+            </Link>
+          )}
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
               to="/events/$slug"
