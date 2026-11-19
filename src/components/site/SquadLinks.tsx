@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import type { SquadSlug } from "@/lib/squad-fx";
 import { playWarp, prefersStill } from "@/lib/squad-warp";
 import { narration } from "@/lib/robo-talk";
-import { recruitment, site, teamPhotos, type Squad } from "@/lib/site";
+import { recruitment, site, squadArtPending, teamPhotos, type Squad } from "@/lib/site";
 import "./squad-links.css";
 
 type SquadPage = Squad & { slug: SquadSlug };
@@ -185,6 +185,7 @@ export function SquadLinks({
               className="sq-link group"
               onPointerEnter={() => {
                 // warm up the poster so the page opens on a picture, not an empty box
+                if (squadArtPending.includes(sq.slug)) return;
                 const img = new Image();
                 img.src = `/team/art/${sq.slug}-poster-960.webp`;
               }}
