@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { coreTeam, faculty, squadPages, teamLinkedIn, teamPhotos } from "./site";
+import { coreTeam, faculty, squadArtPending, squadPages, teamLinkedIn, teamPhotos } from "./site";
 import { squadFx, type SquadSlug } from "./squad-fx";
 import { squadLoops } from "./squad-loops";
 import { BLUEPRINT_LABELS, CODE_LINES } from "./squad-warp";
@@ -18,7 +18,7 @@ describe("squad pages", () => {
   });
 
   it("has every picture, poster and clip in both sizes, and each clip stays small", () => {
-    for (const s of slugs) {
+    for (const s of slugs.filter((x) => !squadArtPending.includes(x))) {
       for (const size of [1600, 960]) {
         expect(existsSync(pub(`/team/art/${s}-${size}.webp`)), `${s} picture`).toBe(true);
         expect(existsSync(pub(`/team/art/${s}-poster-${size}.webp`)), `${s} poster`).toBe(true);
@@ -28,6 +28,14 @@ describe("squad pages", () => {
           expect(statSync(f).size, f).toBeLessThan(size === 1600 ? 2.5e6 : 1.5e6);
         }
       }
+    }
+  });
+
+  it("keeps no old picture for a squad whose artwork is still being drawn", () => {
+    for (const s of squadArtPending) {
+      expect(slugs).toContain(s);
+      for (const f of [`${s}-1600.webp`, `${s}-960.webp`, `${s}-poster-1600.webp`, `${s}-1600.mp4`])
+        expect(existsSync(pub(`/team/art/${f}`)), f).toBe(false);
     }
   });
 
