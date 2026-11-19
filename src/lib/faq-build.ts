@@ -58,7 +58,7 @@ export function buildFaqs(
     },
     {
       q: "Does this website collect my personal data?",
-      a: "No. There are no accounts, forms or analytics, and the site itself sets no cookies. The Google map on the Contact and Bot Forge pages comes from Google, under its own policy. The Privacy Policy lists the little that is stored in your browser.",
+      a: "Only if you sign up for core recruitment on the Join page. That form asks for your name, USN, branch, semester, WhatsApp number, email and squad choices, used only to run the interviews and send results, and deleted after recruitment. There are no accounts or analytics, and the site itself sets no cookies. The Google map on the Contact and Bot Forge pages comes from Google, under its own policy. The Privacy Policy has the details.",
     },
   ];
 }
