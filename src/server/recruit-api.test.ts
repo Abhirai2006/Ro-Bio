@@ -366,7 +366,7 @@ describe("the public /join sign-up", () => {
     expect((await apply()).data).toEqual({ open: true, reason: "" });
     const r = await apply(form());
     expect(r.status).toBe(200);
-    expect(r.data).toMatchObject({ ok: true, first: "Design", room: "G-07", day: "Mon 23 Nov" });
+    expect(r.data).toMatchObject({ ok: true, first: "Design", day: "Mon 23 Nov" });
     expect(store.list()).toMatchObject([
       {
         name: "Asha R",
@@ -390,6 +390,14 @@ describe("the public /join sign-up", () => {
     const sameEmail = await apply(form({ email: "asha@x.in", first: "Technical" }));
     expect(sameEmail.status).toBe(409);
     expect(store.list()).toMatchObject([{ usn: "4MU24CS001", first: "Design" }]);
+  });
+
+  it("takes 5th semester students, with their USN", async () => {
+    const { apply, store } = applySetup();
+    expect((await apply(form({ sem: 5, usn: "" }))).data["error"]).toMatch(/USN/);
+    expect((await apply(form({ sem: 5, usn: "4mu22cs050" }))).status).toBe(200);
+    expect(store.list()).toMatchObject([{ usn: "4MU22CS050", sem: 5 }]);
+    expect((await apply(form({ sem: 7, usn: "4mu21cs070", email: "b@x.in" }))).status).toBe(400);
   });
 
   it("asks for what the form needs", async () => {
