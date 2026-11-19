@@ -179,8 +179,8 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
   const [locked, setLocked] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
-  // Opens on today's list on an interview day, otherwise on every day. Students who picked Saturday may
-  // still come on Friday, so "All days" is one tap away.
+  // Opens on today's list on an interview day, otherwise on every day. A student down for another day
+  // may still turn up, so "All days" is one tap away.
   const [day, setDay] = useState<string>(
     () => DAYS.find((d) => DAY_DATES[d] === todayInIndia()) ?? "",
   );
