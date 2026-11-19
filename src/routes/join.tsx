@@ -5,7 +5,8 @@ import {
   CRITERIA,
   DAY_NOTES,
   DAYS,
-  ROOMS,
+  SEMS,
+  semLabel,
   SQUADS,
   type CriterionKey,
   type Squad,
@@ -100,7 +101,6 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function Facts() {
-  const room = (r: "G-07" | "G-09") => SQUADS.filter((s) => ROOMS[s] === r).join(", ");
   return (
     <section className="mx-auto max-w-6xl px-4 pt-12" aria-label="When and where">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -124,9 +124,11 @@ function Facts() {
             Interviews start right away, so please be on time.
           </span>
         </Fact>
-        <Fact label={`WHERE: ${recruitment.building.toUpperCase()}`}>
-          <span className="block">G-07: {room("G-07")}</span>
-          <span className="mt-1 block">G-09: {room("G-09")}</span>
+        <Fact label="WHERE">
+          {recruitment.venue.replace(/^./, (c) => c.toUpperCase())}
+          <span className="mt-1 block text-sm font-normal text-muted-foreground">
+            All five squads are in this one room, each in its own corner.
+          </span>
         </Fact>
         <Fact label="SIGN UP BY">
           {recruitment.closesLabel}
@@ -178,7 +180,7 @@ function HowItWorks() {
           </ul>
           <p className="mt-3 text-sm text-muted-foreground">
             No marks for your branch, your semester or who you know. 1st semester students are not
-            expected to know as much as 3rd semester students: we judge how you think.
+            expected to know as much as 3rd or 5th semester students: we judge how you think.
           </p>
         </Window>
       </div>
@@ -238,9 +240,6 @@ function Squads() {
             >
               <header className="flex items-center justify-between gap-3 border-b-2 border-border bg-secondary px-4 py-3">
                 <h3 className="text-xl font-black">{s}</h3>
-                <span className="shrink-0 border-2 border-border bg-background px-2 py-0.5 font-pixel text-[10px]">
-                  ROOM {ROOMS[s]}
-                </span>
               </header>
               <div className="flex flex-1 flex-col p-4">
                 <p>{info.about}</p>
@@ -284,7 +283,7 @@ const blank = {
   consent: false,
   website: "",
 };
-type Done = { name: string; first: Squad; room: string; day: string | null };
+type Done = { name: string; first: Squad; day: string | null };
 
 function SignUp() {
   const [form, setForm] = useState(blank);
@@ -320,7 +319,6 @@ function SignUp() {
       setDone({
         name: data.name ?? form.name,
         first: (data.first ?? form.first) as Squad,
-        room: data.room ?? ROOMS[form.first as Squad],
         day: data.day ?? form.day,
       });
       setForm(blank);
@@ -347,9 +345,8 @@ function SignUp() {
           <p className="font-pixel text-[10px] text-primary">YOU ARE REGISTERED</p>
           <p className="mt-2 text-2xl font-black">See you there, {done.name.split(" ")[0]}.</p>
           <p className="mt-3">
-            <b>{done.first}</b> squad interviews are in room <b>{done.room}</b>,{" "}
-            {recruitment.building}. Come on <b>{done.day}</b> by{" "}
-            <b>{when(done.day ?? DAYS[0]).arriveBy}</b>.
+            Interviews are in <b>{recruitment.venue}</b>. Look for the <b>{done.first}</b> squad's
+            corner. Come on <b>{done.day}</b> by <b>{when(done.day ?? DAYS[0]).arriveBy}</b>.
           </p>
           <p className="mt-3 text-sm text-muted-foreground">
             Take a screenshot of this. To change your squad, tell an organiser at the door.
@@ -388,9 +385,12 @@ function SignUp() {
           </label>
           <fieldset>
             <legend className="font-bold">Semester *</legend>
-            <div className="mt-1 flex gap-3">
-              {["1", "3"].map((v) => (
-                <label key={v} className={choice(form.sem === v)}>
+            <div className="mt-1 grid max-w-md grid-cols-3 gap-2">
+              {SEMS.map(String).map((v) => (
+                <label
+                  key={v}
+                  className={`${choice(form.sem === v).replace("px-4", "px-2")} items-center justify-center`}
+                >
                   <input
                     type="radio"
                     name="sem"
@@ -400,19 +400,19 @@ function SignUp() {
                     onChange={set("sem")}
                     className="mt-1"
                   />
-                  {v === "1" ? "1st sem" : "3rd sem"}
+                  <span className="whitespace-nowrap">{semLabel(Number(v))} sem</span>
                 </label>
               ))}
             </div>
           </fieldset>
           <label className="block">
-            <span className="font-bold">USN{form.sem === "3" ? " *" : ""}</span>
+            <span className="font-bold">USN{form.sem && form.sem !== "1" ? " *" : ""}</span>
             <span className="block text-sm text-muted-foreground">
               1st semester and no USN yet? Leave it blank.
             </span>
             <input
               id="join-usn"
-              required={form.sem === "3"}
+              required={!!form.sem && form.sem !== "1"}
               maxLength={20}
               autoCapitalize="characters"
               className={`${field} uppercase`}
