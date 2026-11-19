@@ -327,7 +327,7 @@ export type SquadCall = {
   lookFor: string[];
   /** Small hints about the interview, so nobody walks in blind. Never the actual questions. */
   expect: string[];
-  /** Squad-specific things to bring, on top of `recruitment.bring`. */
+  /** Things this squad's applicants may bring. */
   bring?: string[];
   /** A rule in bold, like the Design squad's "no generative AI". */
   rule?: string;
@@ -343,18 +343,14 @@ export const recruitment: {
   status: "soon" | "open" | "closed";
   /** Who may apply. */
   who: string;
-  /** Interview time on each day. */
-  time: string;
-  /** When students should be at the door. */
-  arriveBy: string;
+  /** Each interview day's time and when students should be at the door, by its name in DAYS (src/lib/recruit.ts). */
+  schedule: Record<string, { time: string; arriveBy: string }>;
   /** Where the two rooms are. */
   building: string;
   /** Sign-ups stop at this moment (India time). The admin page can also pause them earlier. */
   closesAt: string;
   /** The same moment, as people read it. */
   closesLabel: string;
-  /** What every applicant brings, written to fit after "Bring:" or "with". */
-  bring: string[];
   /** The club Gmail the result emails go out from. The admin page opens Gmail drafts in this account. */
   mailFrom: string;
   /** How many days a selected student has to reply to the result email. */
@@ -363,12 +359,13 @@ export const recruitment: {
 } = {
   status: "open",
   who: "1st and 3rd semester students of every branch",
-  time: "3:30 to 5 pm",
-  arriveBy: "3:15 pm",
+  schedule: {
+    "Fri 20 Nov": { time: "3:30 to 5 pm", arriveBy: "3:15 pm" },
+    "Sat 21 Nov": { time: "from 11 am", arriveBy: "10:45 am" },
+  },
   building: "Second year block",
   closesAt: "2026-11-20T14:00:00+05:30",
   closesLabel: "Fri 20 Nov, 2 pm",
-  bring: ["your college ID card", "your phone, charged"],
   mailFrom: "ro.bio.muse@gmail.com",
   replyWithinDays: 2,
   squads: {
