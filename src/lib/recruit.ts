@@ -19,14 +19,13 @@ export const SQUADS = [
 ] as const;
 export type Squad = (typeof SQUADS)[number];
 
-/** Where each squad's panel sits, in the Second year block. */
-export const ROOMS: Record<Squad, "G-07" | "G-09"> = {
-  Projects: "G-07",
-  Technical: "G-07",
-  Design: "G-07",
-  Events: "G-09",
-  "Social Media and Outreach": "G-09",
-};
+/** The semesters that may apply this round. 1st semester students often have no USN yet. */
+export const SEMS = [1, 3, 5] as const;
+export type Sem = (typeof SEMS)[number];
+export const isSem = (v: unknown): v is Sem => (SEMS as readonly unknown[]).includes(v);
+/** "1st", "3rd", "5th". */
+export const semLabel = (n: number) =>
+  `${n}${n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th"}`;
 
 /** The interview days. One day this round: if more students come, it runs past its end time instead. */
 export const DAYS = ["Mon 23 Nov"] as const;
@@ -126,7 +125,7 @@ export type NewCandidate = {
   email: string;
   phone: string;
   branch: string;
-  sem: 1 | 3;
+  sem: Sem;
   first: Squad;
   second: Squad | null;
   day: Day | null;
@@ -195,7 +194,7 @@ export function validateCandidate(
   if (!(BRANCHES as readonly string[]).includes(branch))
     return { ok: false, error: `Pick a branch from the list for ${who}.` };
   const sem = Number(b["sem"]);
-  if (sem !== 1 && sem !== 3) return { ok: false, error: `Semester must be 1 or 3 for ${who}.` };
+  if (!isSem(sem)) return { ok: false, error: `Semester must be ${SEMS.join(", ")} for ${who}.` };
   if (!isSquad(b["first"])) return { ok: false, error: `Pick a first choice squad for ${who}.` };
   const first = b["first"];
   const second = isSquad(b["second"]) && b["second"] !== first ? b["second"] : null;
@@ -242,7 +241,7 @@ export function cleanMobile(raw: unknown): string {
 
 /**
  * Checks a sign-up from the public /join form. Stricter than the admin's form: email, WhatsApp number and day
- * are required, a 3rd semester student must give a USN, and the student must agree to how the details are used.
+ * are required, a 3rd or 5th semester student must give a USN, and the student must agree to how the details are used.
  * A 1st semester student may leave the USN blank, because many do not have one yet.
  */
 export function validateApplication(
@@ -258,8 +257,8 @@ export function validateApplication(
   if (!phone) return { ok: false, error: "Type your 10 digit WhatsApp number." };
   const sem = Number(b["sem"]);
   const usn = typeof b["usn"] === "string" ? b["usn"].trim() : "";
-  if (sem === 3 && !usn)
-    return { ok: false, error: "Type your USN. Every 3rd semester student has one." };
+  if (sem !== 1 && !usn)
+    return { ok: false, error: "Type your USN. Every 3rd and 5th semester student has one." };
   if (!isDay(b["day"])) return { ok: false, error: "Pick the day that suits you." };
   const v = validateCandidate({ ...b, usn, email, phone, wildcard: false });
   if (!v.ok) return v;
@@ -313,7 +312,7 @@ export function readRecruitCsv(text: string): { rows: CsvRow[]; missing: string[
     const email = cleanEmail(cell(cells, at.email));
     const branchText = cell(cells, at.branch);
     const branch = branchByKey.get(heading(branchText)) ?? "";
-    const semDigit = /^([13])/.exec(cell(cells, at.sem))?.[1];
+    const semDigit = /^([135])/.exec(cell(cells, at.sem))?.[1];
     const firstText = cell(cells, at.first);
     const secondText = cell(cells, at.second);
     const dayText = cell(cells, assigned) || cell(cells, at.day);
@@ -327,7 +326,7 @@ export function readRecruitCsv(text: string): { rows: CsvRow[]; missing: string[
     if (!usn && !email && !cleanPhone(cell(cells, at.phone)))
       problems.push("no USN, email or WhatsApp number");
     if (!branch) problems.push("branch not in the list");
-    if (!semDigit) problems.push("semester not 1st or 3rd");
+    if (!semDigit) problems.push("semester not 1st, 3rd or 5th");
     if (!first) problems.push("no first choice squad");
     if (!day) problems.push("no day yet");
     return {
@@ -336,7 +335,7 @@ export function readRecruitCsv(text: string): { rows: CsvRow[]; missing: string[
       email,
       phone: cleanPhone(cell(cells, at.phone)),
       branch: branch || branchText,
-      sem: semDigit === "3" ? 3 : 1,
+      sem: semDigit === "5" ? 5 : semDigit === "3" ? 3 : 1,
       first: first ?? "Projects",
       second,
       day,
