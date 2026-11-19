@@ -28,18 +28,16 @@ export const ROOMS: Record<Squad, "G-07" | "G-09"> = {
   "Social Media and Outreach": "G-09",
 };
 
-/** The interview days. Saturday runs only if Friday has more students than the panels can see. */
-export const DAYS = ["Fri 20 Nov", "Sat 21 Nov"] as const;
+/** The interview days. One day this round: if more students come, it runs past its end time instead. */
+export const DAYS = ["Mon 23 Nov"] as const;
 export type Day = (typeof DAYS)[number];
 /** Each day's date in India, so the judge page can open on today's list. */
 export const DAY_DATES: Record<Day, string> = {
-  "Fri 20 Nov": "2026-11-20",
-  "Sat 21 Nov": "2026-11-21",
+  "Mon 23 Nov": "2026-11-23",
 };
-/** What the /join form says next to each day. */
+/** What the /join form says next to each day, when there is more than one to pick from. */
 export const DAY_NOTES: Record<Day, string> = {
-  "Fri 20 Nov": "The main day",
-  "Sat 21 Nov": "Only if Friday is full. We confirm on WhatsApp",
+  "Mon 23 Nov": "The interview day",
 };
 
 /** About this many core members in total. The admin page turns the counter red above it. */
