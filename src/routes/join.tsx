@@ -180,7 +180,7 @@ function HowItWorks() {
           </ul>
           <p className="mt-3 text-sm text-muted-foreground">
             No marks for your branch, your semester or who you know. 1st semester students are not
-            expected to know as much as 3rd or 5th semester students: we judge how you think.
+            expected to know as much as 3rd semester students: we judge how you think.
           </p>
         </Window>
       </div>
@@ -385,7 +385,7 @@ function SignUp() {
           </label>
           <fieldset>
             <legend className="font-bold">Semester *</legend>
-            <div className="mt-1 grid max-w-md grid-cols-3 gap-2">
+            <div className="mt-1 grid max-w-xs grid-cols-2 gap-2">
               {SEMS.map(String).map((v) => (
                 <label
                   key={v}
