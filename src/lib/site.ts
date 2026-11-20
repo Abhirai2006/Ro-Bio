@@ -366,7 +366,7 @@ export const recruitment: {
   squads: Record<NonNullable<Squad["slug"]>, SquadCall>;
 } = {
   status: "open",
-  who: "1st, 3rd and 5th semester students of every branch",
+  who: "1st and 3rd semester students of every branch",
   schedule: {
     "Mon 23 Nov": {
       time: "12 to 1 pm",
