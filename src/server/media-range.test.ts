@@ -17,6 +17,7 @@ describe("squad clip byte ranges", () => {
   it("only takes the squad clips", () => {
     expect(isClip("/team/art/technical-1600.mp4")).toBe(true);
     expect(isClip("/team/art/social-media-960.webm")).toBe(true);
+    expect(isClip("/gallery/robo-spark-highlights.mp4")).toBe(true);
     expect(isClip("/team/art/technical-1600.webp")).toBe(false);
     expect(isClip("/team/art/../secret.mp4")).toBe(false);
     expect(isClip("/team/technical")).toBe(false);
