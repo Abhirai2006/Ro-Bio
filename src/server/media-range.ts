@@ -5,9 +5,9 @@
 
 export type AssetsEnv = { ASSETS?: { fetch: (req: Request) => Promise<Response> } };
 
-/** The squad clips, /team/art/<name>.mp4 or .webm, and the merch loop, /merch/<name>.mp4 or .webm. */
+/** The squad clips (/team/art), the merch loop (/merch) and the gallery clips (/gallery), as .mp4 or .webm. */
 export const isClip = (pathname: string) =>
-  /^\/(team\/art|merch)\/[a-z0-9-]+\.(mp4|webm)$/.test(pathname);
+  /^\/(team\/art|merch|gallery)\/[a-z0-9-]+\.(mp4|webm)$/.test(pathname);
 
 /** Reads one "bytes=" range against a file of `size` bytes. Null means not satisfiable. */
 export function parseRange(header: string, size: number): [number, number] | null {
