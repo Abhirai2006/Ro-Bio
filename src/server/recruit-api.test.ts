@@ -392,12 +392,10 @@ describe("the public /join sign-up", () => {
     expect(store.list()).toMatchObject([{ usn: "4MU24CS001", first: "Design" }]);
   });
 
-  it("takes 5th semester students, with their USN", async () => {
+  it("refuses 5th semester students: only 1st and 3rd this round", async () => {
     const { apply, store } = applySetup();
-    expect((await apply(form({ sem: 5, usn: "" }))).data["error"]).toMatch(/USN/);
-    expect((await apply(form({ sem: 5, usn: "4mu22cs050" }))).status).toBe(200);
-    expect(store.list()).toMatchObject([{ usn: "4MU22CS050", sem: 5 }]);
-    expect((await apply(form({ sem: 7, usn: "4mu21cs070", email: "b@x.in" }))).status).toBe(400);
+    expect((await apply(form({ sem: 5, usn: "4mu22cs050" }))).status).toBe(400);
+    expect(store.list()).toHaveLength(0);
   });
 
   it("asks for what the form needs", async () => {
