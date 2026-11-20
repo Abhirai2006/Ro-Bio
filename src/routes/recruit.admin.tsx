@@ -534,7 +534,6 @@ function StudentForm({
             <select id={id("sem")} className={input} value={form.sem} onChange={set("sem")}>
               <option value="1">1st</option>
               <option value="3">3rd</option>
-              <option value="5">5th</option>
             </select>
           </label>
           <label>
