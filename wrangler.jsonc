@@ -10,7 +10,7 @@
   // can answer byte ranges, which Safari needs to play video (src/server/media-range.ts).
   "assets": {
     "binding": "ASSETS",
-    "run_worker_first": ["/team/art/*.mp4", "/team/art/*.webm", "/merch/*.mp4", "/merch/*.webm"]
+    "run_worker_first": ["/team/art/*.mp4", "/team/art/*.webm", "/merch/*.mp4", "/merch/*.webm", "/gallery/*.mp4"]
   },
   // Robo Spark judge scores. Cloudflare creates this SQLite store on the first deploy, nothing to set up by hand.
   // The judge passcode is a secret named JUDGE_PASSCODE, added in the dashboard: Settings, Variables and Secrets.
