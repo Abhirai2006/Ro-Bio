@@ -38,8 +38,10 @@ function Photo({ item, tilt, onOpen }: { item: GalleryItem; tilt: string; onOpen
         aria-label={`Open the photo: ${item.alt}`}
       >
         <img
-          src={item.src}
+          src={item.thumb ?? item.src}
           alt={item.alt}
+          width={800}
+          height={533}
           loading="lazy"
           decoding="async"
           className="aspect-square w-full object-cover"
