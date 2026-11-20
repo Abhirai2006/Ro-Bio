@@ -72,7 +72,7 @@ Only if you sign up for core recruitment on the Join page. That form asks for yo
 - [Technical squad](https://ro-bio.hub-muse.workers.dev/team/technical): Builds and debugs the club's electronics, code and this website.
 - [Social Media and Outreach squad](https://ro-bio.hub-muse.workers.dev/team/social-media): Tells the campus what RO-BIO is up to, on Instagram, on LinkedIn and on the ground.
 - [Design squad](https://ro-bio.hub-muse.workers.dev/team/design): Makes the club's posters, visuals and the look of everything RO-BIO puts out.
-- [Join a squad](https://ro-bio.hub-muse.workers.dev/join): Core member recruitment for 1st, 3rd and 5th semester students of every branch: what each squad looks for, what the interview is like, and the sign-up form (closes Mon 23 Nov, 11 am).
+- [Join a squad](https://ro-bio.hub-muse.workers.dev/join): Core member recruitment for 1st and 3rd semester students of every branch: what each squad looks for, what the interview is like, and the sign-up form (closes Mon 23 Nov, 11 am).
 - [Workshops](https://ro-bio.hub-muse.workers.dev/workshops): Workshops for members and students (content coming soon).
 - [Projects](https://ro-bio.hub-muse.workers.dev/projects): Projects built by the club.
 - [Gallery](https://ro-bio.hub-muse.workers.dev/gallery): Photos from the club.
