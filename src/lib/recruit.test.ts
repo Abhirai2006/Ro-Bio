@@ -334,24 +334,24 @@ describe("validateApplication (the public /join form)", () => {
 });
 
 describe("semesters", () => {
-  it("takes 1st, 3rd and 5th semester students only", () => {
-    expect([...SEMS]).toEqual([1, 3, 5]);
-    expect(SEMS.map(semLabel)).toEqual(["1st", "3rd", "5th"]);
+  it("takes 1st and 3rd semester students only", () => {
+    expect([...SEMS]).toEqual([1, 3]);
+    expect(SEMS.map(semLabel)).toEqual(["1st", "3rd"]);
     const base = {
       name: "Ravi K",
       email: "r@x.in",
       branch: "Computer Science & Design",
       first: "Events",
     };
-    expect(validateCandidate({ ...base, sem: 5, usn: "4MU22CS001" })).toMatchObject({ ok: true });
-    expect(validateCandidate({ ...base, sem: 2, usn: "4MU22CS001" })).toMatchObject({ ok: false });
+    expect(validateCandidate({ ...base, sem: 3, usn: "4MU24CS001" })).toMatchObject({ ok: true });
+    expect(validateCandidate({ ...base, sem: 5, usn: "4MU22CS001" })).toMatchObject({ ok: false });
   });
-  it("reads a 5th semester row from a CSV", () => {
+  it("flags a 5th semester row in a CSV", () => {
     const csv = [
       "Email address,Full name,USN,WhatsApp number,Branch,Semester,First choice squad,Interview day",
       "r@x.in,Ravi K,4MU22CS001,9000000005,Computer Science & Design,5th,Events,Mon 23 Nov",
     ].join("\n");
-    expect(readRecruitCsv(csv).rows[0]).toMatchObject({ sem: 5, problems: [] });
+    expect(readRecruitCsv(csv).rows[0]?.problems).toContain("semester not 1st or 3rd");
   });
 });
 
