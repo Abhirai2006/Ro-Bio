@@ -392,6 +392,11 @@ export const recruitment: {
         "How you would split a project between a few people",
         "Something you tried that did not work, and what you did next",
       ],
+      bring: [
+        "Anything you built: the thing itself, or photos, a video, your notes or sketches of it",
+        "A school, hobby or competition project, even a small or unfinished one",
+        "Work you show counts in your favour in the marks and gives you a better chance of getting in",
+      ],
     },
     events: {
       lookFor: [
@@ -404,6 +409,11 @@ export const recruitment: {
         '"What would you do if..." moments at an event: something breaks, a queue builds up, someone is late',
         "Planning a short session or a checklist out loud",
         "An event you were part of, and one thing that went wrong",
+      ],
+      bring: [
+        "Photos, posters, schedules or checklists from an event you helped run",
+        "A certificate or a thank you note from an event you organised or volunteered at",
+        "Work you show counts in your favour in the marks and gives you a better chance of getting in",
       ],
     },
     technical: {
@@ -418,6 +428,11 @@ export const recruitment: {
         "How you would find the fault when something stops working",
         "An honest answer about what you have used so far. Never built a robot? That is fine",
       ],
+      bring: [
+        "Code you wrote: a GitHub link, a project on your laptop, or screenshots",
+        "A circuit, an Arduino build or a website you made. Photos or a short video are fine",
+        "Work you show counts in your favour in the marks and gives you a better chance of getting in",
+      ],
     },
     "social-media": {
       lookFor: [
@@ -431,7 +446,11 @@ export const recruitment: {
         "Planning simple posts or a short reel for an event",
         "An account you follow, and why it makes you stop scrolling",
       ],
-      bring: ["Samples of your posts, photos or edits on your phone, if you have them"],
+      bring: [
+        "Your earlier work: posts, reels, photos, video edits, or a page you ran. Show it on your phone or laptop",
+        "Edits count a lot: show the before and after, or walk us through how you cut it",
+        "Work you show counts in your favour in the marks and gives you a better chance of getting in",
+      ],
     },
     design: {
       lookFor: [
@@ -447,6 +466,8 @@ export const recruitment: {
       ],
       bring: [
         "Your digital illustration device or tools, if you want them: iPad, laptop, colour pencils, anything",
+        "Your portfolio: posters, illustrations, 3D models or animations you made yourself, on a device or on paper",
+        "Work you show counts in your favour in the marks and gives you a better chance of getting in",
       ],
       rule: "Absolutely no generative AI.",
     },
