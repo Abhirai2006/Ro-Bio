@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/site/JsonLd";
 import { address, canonical } from "@/lib/seo";
 import { PageIntro, Window } from "@/components/site/parts";
 import { VenueMap } from "@/components/site/VenueMap";
-import { contacts, eventDate, events, site, type ClubEvent } from "@/lib/site";
+import { contacts, eventDate, events, gallery, site, type ClubEvent } from "@/lib/site";
 import { writeUpOf } from "@/lib/blog";
 
 /** The college address gets the full map; any other venue gets its name and a Maps search, never a guessed pin. */
@@ -174,6 +174,7 @@ function EventPage() {
           </figure>
         )}
       </section>
+      <EventPhotos title={e.title} />
       <section className="mx-auto grid max-w-6xl items-start gap-6 px-4 py-10 md:grid-cols-[1.4fr_1fr]">
         {atCollege(e) ? (
           <VenueMap />
@@ -239,5 +240,45 @@ function EventPage() {
         </aside>
       </section>
     </>
+  );
+}
+
+/** A few photos from the day, from the gallery list in site.ts, with a link to see them all. */
+function EventPhotos({ title }: { title: string }) {
+  const photos = gallery.filter((g) => g.kind === "photo" && g.event === title);
+  if (!photos.length) return null;
+  const clip = gallery.some((g) => g.kind === "clip" && g.event === title);
+  // the crowd, the teams at work, and the end of the day, rather than the first four in the list
+  const picks = [photos[4], photos[5], photos[8], photos[9]].filter((p) => !!p);
+  const shown = picks.length === 4 ? picks : photos.slice(0, 4);
+  return (
+    <section className="mx-auto max-w-6xl px-4 pt-14" aria-labelledby="event-photos">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <h2 id="event-photos" className="text-2xl font-black">
+          Photos from the day
+        </h2>
+        <Link to="/gallery" className="font-bold text-primary underline underline-offset-4">
+          See all {photos.length} photos{clip ? " and the clip" : ""}
+        </Link>
+      </div>
+      <ul className="mt-5 grid grid-cols-2 gap-4 md:grid-cols-4">
+        {shown.map((p) => (
+          <li key={p.src} className="border-2 border-border bg-card p-2 shadow-hard">
+            <Link to="/gallery" className="block">
+              <img
+                src={p.thumb ?? p.src}
+                alt={p.alt}
+                width={800}
+                height={533}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full border-2 border-border object-cover"
+              />
+            </Link>
+            <p className="mt-2 text-sm">{p.caption}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
