@@ -459,7 +459,7 @@ export const recruitmentOpen = (now = Date.now()) =>
 
 /**
  * The gallery page. Put the files in public/gallery/ and add one line each, newest first.
- * A photo: { kind: "photo", src: "/gallery/robo-spark-1.webp", alt: "What is in the photo", caption: "Robo Spark, the final round", event: "Robo Spark" }
+ * A photo: { kind: "photo", src: "/gallery/robo-spark-1.webp", thumb: "/gallery/robo-spark-1-sm.webp", alt: "What is in the photo", caption: "Robo Spark, the final round", event: "Robo Spark" }
  * A clip: { kind: "clip", src: "/gallery/robo-spark-1.mp4", poster: "/gallery/robo-spark-1.webp", alt: "...", caption: "..." }
  * Clips play once when they come on screen, muted, then show Replay. Keep each clip under about 4 MB.
  */
@@ -467,11 +467,118 @@ export type GalleryItem = {
   kind: "photo" | "clip";
   src: string;
   /** clips only: the still shown before it plays, usually its first frame */ poster?: string;
+  /** photos only: a smaller copy for the grid (about 800 px); the full `src` opens when tapped */
+  thumb?: string;
   alt: string;
   caption: string;
   event?: string;
 };
-export const gallery: GalleryItem[] = [];
+export const gallery: GalleryItem[] = [
+  {
+    kind: "clip",
+    src: "/gallery/robo-spark-highlights.mp4",
+    poster: "/gallery/robo-spark-highlights.webp",
+    alt: "Clips from Robo Spark: speakers on stage, teams talking through their problem, the countdown on the screen and everyone on stage at the end.",
+    caption: "Robo Spark in under half a minute. Turn the sound on to hear the hall.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-title.webp",
+    thumb: "/gallery/robo-spark-title-sm.webp",
+    alt: "The Robo Spark title screen in the hall: interactive group discussion, 3 November 2026.",
+    caption: "The screen before the doors opened.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-welcome.webp",
+    thumb: "/gallery/robo-spark-welcome-sm.webp",
+    alt: "Faculty and student hosts at the podium on stage, welcoming the first years.",
+    caption: "The welcome, with our faculty on stage.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-what-we-do.webp",
+    thumb: "/gallery/robo-spark-what-we-do-sm.webp",
+    alt: "A student speaks at the podium beside a screen listing robotics, electronics, biomedical, competitions and projects.",
+    caption: "What RO-BIO does, in one slide.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-speaker.webp",
+    thumb: "/gallery/robo-spark-speaker-sm.webp",
+    alt: "A student in a white shirt speaks into the microphone at the podium.",
+    caption: "One of our hosts on the mic.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-hall.webp",
+    thumb: "/gallery/robo-spark-hall-sm.webp",
+    alt: "A wide view of the hall, packed with first year students in blue seats.",
+    caption: "A full hall of first years.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-audience.webp",
+    thumb: "/gallery/robo-spark-audience-sm.webp",
+    alt: "First year students in the hall, listening and talking among themselves.",
+    caption: "Listening in.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-discussion.webp",
+    thumb: "/gallery/robo-spark-discussion-sm.webp",
+    alt: "Students in the front rows lean in and talk through their team problem.",
+    caption: "Teams working through their problem.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-discussion-2.webp",
+    thumb: "/gallery/robo-spark-discussion-2-sm.webp",
+    alt: "A volunteer talks with a team of students in their seats.",
+    caption: "A volunteer checks in on a team.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-countdown.webp",
+    thumb: "/gallery/robo-spark-countdown-sm.webp",
+    alt: "The countdown timer on the big screen while teams discuss in the hall.",
+    caption: "The timer is on.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-thank-you.webp",
+    thumb: "/gallery/robo-spark-thank-you-sm.webp",
+    alt: "First year students line up on stage in front of the Thank You screen.",
+    caption: "Everyone on stage at the end.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-core-team.webp",
+    thumb: "/gallery/robo-spark-core-team-sm.webp",
+    alt: "The RO-BIO team and faculty on stage in front of the Robo Spark screen, thumbs up.",
+    caption: "The RO-BIO crew behind Robo Spark.",
+    event: "Robo Spark",
+  },
+  {
+    kind: "photo",
+    src: "/gallery/robo-spark-steps.webp",
+    thumb: "/gallery/robo-spark-steps-sm.webp",
+    alt: "The RO-BIO team sits together on the steps outside the hall.",
+    caption: "On the steps after the event.",
+    event: "Robo Spark",
+  },
+];
 
 /** The five squads that have their own page, in the order the team page shows them. */
 export const squadPages = () =>
