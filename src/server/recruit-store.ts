@@ -2,7 +2,13 @@
 // Cloudflare creates it on the first deploy from the "migrations" entry in wrangler.jsonc. Nothing to set up by hand.
 // Applicants' details live only here, never in the repo. The admin page can delete all of it after recruitment.
 import { DurableObject } from "cloudflare:workers";
-import type { Candidate, NewCandidate, Sheet, Status } from "@/lib/recruit";
+import {
+  moveToSecond,
+  type Candidate,
+  type NewCandidate,
+  type Sheet,
+  type Status,
+} from "@/lib/recruit";
 
 type CandidateRow = {
   id: number;
@@ -18,6 +24,7 @@ type CandidateRow = {
   wildcard: number;
   status: string;
   added_at: number;
+  moved_from?: string | null;
 };
 type SheetRow = {
   candidate_id: number;
@@ -49,6 +56,7 @@ const toCandidate = (r: CandidateRow): Candidate => ({
   wildcard: r.wildcard === 1,
   status: r.status as Status,
   addedAt: r.added_at,
+  movedFrom: (r.moved_from ?? null) as Candidate["movedFrom"],
 });
 const toSheet = (r: SheetRow): Sheet => ({
   candidateId: r.candidate_id,
@@ -89,6 +97,11 @@ export class RecruitStore extends DurableObject {
       );
       sql.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
       sql.exec("CREATE TABLE IF NOT EXISTS failures (ip TEXT NOT NULL, at INTEGER NOT NULL)");
+      // Added for moving students to their second choice. Stores made before it get the column here;
+      // everyone already signed up keeps their row, with nothing moved.
+      const cols = sql.exec<{ name: string }>("PRAGMA table_info(applicants)").toArray();
+      if (!cols.some((c) => c.name === "moved_from"))
+        sql.exec("ALTER TABLE applicants ADD COLUMN moved_from TEXT");
       // Recent sign-ups by a scrambled code made from the address (never the address), to slow down spam.
       sql.exec("CREATE TABLE IF NOT EXISTS signups (who TEXT NOT NULL, at INTEGER NOT NULL)");
     });
@@ -219,10 +232,31 @@ export class RecruitStore extends DurableObject {
     return false;
   }
 
+  /**
+   * Moves a student to their second choice squad: the two choices swap, and the squad they started in is
+   * remembered so their new judges can see it. Marks already given stay. Null when there is no such
+   * student; "none" when they gave no second choice.
+   */
+  move(id: number): Candidate | null | "none" {
+    const c = this.get(id);
+    if (!c) return null;
+    const next = moveToSecond(c);
+    if (!next) return "none";
+    this.ctx.storage.sql.exec(
+      "UPDATE applicants SET first = ?, second = ?, moved_from = ? WHERE id = ?",
+      next.first,
+      next.second,
+      next.movedFrom,
+      id,
+    );
+    return this.get(id);
+  }
+
   /** Changes one student's details. Returns null when there is no such student. Throws if the USN is taken. */
   edit(id: number, c: NewCandidate): Candidate | null {
     const n = this.ctx.storage.sql.exec(
-      "UPDATE applicants SET usn = ?, name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = ? WHERE id = ?",
+      // Editing the first choice back to where a moved student started clears the "moved" mark.
+      "UPDATE applicants SET usn = ?, name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = ?, moved_from = CASE WHEN moved_from = ? THEN NULL ELSE moved_from END WHERE id = ?",
       c.usn || null,
       c.name,
       c.email,
@@ -233,6 +267,7 @@ export class RecruitStore extends DurableObject {
       c.second,
       c.day,
       c.wildcard ? 1 : 0,
+      c.first,
       id,
     ).rowsWritten;
     return n ? this.get(id) : null;
