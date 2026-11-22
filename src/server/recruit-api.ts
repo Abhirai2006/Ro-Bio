@@ -4,6 +4,9 @@
 // never in this public repo. Judges never get a student's email or phone, or another judge's marks.
 import {
   canJudge,
+  panelFor,
+  panelsOf,
+  SQUADS,
   isJudgeSquad,
   isStatus,
   MAX_ROWS,
@@ -191,7 +194,13 @@ export async function handleRecruitApi(
           { error: `${student.name} is being interviewed by the ${student.first} squad.` },
           403,
         );
-      return json({ sheet: await store.saveSheet(parsed.sheet) });
+      const panel = panelFor(parsed.sheet.squad, student, parsed.sheet.panel);
+      if (!panel)
+        return json(
+          { error: `Pick which interview you are marking: ${panelsOf(student).join(" or ")}.` },
+          400,
+        );
+      return json({ sheet: await store.saveSheet({ ...parsed.sheet, panel }) });
     }
 
     return json({ error: "Not found." }, 404);
@@ -258,12 +267,30 @@ export async function handleRecruitApi(
     return json({ candidate: moved });
   }
 
+  if (action === "also" && method === "PUT") {
+    if (!Number.isInteger(id) || id < 1) return json({ error: "Say which student." }, 400);
+    const on = (await readBody(request))?.["on"];
+    if (typeof on !== "boolean") return json({ error: "Send on as true or false." }, 400);
+    const c = await store.setAlso(id, on);
+    if (c === null) return json({ error: "No such student." }, 404);
+    if (c === "none")
+      return json(
+        { error: "This student gave no second choice, so there is no second squad to add." },
+        400,
+      );
+    return json({ candidate: c });
+  }
+
   if (action === "status" && method === "PUT") {
     if (!Number.isInteger(id) || id < 1) return json({ error: "Say which student." }, 400);
-    const status = (await readBody(request))?.["status"];
+    const body = await readBody(request);
+    const status = body?.["status"];
     if (!isStatus(status))
       return json({ error: "Status must be undecided, core, supporting or not-selected." }, 400);
-    return (await store.setStatus(id, status))
+    const squad = body?.["squad"];
+    if (squad !== undefined && !SQUADS.includes(squad as never))
+      return json({ error: "Say which squad is selecting this student." }, 400);
+    return (await store.setStatus(id, status, squad as (typeof SQUADS)[number] | undefined))
       ? json({ ok: true })
       : json({ error: "No such student." }, 404);
   }
