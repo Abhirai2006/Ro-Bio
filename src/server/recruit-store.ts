@@ -25,11 +25,14 @@ type CandidateRow = {
   status: string;
   added_at: number;
   moved_from?: string | null;
+  also_with?: string | null;
+  placed_in?: string | null;
 };
 type SheetRow = {
   candidate_id: number;
   judge: string;
   squad: string;
+  panel?: string | null;
   marks: string;
   note: string;
   updated_at: number;
@@ -57,11 +60,14 @@ const toCandidate = (r: CandidateRow): Candidate => ({
   status: r.status as Status,
   addedAt: r.added_at,
   movedFrom: (r.moved_from ?? null) as Candidate["movedFrom"],
+  alsoWith: (r.also_with ?? null) as Candidate["alsoWith"],
+  placedIn: (r.placed_in ?? null) as Candidate["placedIn"],
 });
 const toSheet = (r: SheetRow): Sheet => ({
   candidateId: r.candidate_id,
   judge: r.judge,
   squad: r.squad as Sheet["squad"],
+  ...(r.panel ? { panel: r.panel as NonNullable<Sheet["panel"]> } : {}),
   marks: JSON.parse(r.marks) as number[],
   note: r.note,
   updatedAt: r.updated_at,
@@ -70,6 +76,9 @@ const toSheet = (r: SheetRow): Sheet => ({
 // One row per applicant. The USN may be empty (NULL): 1st semester students often have none yet.
 const APPLICANTS =
   "CREATE TABLE IF NOT EXISTS applicants (id INTEGER PRIMARY KEY AUTOINCREMENT, usn TEXT UNIQUE, name TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', branch TEXT NOT NULL, sem INTEGER NOT NULL, first TEXT NOT NULL, second TEXT, day TEXT, wildcard INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'undecided', added_at INTEGER NOT NULL)";
+// One row per judge, student and interview.
+const SHEETS =
+  "CREATE TABLE IF NOT EXISTS sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, panel TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge, panel))";
 const COLUMNS =
   "id, usn, name, email, phone, branch, sem, first, second, day, wildcard, status, added_at";
 
@@ -92,16 +101,39 @@ export class RecruitStore extends DurableObject {
         );
         sql.exec("DROP TABLE candidates");
       }
-      sql.exec(
-        "CREATE TABLE IF NOT EXISTS sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge))",
-      );
+      // A store made before interviews were tracked keeps its old table here; the upgrade below rebuilds it.
+      sql.exec(SHEETS);
       sql.exec("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
       sql.exec("CREATE TABLE IF NOT EXISTS failures (ip TEXT NOT NULL, at INTEGER NOT NULL)");
       // Added for moving students to their second choice. Stores made before it get the column here;
       // everyone already signed up keeps their row, with nothing moved.
-      const cols = sql.exec<{ name: string }>("PRAGMA table_info(applicants)").toArray();
-      if (!cols.some((c) => c.name === "moved_from"))
+      // Read from the table's own definition, which works the same here and in tests.
+      const defOf = (table: string) =>
+        sql
+          .exec<{ sql: string }>(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?",
+            table,
+          )
+          .toArray()[0]?.sql ?? "";
+      const has = (table: string, col: string) => new RegExp(`\\b${col}\\b`).test(defOf(table));
+      if (!has("applicants", "moved_from"))
         sql.exec("ALTER TABLE applicants ADD COLUMN moved_from TEXT");
+      // A second interview with their second choice, and the squad that selected them.
+      if (!has("applicants", "also_with"))
+        sql.exec("ALTER TABLE applicants ADD COLUMN also_with TEXT");
+      if (!has("applicants", "placed_in"))
+        sql.exec("ALTER TABLE applicants ADD COLUMN placed_in TEXT");
+      // Marks now say which squad's interview they are for, so one person can mark both of a student's
+      // interviews. Older marks are copied across under the squad that gave them (a teacher's under the
+      // student's first choice), then the old table goes.
+      if (!has("sheets", "panel")) {
+        sql.exec(SHEETS.replace("sheets (", "sheets_v2 ("));
+        sql.exec(
+          "INSERT OR IGNORE INTO sheets_v2 (candidate_id, judge, squad, panel, marks, note, updated_at) SELECT s.candidate_id, s.judge, s.squad, CASE WHEN s.squad = 'Teacher' THEN COALESCE(a.first, 'Projects') ELSE s.squad END, s.marks, s.note, s.updated_at FROM sheets s LEFT JOIN applicants a ON a.id = s.candidate_id",
+        );
+        sql.exec("DROP TABLE sheets");
+        sql.exec("ALTER TABLE sheets_v2 RENAME TO sheets");
+      }
       // Recent sign-ups by a scrambled code made from the address (never the address), to slow down spam.
       sql.exec("CREATE TABLE IF NOT EXISTS signups (who TEXT NOT NULL, at INTEGER NOT NULL)");
     });
@@ -242,8 +274,9 @@ export class RecruitStore extends DurableObject {
     if (!c) return null;
     const next = moveToSecond(c);
     if (!next) return "none";
+    // A move replaces a second interview: the student now has one squad again.
     this.ctx.storage.sql.exec(
-      "UPDATE applicants SET first = ?, second = ?, moved_from = ? WHERE id = ?",
+      "UPDATE applicants SET first = ?, second = ?, moved_from = ?, also_with = NULL WHERE id = ?",
       next.first,
       next.second,
       next.movedFrom,
@@ -256,7 +289,7 @@ export class RecruitStore extends DurableObject {
   edit(id: number, c: NewCandidate): Candidate | null {
     const n = this.ctx.storage.sql.exec(
       // Editing the first choice back to where a moved student started clears the "moved" mark.
-      "UPDATE applicants SET usn = ?, name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = ?, moved_from = CASE WHEN moved_from = ? THEN NULL ELSE moved_from END WHERE id = ?",
+      "UPDATE applicants SET usn = ?, name = ?, email = ?, phone = ?, branch = ?, sem = ?, first = ?, second = ?, day = ?, wildcard = ?, moved_from = CASE WHEN moved_from = ? THEN NULL ELSE moved_from END, also_with = CASE WHEN also_with = ? THEN also_with ELSE NULL END WHERE id = ?",
       c.usn || null,
       c.name,
       c.email,
@@ -268,6 +301,7 @@ export class RecruitStore extends DurableObject {
       c.day,
       c.wildcard ? 1 : 0,
       c.first,
+      c.second,
       id,
     ).rowsWritten;
     return n ? this.get(id) : null;
@@ -280,11 +314,39 @@ export class RecruitStore extends DurableObject {
     return sql.exec("DELETE FROM applicants WHERE id = ?", id).rowsWritten > 0;
   }
 
-  setStatus(id: number, status: Status): boolean {
+  /**
+   * Sets a student's result. For core or supporting, `squad` is the squad that picked them (their first
+   * choice, or the squad of their second interview); it is kept only when it is not their first choice.
+   */
+  setStatus(id: number, status: Status, squad?: Candidate["first"]): boolean {
+    const c = this.get(id);
+    if (!c) return false;
+    const placed =
+      (status === "core" || status === "supporting") && squad && squad !== c.first ? squad : null;
     return (
-      this.ctx.storage.sql.exec("UPDATE applicants SET status = ? WHERE id = ?", status, id)
-        .rowsWritten > 0
+      this.ctx.storage.sql.exec(
+        "UPDATE applicants SET status = ?, placed_in = ? WHERE id = ?",
+        status,
+        placed,
+        id,
+      ).rowsWritten > 0
     );
+  }
+
+  /**
+   * Gives a student a second interview with their second choice squad (on), or takes it away (off). Marks
+   * from that interview stay either way. Null when there is no such student; "none" when they gave no second choice.
+   */
+  setAlso(id: number, on: boolean): Candidate | null | "none" {
+    const c = this.get(id);
+    if (!c) return null;
+    if (on && !c.second) return "none";
+    this.ctx.storage.sql.exec(
+      "UPDATE applicants SET also_with = ? WHERE id = ?",
+      on ? c.second : null,
+      id,
+    );
+    return this.get(id);
   }
 
   sheets(): Sheet[] {
@@ -303,13 +365,14 @@ export class RecruitStore extends DurableObject {
   }
 
   /** Saves one judge's marks for one student, replacing that judge's earlier marks for them. */
-  saveSheet(s: Omit<Sheet, "updatedAt">): Sheet {
+  saveSheet(s: Omit<Sheet, "updatedAt"> & { panel: NonNullable<Sheet["panel"]> }): Sheet {
     const at = Date.now();
     this.ctx.storage.sql.exec(
-      "INSERT INTO sheets (candidate_id, judge, squad, marks, note, updated_at) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (candidate_id, judge) DO UPDATE SET judge = excluded.judge, squad = excluded.squad, marks = excluded.marks, note = excluded.note, updated_at = excluded.updated_at",
+      "INSERT INTO sheets (candidate_id, judge, squad, panel, marks, note, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT (candidate_id, judge, panel) DO UPDATE SET judge = excluded.judge, squad = excluded.squad, marks = excluded.marks, note = excluded.note, updated_at = excluded.updated_at",
       s.candidateId,
       s.judge,
       s.squad,
+      s.panel,
       JSON.stringify(s.marks),
       s.note,
       at,
