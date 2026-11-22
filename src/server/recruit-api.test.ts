@@ -510,3 +510,130 @@ describe("moving a student to their second choice", () => {
     expect(moved.data["candidate"]).toMatchObject({ first: "Design", movedFrom: "Events" });
   });
 });
+
+describe("a second interview", () => {
+  async function withBoth() {
+    const t = setup();
+    await t.call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("4MU24A020", "Technical", { second: "Design" })] },
+    });
+    const list = (await t.call("admin", "list")).data["candidates"] as unknown as { id: number }[];
+    const id = list[0]!.id;
+    const on = await t.call("admin", `also?id=${id}`, { method: "PUT", body: { on: true } });
+    return { ...t, id, on };
+  }
+  const markP = (
+    candidateId: number,
+    judge: string,
+    squad: string,
+    panel?: string,
+    m = [3, 3, 3, 3, 3],
+  ) => ({
+    method: "PUT",
+    body: { candidateId, judge, squad, ...(panel ? { panel } : {}), marks: m, note: "" },
+  });
+
+  it("puts the student on both squads' judge lists", async () => {
+    const { call, id, on } = await withBoth();
+    expect(on.data["candidate"]).toMatchObject({ first: "Technical", alsoWith: "Design" });
+    for (const sq of ["Technical", "Design"]) {
+      const r = await call("judge", `candidates?squad=${sq}&judge=X`);
+      expect(r.data["candidates"]).toMatchObject([{ id, alsoWith: "Design" }]);
+    }
+    const events = await call("judge", "candidates?squad=Events&judge=X");
+    expect(events.data["candidates"]).toEqual([]);
+  });
+
+  it("keeps each squad's marks to its own interview, and a teacher can mark both", async () => {
+    const { call, store, id } = await withBoth();
+    expect(
+      (await call("judge", "sheet", markP(id, "Brunda", "Technical", undefined, [5, 5, 5, 5, 5])))
+        .status,
+    ).toBe(200);
+    expect(
+      (await call("judge", "sheet", markP(id, "Viren", "Design", undefined, [2, 2, 2, 2, 2])))
+        .status,
+    ).toBe(200);
+    // A squad senior cannot file marks under the other squad's interview.
+    expect((await call("judge", "sheet", markP(id, "Viren", "Design", "Technical"))).status).toBe(
+      400,
+    );
+    expect(
+      (await call("judge", "sheet", markP(id, "Archana", "Teacher", "Technical", [4, 4, 4, 4, 4])))
+        .status,
+    ).toBe(200);
+    expect(
+      (await call("judge", "sheet", markP(id, "Archana", "Teacher", "Design", [4, 4, 4, 4, 4])))
+        .status,
+    ).toBe(200);
+    const sheets = store.sheets();
+    expect(sheets).toHaveLength(4);
+    expect(
+      sheets
+        .filter((s) => s.judge === "Archana")
+        .map((s) => s.panel)
+        .sort(),
+    ).toEqual(["Design", "Technical"]);
+  });
+
+  it("records the squad that picks the student, and a move replaces the second interview", async () => {
+    const { call, store, id } = await withBoth();
+    expect(
+      (
+        await call("admin", `status?id=${id}`, {
+          method: "PUT",
+          body: { status: "core", squad: "Design" },
+        })
+      ).status,
+    ).toBe(200);
+    expect(store.get(id)).toMatchObject({ status: "core", placedIn: "Design" });
+    await call("admin", `status?id=${id}`, {
+      method: "PUT",
+      body: { status: "core", squad: "Technical" },
+    });
+    expect(store.get(id)).toMatchObject({ placedIn: null });
+    await call("admin", `move?id=${id}`, { method: "PUT" });
+    expect(store.get(id)).toMatchObject({ first: "Design", alsoWith: null });
+  });
+
+  it("can be cancelled, and refuses a student with no second choice", async () => {
+    const { call, id } = await withBoth();
+    const off = await call("admin", `also?id=${id}`, { method: "PUT", body: { on: false } });
+    expect(off.data["candidate"]).toMatchObject({ alsoWith: null });
+    await call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("4MU24A021", "Events")] },
+    });
+    const list = (await call("admin", "list")).data["candidates"] as unknown as {
+      id: number;
+      usn: string;
+    }[];
+    const solo = list.find((c) => c.usn === "4MU24A021")!.id;
+    expect(
+      (await call("admin", `also?id=${solo}`, { method: "PUT", body: { on: true } })).status,
+    ).toBe(400);
+  });
+
+  it("upgrades a marks table made before interviews were tracked, keeping every mark", async () => {
+    const state = sqliteState();
+    const sql = state.storage.sql;
+    sql.exec(
+      "CREATE TABLE applicants (id INTEGER PRIMARY KEY AUTOINCREMENT, usn TEXT UNIQUE, name TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', branch TEXT NOT NULL, sem INTEGER NOT NULL, first TEXT NOT NULL, second TEXT, day TEXT, wildcard INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'undecided', added_at INTEGER NOT NULL, moved_from TEXT)",
+    );
+    sql.exec(
+      "CREATE TABLE sheets (candidate_id INTEGER NOT NULL, judge TEXT NOT NULL COLLATE NOCASE, squad TEXT NOT NULL, marks TEXT NOT NULL, note TEXT NOT NULL DEFAULT '', updated_at INTEGER NOT NULL, PRIMARY KEY (candidate_id, judge))",
+    );
+    sql.exec(
+      "INSERT INTO applicants (id, usn, name, branch, sem, first, second, day, added_at) VALUES (5, '4MU24A030', 'Kept', 'Computer Science & Design', 1, 'Events', 'Design', 'Mon 23 Nov', 1)",
+    );
+    sql.exec("INSERT INTO sheets VALUES (5, 'Kartik', 'Events', '[3,3,3,3,3]', 'good', 1)");
+    sql.exec("INSERT INTO sheets VALUES (5, 'Archana', 'Teacher', '[4,4,4,4,4]', '', 1)");
+    const { store } = setup({}, state);
+    expect(store.list()).toMatchObject([{ id: 5, alsoWith: null, placedIn: null }]);
+    expect(store.sheets().map((s) => [s.judge, s.panel])).toEqual([
+      ["Archana", "Events"],
+      ["Kartik", "Events"],
+    ]);
+  });
+});
