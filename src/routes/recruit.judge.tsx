@@ -5,6 +5,7 @@ import { todayInIndia } from "@/lib/site";
 import {
   CRITERIA,
   DAY_DATES,
+  SQUAD_SKILL_SCALE,
   DAYS,
   SQUAD_SKILL,
   SQUADS,
@@ -169,6 +170,16 @@ function Gate({ onIn }: { onIn: (l: Login) => void }) {
         </button>
       </form>
     </section>
+  );
+}
+
+/** Shown when the organisers moved a student here from their first choice squad. */
+function MovedTag({ s }: { s: Pick<JudgeView, "movedFrom"> }) {
+  if (!s.movedFrom) return null;
+  return (
+    <span className="mt-1 inline-block border-2 border-primary px-1.5 py-0.5 font-pixel text-[10px] text-primary">
+      2ND CHOICE, FROM {s.movedFrom.toUpperCase()}
+    </span>
   );
 }
 
@@ -338,6 +349,7 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
                         {s.sem}
                         {teacher ? `, ${s.first}` : ""}
                       </span>
+                      <MovedTag s={s} />
                     </span>
                     {mark && (
                       <span className="shrink-0 border-2 border-border bg-secondary px-2 py-1 font-pixel text-[10px]">
@@ -491,8 +503,9 @@ function MarkCard({
       <h2 className="text-xl font-black">{student.name}</h2>
       <p className="text-sm text-muted-foreground">
         <span className="font-mono">{student.usn || "no USN yet"}</span>, {student.branch}, sem{" "}
-        {student.sem}
+        {student.sem}, {student.first}
       </p>
+      <MovedTag s={student} />
       <div className="mt-4 grid gap-4">
         {CRITERIA.map((c, i) => {
           const key = `${student.id}-${c.key}`;
@@ -514,11 +527,11 @@ function MarkCard({
                   className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 border-l-4 border-primary bg-secondary p-2 text-sm"
                 >
                   <dt className="font-bold">1</dt>
-                  <dd>{c.low}</dd>
+                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[student.first].low : c.low}</dd>
                   <dt className="font-bold">3</dt>
-                  <dd>{c.mid}</dd>
+                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[student.first].mid : c.mid}</dd>
                   <dt className="font-bold">5</dt>
-                  <dd>{c.high}</dd>
+                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[student.first].high : c.high}</dd>
                 </dl>
               )}
               <div
