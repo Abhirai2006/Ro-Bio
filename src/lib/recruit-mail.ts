@@ -27,26 +27,30 @@ function signOff(): string {
 }
 
 /** The result email for one student, or null when they are still undecided or have no email. */
-export function resultMail(c: Pick<Candidate, "name" | "email" | "first" | "status">): Mail | null {
+export function resultMail(
+  c: Pick<Candidate, "name" | "email" | "first" | "status"> & { placedIn?: Candidate["placedIn"] },
+): Mail | null {
+  // The squad that picked them: their second interview's squad when that one chose them.
+  const squad = c.placedIn ?? c.first;
   if (!c.email || c.status === "undecided") return null;
   const hi = `Dear ${firstName(c.name)},`;
   const reply = `Please reply to this email within ${recruitment.replyWithinDays} days`;
-  const head = headOf(c.first);
+  const head = headOf(squad);
   let subject: string;
   let lines: string[];
   if (c.status === "core") {
-    subject = `Welcome to the ${site.name} ${c.first} squad`;
+    subject = `Welcome to the ${site.name} ${squad} squad`;
     lines = [
       hi,
       "",
-      `Congratulations! After the interviews, we are happy to tell you that you have been selected as a core member of ${site.name}, in the ${c.first} squad.`,
+      `Congratulations! After the interviews, we are happy to tell you that you have been selected as a core member of ${site.name}, in the ${squad} squad.`,
       "",
       "What happens next:",
       `1. ${reply} to confirm that you accept.`,
       "2. We will add you to the core team WhatsApp group and share the date of your first squad meeting there.",
       head
-        ? `3. ${head}, who heads the ${c.first} squad, will help you get started.`
-        : `3. The ${c.first} squad seniors will help you get started.`,
+        ? `3. ${head}, who heads the ${squad} squad, will help you get started.`
+        : `3. The ${squad} squad seniors will help you get started.`,
       "",
       `${site.name} is a club for ${site.openTo}, and we are glad to have you on the team.`,
     ];
@@ -55,7 +59,7 @@ export function resultMail(c: Pick<Candidate, "name" | "email" | "first" | "stat
     lines = [
       hi,
       "",
-      `Thank you for coming to the ${site.name} interviews. We would like to invite you to join the club as a supporting member of the ${c.first} squad.`,
+      `Thank you for coming to the ${site.name} interviews. We would like to invite you to join the club as a supporting member of the ${squad} squad.`,
       "",
       "Supporting members work alongside the core team at our events and sessions, learn by doing, and are the first people we look to when the core team grows.",
       "",
