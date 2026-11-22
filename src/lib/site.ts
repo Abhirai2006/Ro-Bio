@@ -376,8 +376,8 @@ export const recruitment: {
     },
   },
   venue: "the classroom opposite the MUSE auditorium",
-  closesAt: "2026-11-23T11:00:00+05:30",
-  closesLabel: "Mon 23 Nov, 11 am",
+  closesAt: "2026-11-23T12:00:00+05:30",
+  closesLabel: "Mon 23 Nov, 12 pm",
   mailFrom: "ro.bio.muse@gmail.com",
   replyWithinDays: 2,
   squads: {
