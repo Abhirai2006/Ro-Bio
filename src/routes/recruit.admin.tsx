@@ -620,6 +620,7 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
         A panel sees about 16 to 20 students in one hour. Above 20 on a day, split that squad into
         two panels or make groups of 5. "Could move in" counts students who picked that squad as
         their second choice: move some of them in from a full squad with Move in 5. Every student.
+        "2nd interviews" counts students who interview with that squad on top of their first choice.
       </p>
       <div className="mt-4 overflow-x-auto border-2 border-border">
         <table className="w-full min-w-[520px] text-sm">
@@ -634,6 +635,7 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
               <th className={th}>No day</th>
               <th className={th}>Total</th>
               <th className={th}>Could move in</th>
+              <th className={th}>2nd interviews</th>
             </tr>
           </thead>
           <tbody>
@@ -657,6 +659,9 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
                 </td>
                 <td className={`${td} tabular-nums`}>
                   {candidates.filter((c) => c.second === s && c.movedFrom !== s).length}
+                </td>
+                <td className={`${td} tabular-nums`}>
+                  {candidates.filter((c) => c.alsoWith === s).length}
                 </td>
               </tr>
             ))}
@@ -686,7 +691,8 @@ function Results({
   const setStatus = async (id: number, status: Status) => {
     setNote(null);
     try {
-      await call(`status?id=${id}`, { method: "PUT", body: JSON.stringify({ status }) });
+      // The squad whose table this is: a student with two interviews is placed in the squad that picks them.
+      await call(`status?id=${id}`, { method: "PUT", body: JSON.stringify({ status, squad }) });
       await onChange();
     } catch (err) {
       setNote({ kind: "err", text: (err as Error).message });
@@ -711,7 +717,7 @@ function Results({
             className={`${plain} ${s === squad ? "bg-primary text-primary-foreground" : ""}`}
             onClick={() => setSquad(s)}
           >
-            {s} ({results.filter((r) => r.candidate.first === s).length})
+            {s} ({results.filter((r) => r.panel === s).length})
           </button>
         ))}
       </div>
@@ -719,6 +725,9 @@ function Results({
       <p className="mt-3 text-sm text-muted-foreground">
         Sorted by average out of 100. Ties: squad skill, then commitment. Criteria columns are
         averages from 1 to 5: {CRITERIA.map((c) => `${c.title.charAt(0)} = ${c.title}`).join(", ")}.
+        A student with two interviews is listed in both squads, with a separate score from each.
+        They can take only one place: if both squads want them, ask the student, then the higher
+        score, then their first choice.
       </p>
       <div className="mt-3 overflow-x-auto border-2 border-border">
         <table className="w-full min-w-[960px] text-sm">
@@ -768,6 +777,16 @@ function Results({
                         MOVED FROM {c.movedFrom.toUpperCase()}
                       </span>
                     )}
+                    {r.panel !== c.first && c.alsoWith === r.panel && (
+                      <span className="block font-pixel text-[10px] text-primary">
+                        2ND INTERVIEW (1ST CHOICE {c.first.toUpperCase()})
+                      </span>
+                    )}
+                    {r.other && (
+                      <span className="block text-xs">
+                        Also in {r.other.panel}: <b>{r.other.average}</b>
+                      </span>
+                    )}
                   </td>
                   <td className={td}>{c.branch}</td>
                   <td className={td}>{c.sem}</td>
@@ -812,6 +831,12 @@ function Results({
                         2nd: {c.second}
                       </span>
                     )}
+                    {(c.status === "core" || c.status === "supporting") &&
+                      (c.placedIn ?? c.first) !== squad && (
+                        <span className="mt-1 block text-xs font-bold text-destructive">
+                          Picked by {c.placedIn ?? c.first}. Changing it here moves them to {squad}.
+                        </span>
+                      )}
                   </td>
                 </tr>
               );
@@ -839,7 +864,8 @@ function AllStudents({
   const [q, setQ] = useState("");
   const [sure, setSure] = useState<number | null>(null);
   const [note, setNote] = useState<Note>(null);
-  const judges = new Map(results.map((r) => [r.candidate.id, r.judges]));
+  const judges = new Map<number, number>();
+  for (const r of results) judges.set(r.candidate.id, (judges.get(r.candidate.id) ?? 0) + r.judges);
   const needle = q.trim().toLowerCase();
   const shown = candidates.filter(
     (c) => !needle || c.name.toLowerCase().includes(needle) || c.usn.toLowerCase().includes(needle),
@@ -852,6 +878,22 @@ function AllStudents({
       setNote({
         kind: "ok",
         text: `${c.name} is now with ${c.second}. Their judges see they came from ${c.first}.`,
+      });
+      await onChange();
+    } catch (err) {
+      setNote({ kind: "err", text: (err as Error).message });
+    }
+  };
+
+  const also = async (c: Candidate, on: boolean) => {
+    setNote(null);
+    try {
+      await call(`also?id=${c.id}`, { method: "PUT", body: JSON.stringify({ on }) });
+      setNote({
+        kind: "ok",
+        text: on
+          ? `${c.name} now also interviews with ${c.second}, after ${c.first}. Both squads see them, and each scores them separately.`
+          : `${c.name} no longer has a 2nd interview. Any marks from it stay in the results.`,
       });
       await onChange();
     } catch (err) {
@@ -915,16 +957,30 @@ function AllStudents({
                       moved from {c.movedFrom}
                     </span>
                   )}
+                  {c.alsoWith && (
+                    <span className="block text-xs font-bold text-primary">
+                      + 2nd interview: {c.alsoWith}
+                    </span>
+                  )}
                 </td>
                 <td className={td}>
                   {c.second ? (
-                    <button
-                      type="button"
-                      className={`${plain} whitespace-nowrap`}
-                      onClick={() => void move(c)}
-                    >
-                      {c.second === c.movedFrom ? "Move back to" : "Move to"} {c.second}
-                    </button>
+                    <span className="flex flex-col items-start gap-1">
+                      <button
+                        type="button"
+                        className={`${plain} whitespace-nowrap`}
+                        onClick={() => void move(c)}
+                      >
+                        {c.second === c.movedFrom ? "Move back to" : "Move to"} {c.second}
+                      </button>
+                      <button
+                        type="button"
+                        className={`${plain} whitespace-nowrap`}
+                        onClick={() => void also(c, !c.alsoWith)}
+                      >
+                        {c.alsoWith ? "Cancel 2nd interview" : `Also interview with ${c.second}`}
+                      </button>
+                    </span>
                   ) : (
                     <span className="text-muted-foreground">none</span>
                   )}
