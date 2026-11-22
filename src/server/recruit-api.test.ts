@@ -442,3 +442,71 @@ describe("the public /join sign-up", () => {
     expect((await apply(form({ email: "late@x.in" }), BEFORE, "3.3.3.3")).status).toBe(200);
   });
 });
+
+describe("moving a student to their second choice", () => {
+  it("sends them to the second squad's judges, keeps their marks, and can move them back", async () => {
+    const { call } = setup();
+    await call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("4MU24A009", "Events", { second: "Design" })] },
+    });
+    const list = (await call("admin", "list")).data["candidates"] as unknown as { id: number }[];
+    const id = list[0]!.id;
+    await call("judge", "sheet", marks(id, "Kartik", "Events"));
+
+    const moved = await call("admin", `move?id=${id}`, { method: "PUT" });
+    expect(moved.status).toBe(200);
+    expect(moved.data["candidate"]).toMatchObject({
+      first: "Design",
+      second: "Events",
+      movedFrom: "Events",
+    });
+
+    const design = await call("judge", "candidates?squad=Design&judge=Viren");
+    expect(design.data["candidates"]).toMatchObject([{ id, first: "Design", movedFrom: "Events" }]);
+    const events = await call("judge", "candidates?squad=Events&judge=Kartik");
+    expect(events.data["candidates"]).toEqual([]);
+    expect((await call("judge", "sheet", marks(id, "Viren", "Design"))).status).toBe(200);
+    const sheets = (await call("admin", "list")).data["sheets"] as unknown as unknown[];
+    expect(sheets).toHaveLength(2);
+
+    const back = await call("admin", `move?id=${id}`, { method: "PUT" });
+    expect(back.data["candidate"]).toMatchObject({
+      first: "Events",
+      second: "Design",
+      movedFrom: null,
+    });
+  });
+
+  it("refuses a student with no second choice, and a wrong passcode", async () => {
+    const { call } = setup();
+    await call("admin", "add", {
+      method: "POST",
+      body: { rows: [student("4MU24A010", "Events")] },
+    });
+    const list = (await call("admin", "list")).data["candidates"] as unknown as { id: number }[];
+    expect((await call("admin", `move?id=${list[0]!.id}`, { method: "PUT" })).status).toBe(400);
+    expect((await call("admin", "move?id=999", { method: "PUT" })).status).toBe(404);
+    expect(
+      (await call("admin", `move?id=${list[0]!.id}`, { method: "PUT", pass: "nope" })).status,
+    ).toBe(401);
+  });
+
+  it("adds the new column to a store made before it, keeping everyone already signed up", async () => {
+    const state = sqliteState();
+    state.storage.sql.exec(
+      "CREATE TABLE applicants (id INTEGER PRIMARY KEY AUTOINCREMENT, usn TEXT UNIQUE, name TEXT NOT NULL, email TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '', branch TEXT NOT NULL, sem INTEGER NOT NULL, first TEXT NOT NULL, second TEXT, day TEXT, wildcard INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'undecided', added_at INTEGER NOT NULL)",
+    );
+    state.storage.sql.exec(
+      "INSERT INTO applicants (usn, name, branch, sem, first, second, day, added_at) VALUES ('4MU24A011', 'Early Bird', 'Computer Science & Design', 1, 'Events', 'Design', 'Mon 23 Nov', 1)",
+    );
+    const { call } = setup({}, state);
+    const list = (await call("admin", "list")).data["candidates"] as unknown as {
+      id: number;
+      movedFrom: string | null;
+    }[];
+    expect(list).toMatchObject([{ usn: "4MU24A011", movedFrom: null }]);
+    const moved = await call("admin", `move?id=${list[0]!.id}`, { method: "PUT" });
+    expect(moved.data["candidate"]).toMatchObject({ first: "Design", movedFrom: "Events" });
+  });
+});
