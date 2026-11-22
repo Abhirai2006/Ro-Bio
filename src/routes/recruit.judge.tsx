@@ -13,6 +13,7 @@ import {
   weightedTotal,
   type JudgeSquad,
   type JudgeView,
+  type Squad,
   type Sheet,
 } from "@/lib/recruit";
 
@@ -173,15 +174,41 @@ function Gate({ onIn }: { onIn: (l: Login) => void }) {
   );
 }
 
-/** Shown when the organisers moved a student here from their first choice squad. */
-function MovedTag({ s }: { s: Pick<JudgeView, "movedFrom"> }) {
-  if (!s.movedFrom) return null;
+const tagClass =
+  "mt-1 mr-1 inline-block border-2 border-primary px-1.5 py-0.5 font-pixel text-[10px] text-primary";
+
+/**
+ * Shown when the organisers moved a student here from their first choice squad, or gave them a second
+ * interview. What it says depends on who is looking.
+ */
+function MovedTag({
+  s,
+  squad,
+}: {
+  s: Pick<JudgeView, "movedFrom" | "first" | "alsoWith">;
+  squad?: JudgeSquad;
+}) {
   return (
-    <span className="mt-1 inline-block border-2 border-primary px-1.5 py-0.5 font-pixel text-[10px] text-primary">
-      2ND CHOICE, FROM {s.movedFrom.toUpperCase()}
-    </span>
+    <>
+      {s.movedFrom && (
+        <span className={tagClass}>2ND CHOICE, FROM {s.movedFrom.toUpperCase()}</span>
+      )}
+      {s.alsoWith &&
+        (squad === s.alsoWith ? (
+          <span className={tagClass}>2ND INTERVIEW, 1ST CHOICE {s.first.toUpperCase()}</span>
+        ) : squad === s.first ? (
+          <span className={tagClass}>ALSO INTERVIEWING WITH {s.alsoWith.toUpperCase()}</span>
+        ) : (
+          <span className={tagClass}>
+            TWO INTERVIEWS: {s.first.toUpperCase()} + {s.alsoWith.toUpperCase()}
+          </span>
+        ))}
+    </>
   );
 }
+
+/** Which interview a saved sheet is for. Sheets from before interviews were tracked count for the first choice. */
+const sheetPanel = (sh: Sheet, st: Pick<JudgeView, "first">) => sh.panel ?? st.first;
 
 function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
   const [students, setStudents] = useState<JudgeView[]>([]);
@@ -222,11 +249,23 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
     void load();
   }, [load]);
 
-  const done = useMemo(() => new Map(mine.map((s) => [s.candidateId, s])), [mine]);
+  // This judge's latest sheet per student, for the tick in the list. A squad senior's only counts for their
+  // own squad's interview; a teacher's counts for either.
+  const done = useMemo(() => {
+    const byId = new Map(students.map((st) => [st.id, st]));
+    const m = new Map<number, Sheet>();
+    for (const sh of mine) {
+      const st = byId.get(sh.candidateId);
+      if (!st) continue;
+      if (!teacher && sheetPanel(sh, st) !== login.squad) continue;
+      m.set(sh.candidateId, sh);
+    }
+    return m;
+  }, [mine, students, teacher, login.squad]);
   const needle = q.trim().toLowerCase();
   const shown = students
     .filter((s) => !day || s.day === day || (day === "none" && !s.day))
-    .filter((s) => !squadFilter || s.first === squadFilter)
+    .filter((s) => !squadFilter || s.first === squadFilter || s.alsoWith === squadFilter)
     .filter(
       (s) =>
         !needle || s.name.toLowerCase().includes(needle) || s.usn.toLowerCase().includes(needle),
@@ -349,7 +388,7 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
                         {s.sem}
                         {teacher ? `, ${s.first}` : ""}
                       </span>
-                      <MovedTag s={s} />
+                      <MovedTag s={s} squad={login.squad} />
                     </span>
                     {mark && (
                       <span className="shrink-0 border-2 border-border bg-secondary px-2 py-1 font-pixel text-[10px]">
@@ -397,14 +436,23 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
           )}
           <div className="mt-4 grid gap-5 lg:grid-cols-2">
             {group.map((s) => (
-              <MarkCard
+              <MarkSlot
                 key={s.id}
                 student={s}
                 login={login}
-                saved={done.get(s.id) ?? null}
+                mine={mine}
                 locked={locked}
                 onSaved={(sheet) =>
-                  setMine((m) => [...m.filter((x) => x.candidateId !== sheet.candidateId), sheet])
+                  setMine((m) => [
+                    ...m.filter(
+                      (x) =>
+                        !(
+                          x.candidateId === sheet.candidateId &&
+                          sheetPanel(x, s) === sheetPanel(sheet, s)
+                        ),
+                    ),
+                    sheet,
+                  ])
                 }
               />
             ))}
@@ -428,21 +476,78 @@ function Judging({ login, onOut }: { login: Login; onOut: () => void }) {
   );
 }
 
+/**
+ * One student's marking card. A squad senior marks their own squad's interview. A teacher or office bearer
+ * marking a student with two interviews first picks which one.
+ */
+function MarkSlot({
+  student,
+  login,
+  mine,
+  locked,
+  onSaved,
+}: {
+  student: JudgeView;
+  login: Login;
+  mine: Sheet[];
+  locked: boolean;
+  onSaved: (s: Sheet) => void;
+}) {
+  const panels = student.alsoWith ? [student.first, student.alsoWith] : [student.first];
+  const [panel, setPanel] = useState<Squad>(
+    login.squad !== "Teacher" && panels.includes(login.squad) ? login.squad : student.first,
+  );
+  const saved =
+    mine.find((x) => x.candidateId === student.id && sheetPanel(x, student) === panel) ?? null;
+  return (
+    <div>
+      {login.squad === "Teacher" && panels.length > 1 && (
+        <div className="mb-2 flex flex-wrap items-center gap-2" role="group" aria-label="Interview">
+          <span className="text-sm font-bold">Marking the interview for:</span>
+          {panels.map((p) => (
+            <button
+              key={p}
+              type="button"
+              aria-pressed={panel === p}
+              className={`${plain} ${panel === p ? "bg-primary text-primary-foreground" : ""}`}
+              onClick={() => setPanel(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      )}
+      <MarkCard
+        key={panel}
+        student={student}
+        panel={panel}
+        login={login}
+        saved={saved}
+        locked={locked}
+        onSaved={onSaved}
+      />
+    </div>
+  );
+}
+
 function MarkCard({
   student,
+  panel,
   login,
   saved,
   locked,
   onSaved,
 }: {
   student: JudgeView;
+  panel: Squad;
   login: Login;
   saved: Sheet | null;
   locked: boolean;
   onSaved: (s: Sheet) => void;
 }) {
-  const draftFor = () =>
-    readJson<Record<string, Draft>>(DRAFT_KEY, {})[`${login.name}:${student.id}`];
+  // Drafts are kept per interview, so a teacher's marks for one do not leak into the other.
+  const draftKey = `${login.name}:${student.id}${panel === student.first ? "" : `:${panel}`}`;
+  const draftFor = () => readJson<Record<string, Draft>>(DRAFT_KEY, {})[draftKey];
   const [draft, setDraft] = useState<Draft>(
     () =>
       draftFor() ?? {
@@ -460,7 +565,7 @@ function MarkCard({
     setDraft(d);
     setStatus(null);
     const all = readJson<Record<string, Draft>>(DRAFT_KEY, {});
-    all[`${login.name}:${student.id}`] = d;
+    all[draftKey] = d;
     writeJson(DRAFT_KEY, all);
   };
   const complete = draft.marks.every((m) => m !== null);
@@ -476,12 +581,13 @@ function MarkCard({
           candidateId: student.id,
           judge: login.name,
           squad: login.squad,
+          panel,
           marks: draft.marks,
           note: draft.note,
         }),
       });
       const all = readJson<Record<string, Draft>>(DRAFT_KEY, {});
-      delete all[`${login.name}:${student.id}`];
+      delete all[draftKey];
       writeJson(DRAFT_KEY, all);
       onSaved(sheet);
       setStatus({ kind: "ok", text: `Saved: ${weightedTotal(sheet.marks)} out of 100.` });
@@ -503,9 +609,9 @@ function MarkCard({
       <h2 className="text-xl font-black">{student.name}</h2>
       <p className="text-sm text-muted-foreground">
         <span className="font-mono">{student.usn || "no USN yet"}</span>, {student.branch}, sem{" "}
-        {student.sem}, {student.first}
+        {student.sem}, {panel} interview
       </p>
-      <MovedTag s={student} />
+      <MovedTag s={student} squad={login.squad} />
       <div className="mt-4 grid gap-4">
         {CRITERIA.map((c, i) => {
           const key = `${student.id}-${c.key}`;
@@ -527,11 +633,11 @@ function MarkCard({
                   className="mt-1 grid grid-cols-[auto_1fr] gap-x-2 border-l-4 border-primary bg-secondary p-2 text-sm"
                 >
                   <dt className="font-bold">1</dt>
-                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[student.first].low : c.low}</dd>
+                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[panel].low : c.low}</dd>
                   <dt className="font-bold">3</dt>
-                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[student.first].mid : c.mid}</dd>
+                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[panel].mid : c.mid}</dd>
                   <dt className="font-bold">5</dt>
-                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[student.first].high : c.high}</dd>
+                  <dd>{c.key === "skill" ? SQUAD_SKILL_SCALE[panel].high : c.high}</dd>
                 </dl>
               )}
               <div
