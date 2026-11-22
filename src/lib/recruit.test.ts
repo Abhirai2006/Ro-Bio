@@ -13,6 +13,8 @@ import {
   validateCandidate,
   weightedTotal,
   validateApplication,
+  moveToSecond,
+  SQUAD_SKILL_SCALE,
   SEMS,
   semLabel,
   cleanMobile,
@@ -44,6 +46,7 @@ const cand = (
   wildcard: false,
   status: "undecided",
   addedAt: 0,
+  movedFrom: null,
   ...extra,
 });
 const sheet = (candidateId: number, judge: string, marks: number[], note = ""): Sheet => ({
@@ -374,5 +377,38 @@ describe("interview days", () => {
       expect(recruitment.schedule[d]?.arriveBy, d).toMatch(/^\d{1,2}(:\d\d)? (am|pm)$/);
     }
     expect(Object.keys(recruitment.schedule).sort()).toEqual([...DAYS].sort());
+  });
+});
+
+describe("moveToSecond", () => {
+  it("swaps the choices and remembers where the student started", () => {
+    expect(moveToSecond({ first: "Events", second: "Design", movedFrom: null })).toEqual({
+      first: "Design",
+      second: "Events",
+      movedFrom: "Events",
+    });
+  });
+  it("clears the mark when moved back", () => {
+    expect(moveToSecond({ first: "Design", second: "Events", movedFrom: "Events" })).toEqual({
+      first: "Events",
+      second: "Design",
+      movedFrom: null,
+    });
+  });
+  it("does nothing without a second choice", () => {
+    expect(moveToSecond({ first: "Events", second: null, movedFrom: null })).toBeNull();
+  });
+});
+
+describe("squad skill scale", () => {
+  it("gives every squad a 1, 3 and 5, with no dashes", () => {
+    for (const s of SQUADS) {
+      const x = SQUAD_SKILL_SCALE[s];
+      for (const t of [x.low, x.mid, x.high]) {
+        expect(t.length, s).toBeGreaterThan(10);
+        expect(t).not.toMatch(/[\u2013\u2014]/);
+      }
+    }
+    expect(SQUAD_SKILL_SCALE.Design.low).toMatch(/generative AI/);
   });
 });
