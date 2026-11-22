@@ -56,3 +56,17 @@ describe("result emails", () => {
     expect(url.searchParams.get("body")).toContain("Dear Asha,");
   });
 });
+
+describe("result emails after two interviews", () => {
+  it("names the squad that picked the student, not their first choice", () => {
+    const m = resultMail({
+      name: "Asha Rao",
+      email: "asha@x.in",
+      first: "Technical",
+      status: "core",
+      placedIn: "Design",
+    })!;
+    expect(m.subject).toBe("Welcome to the RO-BIO Design squad");
+    expect(m.body).toContain("in the Design squad");
+  });
+});
