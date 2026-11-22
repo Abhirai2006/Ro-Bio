@@ -111,6 +111,49 @@ export const SQUAD_SKILL: Record<Squad, string> = {
     "The design task: a clear idea, readable layout, fits the topic, and how well they explain it",
 };
 
+/**
+ * What a 1, 3 and 5 look like for squad skill in each squad, so every panel marks it the same way.
+ * The judge page shows these when a judge taps "Squad skill".
+ */
+export const SQUAD_SKILL_SCALE: Record<Squad, { low: string; mid: string; high: string }> = {
+  Projects: {
+    low: "No plan, or an idea far too big to start",
+    mid: "A sensible idea, but the steps or parts are vague",
+    high: "A small first version, clear steps and parts, and what could go wrong",
+  },
+  Events: {
+    low: "Freezes, or says someone else will sort it out",
+    mid: "Fixes the problem, but forgets the people or the timing",
+    high: "A calm plan with a backup, tells the right people, keeps to time",
+  },
+  Technical: {
+    low: "No attempt to reason it out",
+    mid: "A sensible guess, but checks things in a random order",
+    high: "Reasons step by step, checks the simple cause first, curious about why",
+  },
+  "Social Media and Outreach": {
+    low: "Generic, or nothing to say",
+    mid: "Clear but plain: it would not stop anyone scrolling",
+    high: "A hook in the first line, fits the audience, makes you want to come",
+  },
+  Design: {
+    low: "Unclear, hard to read, off topic, or made with generative AI",
+    mid: "Readable and on topic, but plain",
+    high: "A clear idea, strong layout and colour, and explains every choice",
+  },
+};
+
+/** Moving a student to their second choice: swaps the two choices and remembers where they started. */
+export function moveToSecond(
+  c: Pick<Candidate, "first" | "second" | "movedFrom">,
+): Pick<Candidate, "first" | "second" | "movedFrom"> | null {
+  if (!c.second) return null;
+  const first = c.second;
+  // Moving back to where they started clears the mark.
+  const movedFrom = c.movedFrom === first ? null : (c.movedFrom ?? c.first);
+  return { first, second: c.first, movedFrom };
+}
+
 export type Status = "undecided" | "core" | "supporting" | "not-selected";
 export const STATUSES: { value: Status; label: string }[] = [
   { value: "undecided", label: "Undecided" },
@@ -131,9 +174,18 @@ export type NewCandidate = {
   day: Day | null;
   wildcard: boolean;
 };
-export type Candidate = NewCandidate & { id: number; status: Status; addedAt: number };
+export type Candidate = NewCandidate & {
+  id: number;
+  status: Status;
+  addedAt: number;
+  /** The squad a student was first down for, when the organisers moved them to their second choice. */
+  movedFrom: Squad | null;
+};
 /** What a judge sees about a student: no email or phone number. */
-export type JudgeView = Pick<Candidate, "id" | "usn" | "name" | "branch" | "sem" | "first" | "day">;
+export type JudgeView = Pick<
+  Candidate,
+  "id" | "usn" | "name" | "branch" | "sem" | "first" | "second" | "day" | "movedFrom"
+>;
 export type JudgeSquad = Squad | "Teacher";
 export type Sheet = {
   candidateId: number;
@@ -407,7 +459,9 @@ export function toJudgeView(c: Candidate): JudgeView {
     branch: c.branch,
     sem: c.sem,
     first: c.first,
+    second: c.second,
     day: c.day,
+    movedFrom: c.movedFrom,
   };
 }
 
