@@ -491,7 +491,7 @@ function StudentForm({
       >
         <p className="mt-1 text-sm text-muted-foreground">
           {editing
-            ? "To move a student to their second choice squad, change their first choice here. Marks already given stay with them."
+            ? "To send a student to their second choice squad, use Move in 5. Every student instead: their new judges then see where they came from. Marks already given stay with them."
             : "For anyone who did not fill in the form. They are marked as a wildcard. A student with no USN yet needs an email or WhatsApp number instead."}
         </p>
         <form onSubmit={(e) => void save(e)} className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -618,7 +618,8 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
     <Window tag="3. NUMBERS" title="Students per squad and day">
       <p className="mt-1 text-sm text-muted-foreground">
         A panel sees about 16 to 20 students in one hour. Above 20 on a day, split that squad into
-        two panels or make groups of 5.
+        two panels or make groups of 5. "Could move in" counts students who picked that squad as
+        their second choice: move some of them in from a full squad with Move in 5. Every student.
       </p>
       <div className="mt-4 overflow-x-auto border-2 border-border">
         <table className="w-full min-w-[520px] text-sm">
@@ -632,6 +633,7 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
               ))}
               <th className={th}>No day</th>
               <th className={th}>Total</th>
+              <th className={th}>Could move in</th>
             </tr>
           </thead>
           <tbody>
@@ -652,6 +654,9 @@ function Counts({ candidates }: { candidates: Candidate[] }) {
                 <td className={`${td} tabular-nums`}>{count(s, null)}</td>
                 <td className={`${td} tabular-nums font-bold`}>
                   {candidates.filter((c) => c.first === s).length}
+                </td>
+                <td className={`${td} tabular-nums`}>
+                  {candidates.filter((c) => c.second === s && c.movedFrom !== s).length}
                 </td>
               </tr>
             ))}
@@ -758,6 +763,11 @@ function Results({
                     {c.wildcard && (
                       <span className="font-pixel text-[10px] text-primary">WILDCARD</span>
                     )}
+                    {c.movedFrom && (
+                      <span className="block font-pixel text-[10px] text-primary">
+                        MOVED FROM {c.movedFrom.toUpperCase()}
+                      </span>
+                    )}
                   </td>
                   <td className={td}>{c.branch}</td>
                   <td className={td}>{c.sem}</td>
@@ -835,6 +845,20 @@ function AllStudents({
     (c) => !needle || c.name.toLowerCase().includes(needle) || c.usn.toLowerCase().includes(needle),
   );
 
+  const move = async (c: Candidate) => {
+    setNote(null);
+    try {
+      await call(`move?id=${c.id}`, { method: "PUT" });
+      setNote({
+        kind: "ok",
+        text: `${c.name} is now with ${c.second}. Their judges see they came from ${c.first}.`,
+      });
+      await onChange();
+    } catch (err) {
+      setNote({ kind: "err", text: (err as Error).message });
+    }
+  };
+
   const remove = async (c: Candidate) => {
     setNote(null);
     try {
@@ -848,7 +872,7 @@ function AllStudents({
   };
 
   return (
-    <Window tag="5. EVERY STUDENT" title="Find, edit or remove a student">
+    <Window tag="5. EVERY STUDENT" title="Find, move, edit or remove a student">
       <label className="mt-3 block max-w-sm">
         <span className="font-bold">Search by name or USN</span>
         <input
@@ -863,7 +887,7 @@ function AllStudents({
         <table className="w-full min-w-[760px] text-sm">
           <thead>
             <tr>
-              {["Name", "USN", "Branch", "Sem", "First choice", "Day", "WhatsApp", "Marks", ""].map(
+              {["Name", "USN", "Branch", "Sem", "Squad", "2nd choice", "WhatsApp", "Marks", ""].map(
                 (h) => (
                   <th key={h} className={th}>
                     {h}
@@ -884,8 +908,27 @@ function AllStudents({
                 <td className={`${td} font-mono`}>{c.usn || NO_USN}</td>
                 <td className={td}>{c.branch}</td>
                 <td className={td}>{c.sem}</td>
-                <td className={td}>{c.first}</td>
-                <td className={td}>{c.day ?? "?"}</td>
+                <td className={td}>
+                  {c.first}
+                  {c.movedFrom && (
+                    <span className="block text-xs text-muted-foreground">
+                      moved from {c.movedFrom}
+                    </span>
+                  )}
+                </td>
+                <td className={td}>
+                  {c.second ? (
+                    <button
+                      type="button"
+                      className={`${plain} whitespace-nowrap`}
+                      onClick={() => void move(c)}
+                    >
+                      {c.second === c.movedFrom ? "Move back to" : "Move to"} {c.second}
+                    </button>
+                  ) : (
+                    <span className="text-muted-foreground">none</span>
+                  )}
+                </td>
                 <td className={`${td} font-mono`}>{c.phone}</td>
                 <td className={`${td} tabular-nums`}>{judges.get(c.id) ?? 0}</td>
                 <td className={`${td} whitespace-nowrap`}>
