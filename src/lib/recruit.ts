@@ -180,23 +180,37 @@ export type Candidate = NewCandidate & {
   addedAt: number;
   /** The squad a student was first down for, when the organisers moved them to their second choice. */
   movedFrom: Squad | null;
+  /** A second interview, with their second choice squad, on top of their first choice. */
+  alsoWith: Squad | null;
+  /** The squad that selected them as core or supporting, when it is not their first choice. */
+  placedIn: Squad | null;
 };
 /** What a judge sees about a student: no email or phone number. */
 export type JudgeView = Pick<
   Candidate,
-  "id" | "usn" | "name" | "branch" | "sem" | "first" | "second" | "day" | "movedFrom"
+  "id" | "usn" | "name" | "branch" | "sem" | "first" | "second" | "day" | "movedFrom" | "alsoWith"
 >;
 export type JudgeSquad = Squad | "Teacher";
 export type Sheet = {
   candidateId: number;
   judge: string;
+  /** The judge's own squad, or "Teacher" for the faculty coordinator and office bearers. */
   squad: JudgeSquad;
+  /**
+   * Which squad's interview these marks are for. A student with two interviews has marks for each.
+   * Marks saved before this existed have none: they count for the student's first choice.
+   */
+  panel?: Squad;
   marks: number[];
   note: string;
   updatedAt: number;
 };
 export type Result = {
   candidate: Candidate;
+  /** The squad whose interview this result is for. A student with two interviews has two results. */
+  panel: Squad;
+  /** The student's other interview, with its average, when they had two. */
+  other: { panel: Squad; average: number } | null;
   judges: number;
   average: number;
   byCriterion: Record<CriterionKey, number>;
@@ -435,9 +449,17 @@ export function parseSheet(
           .trim()
           .slice(0, MAX_NOTE)
       : "";
+  const panel = isSquad(b["panel"]) ? b["panel"] : undefined;
   return {
     ok: true,
-    sheet: { candidateId, judge, squad: b["squad"], marks: marks as number[], note },
+    sheet: {
+      candidateId,
+      judge,
+      squad: b["squad"],
+      ...(panel ? { panel } : {}),
+      marks: marks as number[],
+      note,
+    },
   };
 }
 
@@ -446,9 +468,34 @@ export function weightedTotal(marks: number[]): number {
   return CRITERIA.reduce((sum, c, i) => sum + (marks[i] ?? 0) * c.weight, 0);
 }
 
-/** Squad seniors judge only students whose first choice is their squad. Teachers judge everyone. */
-export function canJudge(squad: JudgeSquad, c: Pick<Candidate, "first">): boolean {
-  return squad === "Teacher" || c.first === squad;
+/** The squads that interview a student: their first choice, and their second choice if they also have that interview. */
+export function panelsOf(c: { first: Squad; alsoWith?: Squad | null }): Squad[] {
+  return c.alsoWith && c.alsoWith !== c.first ? [c.first, c.alsoWith] : [c.first];
+}
+
+/** Squad seniors judge students their squad interviews. Teachers and office bearers judge everyone. */
+export function canJudge(squad: JudgeSquad, c: { first: Squad; alsoWith?: Squad | null }): boolean {
+  return squad === "Teacher" || panelsOf(c).includes(squad);
+}
+
+/**
+ * Which interview a judge's marks belong to. Squad seniors mark their own squad's interview. Teachers and
+ * office bearers say which one when the student has two; otherwise it is the first choice.
+ * Null when the judge may not mark that interview.
+ */
+export function panelFor(
+  squad: JudgeSquad,
+  c: { first: Squad; alsoWith?: Squad | null },
+  asked?: unknown,
+): Squad | null {
+  const panels = panelsOf(c);
+  if (squad !== "Teacher") {
+    // A squad senior marks their own squad's interview, and nothing else.
+    const named = asked === undefined || asked === null || asked === "" || asked === squad;
+    return named && panels.includes(squad) ? squad : null;
+  }
+  if (asked === undefined || asked === null || asked === "") return c.first;
+  return isSquad(asked) && panels.includes(asked) ? asked : null;
 }
 
 export function toJudgeView(c: Candidate): JudgeView {
@@ -462,37 +509,70 @@ export function toJudgeView(c: Candidate): JudgeView {
     second: c.second,
     day: c.day,
     movedFrom: c.movedFrom,
+    alsoWith: c.alsoWith,
   };
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 /** Each student's average over all their judges, with a per-criterion average and the notes. */
+/**
+ * Each student's average for each interview they had, with a per-criterion average and the notes. Marks only
+ * count for the squad whose interview they are from, so two interviews give two separate results.
+ */
 export function summarize(candidates: Candidate[], sheets: Sheet[]): Result[] {
-  const by = new Map<number, Sheet[]>();
-  for (const s of sheets) by.set(s.candidateId, [...(by.get(s.candidateId) ?? []), s]);
-  return candidates.map((candidate) => {
-    const list = by.get(candidate.id) ?? [];
-    const mean = (f: (s: Sheet) => number) =>
-      list.length ? round1(list.reduce((a, s) => a + f(s), 0) / list.length) : 0;
-    const byCriterion = Object.fromEntries(
-      CRITERIA.map((c, i) => [c.key, mean((s) => s.marks[i] ?? 0)]),
-    ) as Record<CriterionKey, number>;
-    return {
-      candidate,
-      judges: list.length,
-      average: mean((s) => weightedTotal(s.marks)),
-      byCriterion,
-      notes: list.filter((s) => s.note).map((s) => ({ judge: s.judge, note: s.note })),
-      fewJudges: list.length < 2,
-    };
+  const firstOf = new Map(candidates.map((c) => [c.id, c.first]));
+  const key = (id: number, panel: Squad) => `${id}:${panel}`;
+  const by = new Map<string, Sheet[]>();
+  for (const s of sheets) {
+    const panel = s.panel ?? firstOf.get(s.candidateId);
+    if (!panel) continue;
+    const k = key(s.candidateId, panel);
+    by.set(k, [...(by.get(k) ?? []), s]);
+  }
+  const results = candidates.flatMap((candidate) => {
+    // Every squad that interviews them, plus any squad that marked them before they were moved.
+    const panels = [...panelsOf(candidate)];
+    for (const sq of SQUADS)
+      if (!panels.includes(sq) && by.has(key(candidate.id, sq))) panels.push(sq);
+    return panels.map((panel): Result => {
+      const list = by.get(key(candidate.id, panel)) ?? [];
+      const mean = (f: (s: Sheet) => number) =>
+        list.length ? round1(list.reduce((a, s) => a + f(s), 0) / list.length) : 0;
+      const byCriterion = Object.fromEntries(
+        CRITERIA.map((c, i) => [c.key, mean((s) => s.marks[i] ?? 0)]),
+      ) as Record<CriterionKey, number>;
+      return {
+        candidate,
+        panel,
+        other: null,
+        judges: list.length,
+        average: mean((s) => weightedTotal(s.marks)),
+        byCriterion,
+        notes: list.filter((s) => s.note).map((s) => ({ judge: s.judge, note: s.note })),
+        fewJudges: list.length < 2,
+      };
+    });
   });
+  // Point each of a student's two interviews at the other one.
+  for (const r of results) {
+    if (!r.candidate.alsoWith) continue;
+    const o = results.find(
+      (x) =>
+        x.candidate.id === r.candidate.id &&
+        x.panel !== r.panel &&
+        panelsOf(r.candidate).includes(x.panel),
+    );
+    if (o && panelsOf(r.candidate).includes(r.panel))
+      r.other = { panel: o.panel, average: o.average };
+  }
+  return results;
 }
 
-/** A squad's students, best first. Ties: squad skill, then commitment, then name. */
+/** A squad's interviews, best first. Ties: squad skill, then commitment, then name. */
 export function rankSquad(results: Result[], squad: Squad): Result[] {
   return results
-    .filter((r) => r.candidate.first === squad)
+    .filter((r) => r.panel === squad)
     .sort(
       (a, b) =>
         b.average - a.average ||
@@ -517,9 +597,20 @@ function csvCell(v: string | number): string {
 export function resultsCsv(results: Result[]): string {
   const label = (s: Status) => STATUSES.find((x) => x.value === s)?.label ?? s;
   const lines = [
-    ["Squad", "Rank", "Name", "USN", "Branch", "Sem", "Average", "Judges", "Status", "Notes"].join(
-      ",",
-    ),
+    [
+      "Squad",
+      "Rank",
+      "Name",
+      "USN",
+      "Branch",
+      "Sem",
+      "Average",
+      "Judges",
+      "Other interview",
+      "Status",
+      "Placed in",
+      "Notes",
+    ].join(","),
   ];
   for (const squad of SQUADS)
     rankSquad(results, squad).forEach((r, i) => {
@@ -534,7 +625,9 @@ export function resultsCsv(results: Result[]): string {
           c.sem,
           r.average,
           r.judges,
+          r.other ? `${r.other.panel}: ${r.other.average}` : "",
           label(c.status),
+          c.status === "core" || c.status === "supporting" ? (c.placedIn ?? c.first) : "",
           r.notes.map((n) => `${n.judge}: ${n.note}`).join("; "),
         ]
           .map(csvCell)
