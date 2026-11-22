@@ -13,6 +13,9 @@ import {
   validateCandidate,
   weightedTotal,
   validateApplication,
+  panelsOf,
+  panelFor,
+  type Squad,
   moveToSecond,
   SQUAD_SKILL_SCALE,
   SEMS,
@@ -47,6 +50,8 @@ const cand = (
   status: "undecided",
   addedAt: 0,
   movedFrom: null,
+  alsoWith: null,
+  placedIn: null,
   ...extra,
 });
 const sheet = (candidateId: number, judge: string, marks: number[], note = ""): Sheet => ({
@@ -294,7 +299,9 @@ describe("coreCount and resultsCsv", () => {
   it("quotes notes that contain commas", () => {
     const results = summarize([cand(1, "Events")], [sheet(1, "A", [5, 5, 5, 5, 5], "calm, clear")]);
     const text = resultsCsv(results);
-    expect(text.split("\n")[0]).toBe("Squad,Rank,Name,USN,Branch,Sem,Average,Judges,Status,Notes");
+    expect(text.split("\n")[0]).toBe(
+      "Squad,Rank,Name,USN,Branch,Sem,Average,Judges,Other interview,Status,Placed in,Notes",
+    );
     expect(text).toContain('"A: calm, clear"');
   });
 });
@@ -410,5 +417,71 @@ describe("squad skill scale", () => {
       }
     }
     expect(SQUAD_SKILL_SCALE.Design.low).toMatch(/generative AI/);
+  });
+});
+
+describe("second interviews", () => {
+  const both = (id: number) => cand(id, "Technical", { second: "Design", alsoWith: "Design" });
+  const sh = (id: number, judge: string, panel: Squad | undefined, marks: number[]): Sheet => ({
+    candidateId: id,
+    judge,
+    squad: panel ?? "Teacher",
+    ...(panel ? { panel } : {}),
+    marks,
+    note: "",
+    updatedAt: 0,
+  });
+
+  it("lists the squads that interview a student", () => {
+    expect(panelsOf(cand(1, "Events"))).toEqual(["Events"]);
+    expect(panelsOf(both(1))).toEqual(["Technical", "Design"]);
+  });
+
+  it("lets each squad's seniors judge only their own squad's interview", () => {
+    expect(canJudge("Design", both(1))).toBe(true);
+    expect(canJudge("Technical", both(1))).toBe(true);
+    expect(canJudge("Events", both(1))).toBe(false);
+    expect(panelFor("Design", both(1))).toBe("Design");
+    expect(panelFor("Events", both(1))).toBeNull();
+    expect(panelFor("Teacher", both(1))).toBe("Technical");
+    expect(panelFor("Teacher", both(1), "Design")).toBe("Design");
+    expect(panelFor("Teacher", both(1), "Events")).toBeNull();
+  });
+
+  it("scores each interview separately and points each at the other", () => {
+    const results = summarize(
+      [both(1)],
+      [
+        sh(1, "T1", "Technical", [5, 5, 5, 5, 5]),
+        sh(1, "T2", "Technical", [5, 5, 5, 5, 5]),
+        sh(1, "D1", "Design", [3, 3, 3, 3, 3]),
+      ],
+    );
+    const tech = rankSquad(results, "Technical")[0]!;
+    const design = rankSquad(results, "Design")[0]!;
+    expect(tech).toMatchObject({ panel: "Technical", average: 100, judges: 2 });
+    expect(design).toMatchObject({ panel: "Design", average: 60, judges: 1, fewJudges: true });
+    expect(tech.other).toEqual({ panel: "Design", average: 60 });
+    expect(design.other).toEqual({ panel: "Technical", average: 100 });
+  });
+
+  it("counts marks saved before interviews were tracked for the first choice", () => {
+    const [r] = summarize([cand(1, "Events")], [sh(1, "Old", undefined, [4, 4, 4, 4, 4])]);
+    expect(r).toMatchObject({ panel: "Events", average: 80, other: null });
+  });
+
+  it("keeps a moved student's marks from their old squad in that squad's list", () => {
+    const moved = cand(1, "Design", { second: "Events", movedFrom: "Events" });
+    const results = summarize([moved], [sh(1, "E", "Events", [3, 3, 3, 3, 3])]);
+    expect(rankSquad(results, "Design")).toHaveLength(1);
+    expect(rankSquad(results, "Events")[0]).toMatchObject({ average: 60 });
+  });
+
+  it("puts the other interview and the squad that picked them in the results file", () => {
+    const c = { ...both(1), status: "core" as const, placedIn: "Design" as const };
+    const csv = resultsCsv(summarize([c], [sh(1, "D", "Design", [4, 4, 4, 4, 4])]));
+    expect(csv.split("\n")[0]).toContain("Other interview");
+    expect(csv).toContain("Design: 80");
+    expect(csv).toMatch(/Core,Design/);
   });
 });
