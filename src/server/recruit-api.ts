@@ -249,6 +249,15 @@ export async function handleRecruitApi(
     return json({ error: "Use PUT or DELETE." }, 405);
   }
 
+  if (action === "move" && method === "PUT") {
+    if (!Number.isInteger(id) || id < 1) return json({ error: "Say which student." }, 400);
+    const moved = await store.move(id);
+    if (moved === null) return json({ error: "No such student." }, 404);
+    if (moved === "none")
+      return json({ error: "This student gave no second choice. Use Edit to pick a squad." }, 400);
+    return json({ candidate: moved });
+  }
+
   if (action === "status" && method === "PUT") {
     if (!Number.isInteger(id) || id < 1) return json({ error: "Say which student." }, 400);
     const status = (await readBody(request))?.["status"];
