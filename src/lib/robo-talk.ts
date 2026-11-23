@@ -6,6 +6,7 @@ import {
   coreTeam,
   coreTeamSize,
   currentSem,
+  ordinal,
   events,
   faculty,
   formatDate,
@@ -309,7 +310,7 @@ export function narration(key: string): string[] {
 
 /** What Robo says when someone points at a member card. */
 export function memberThought(m: Member, squadTitle?: string): string {
-  const who = `${m.name}, ${currentSem(m.sem)}th sem ${m.dept}.`;
+  const who = `${m.name}, ${ordinal(currentSem(m.sem))} sem ${m.dept}.`;
   // a squad role (like Lead Video Editor) belongs to the squad; an office bearer's role to the club
   if (m.role && squadTitle) return `${who} The ${squadTitle} ${m.role}. ${dutyOf(m.role)}`.trim();
   if (m.role) return `${who} Our ${m.role}. ${dutyOf(m.role)}`.trim();
