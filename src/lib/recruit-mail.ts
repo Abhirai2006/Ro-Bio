@@ -90,3 +90,63 @@ export function gmailLink(m: Mail): string {
   });
   return `https://mail.google.com/mail/?${q.toString()}`;
 }
+
+/**
+ * The squad a student's result is about: for core and supporting, the squad that picked them (which can be
+ * their second interview's squad); otherwise their first choice.
+ */
+export function resultSquad(c: Pick<Candidate, "first" | "status" | "placedIn">): string {
+  return c.status === "core" || c.status === "supporting" ? (c.placedIn ?? c.first) : c.first;
+}
+
+/** The columns of the mail list the admin page downloads. The Apps Script finds them by these headings. */
+export const MAIL_LIST_HEADINGS = [
+  "Name",
+  "Email",
+  "WhatsApp",
+  "Squad",
+  "Result",
+  "Role",
+  "First choice",
+  "Subject",
+  "Message",
+  "Sent",
+] as const;
+
+const RESULT_LABEL: Record<Status, string> = {
+  core: "Core",
+  supporting: "Supporting",
+  "not-selected": "Not selected",
+  undecided: "Undecided",
+};
+const ORDER: Status[] = ["core", "supporting", "not-selected", "undecided"];
+
+/**
+ * Every student as one row of the mail list: selected students first, then supporting, not selected and
+ * undecided, each by squad and name. Role, Subject, Message and Sent start empty: the Apps Script in the
+ * Google Sheet writes the emails and fills Sent.
+ */
+export function mailListRows(
+  candidates: Pick<Candidate, "name" | "email" | "phone" | "first" | "status" | "placedIn">[],
+): string[][] {
+  const rows = [...candidates]
+    .sort(
+      (a, b) =>
+        ORDER.indexOf(a.status) - ORDER.indexOf(b.status) ||
+        resultSquad(a).localeCompare(resultSquad(b)) ||
+        a.name.localeCompare(b.name),
+    )
+    .map((c) => [
+      c.name,
+      c.email,
+      c.phone,
+      resultSquad(c),
+      RESULT_LABEL[c.status],
+      "",
+      c.first,
+      "",
+      "",
+      "",
+    ]);
+  return [[...MAIL_LIST_HEADINGS], ...rows];
+}
