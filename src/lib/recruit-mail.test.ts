@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { gmailLink, resultMail } from "./recruit-mail";
+import {
+  gmailLink,
+  MAIL_LIST_HEADINGS,
+  mailListRows,
+  resultMail,
+  resultSquad,
+} from "./recruit-mail";
 import { recruitment, site } from "./site";
 
 const student = (
@@ -68,5 +74,43 @@ describe("result emails after two interviews", () => {
     })!;
     expect(m.subject).toBe("Welcome to the RO-BIO Design squad");
     expect(m.body).toContain("in the Design squad");
+  });
+});
+
+describe("mail list", () => {
+  const s = (
+    name: string,
+    status: "core" | "supporting" | "not-selected" | "undecided",
+    first: "Design" | "Projects" | "Events",
+    placedIn: "Projects" | null = null,
+  ) => ({
+    name,
+    email: `${name.toLowerCase()}@x.in`,
+    phone: "9000000001",
+    first,
+    status,
+    placedIn,
+  });
+
+  it("names the squad that picked a student, not their first choice", () => {
+    expect(resultSquad(s("Ellen", "core", "Design", "Projects"))).toBe("Projects");
+    expect(resultSquad(s("Ravi", "not-selected", "Design", "Projects"))).toBe("Design");
+  });
+
+  it("lists everyone under the headings the Apps Script reads, selected first", () => {
+    const rows = mailListRows([
+      s("Zed", "not-selected", "Events"),
+      s("Undy", "undecided", "Events"),
+      s("Ellen", "core", "Design", "Projects"),
+      s("Sam", "supporting", "Design"),
+    ]);
+    expect(rows[0]).toEqual([...MAIL_LIST_HEADINGS]);
+    expect(rows.slice(1).map((r) => [r[0], r[3], r[4], r[6]])).toEqual([
+      ["Ellen", "Projects", "Core", "Design"],
+      ["Sam", "Design", "Supporting", "Design"],
+      ["Zed", "Events", "Not selected", "Events"],
+      ["Undy", "Events", "Undecided", "Events"],
+    ]);
+    for (const r of rows) expect(r).toHaveLength(MAIL_LIST_HEADINGS.length);
   });
 });
