@@ -157,6 +157,10 @@ export type Squad = {
   about?: string;
 };
 
+/** "1st", "2nd", "3rd", "4th" ... for a semester number. */
+export const ordinal = (n: number) =>
+  `${n}${n % 100 >= 11 && n % 100 <= 13 ? "th" : (["th", "st", "nd", "rd"][n % 10] ?? "th")}`;
+
 /** Everyone has moved up one semester since the announcement. */
 export function currentSem(announcedSem: number) {
   return announcedSem + 1;
