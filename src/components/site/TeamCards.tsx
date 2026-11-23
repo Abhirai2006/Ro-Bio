@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { currentSem, teamLinkedIn, teamPhotos, type Member } from "@/lib/site";
+import { currentSem, ordinal, teamLinkedIn, teamPhotos, type Member } from "@/lib/site";
 import { memberThought } from "@/lib/robo-talk";
 import "./team-cards.css";
 
@@ -80,7 +80,7 @@ export function MemberCard({
       <div className="flex flex-1 flex-col p-3">
         <h3 className="font-display text-lg font-bold leading-tight">{member.name}</h3>
         <p className="mt-1 font-mono text-sm text-muted-foreground">
-          {currentSem(member.sem)}th sem {member.dept}
+          {ordinal(currentSem(member.sem))} sem {member.dept}
         </p>
         {link && (
           <button
