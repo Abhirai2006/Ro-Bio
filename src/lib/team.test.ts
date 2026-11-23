@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coreTeam, coreTeamSize, currentSem } from "./site";
+import { coreTeam, coreTeamSize, currentSem, ordinal } from "./site";
 
 describe("core team", () => {
   it("moves everyone up one semester", () => {
@@ -29,5 +29,22 @@ describe("core team", () => {
   });
   it("Thushar K L is president", () => {
     expect(coreTeam[0]!.members[0]!).toMatchObject({ name: "Thushar K L", role: "President" });
+  });
+});
+
+describe("ordinal", () => {
+  it("says 1st, 2nd, 3rd and 4th, not 1th", () => {
+    expect([1, 2, 3, 4, 5, 7, 11, 12, 13, 21].map(ordinal)).toEqual([
+      "1st",
+      "2nd",
+      "3rd",
+      "4th",
+      "5th",
+      "7th",
+      "11th",
+      "12th",
+      "13th",
+      "21st",
+    ]);
   });
 });
