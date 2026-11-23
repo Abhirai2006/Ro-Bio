@@ -23,7 +23,8 @@ import {
   type Status,
 } from "@/lib/recruit";
 import { Window } from "@/components/site/parts";
-import { gmailLink, MAILED, resultMail } from "@/lib/recruit-mail";
+import { gmailLink, MAILED, mailListRows, resultMail, resultSquad } from "@/lib/recruit-mail";
+import { xlsxFile } from "@/lib/xlsx";
 import { recruitment } from "@/lib/site";
 
 export const Route = createFileRoute("/recruit/admin")({
@@ -1097,13 +1098,45 @@ function Emails({ candidates }: { candidates: Candidate[] }) {
       return next;
     });
   const undecided = candidates.filter((c) => c.status === "undecided").length;
+  const downloadMailList = () => {
+    const file = xlsxFile(
+      mailListRows(candidates),
+      "Mail list",
+      [24, 30, 14, 26, 13, 30, 26, 40, 60, 20],
+    );
+    const blob = new Blob([file], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "robio-mail-list.xlsx";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
   return (
     <Window tag="6. EMAIL RESULTS" title="Send each student their result">
       <p className="mt-1 text-sm text-muted-foreground">
         Sign in to Gmail as {recruitment.mailFrom} first. Each button opens a ready draft: read it,
         then press Send. Tick marks stay on this device only.{" "}
-        {undecided > 0 && <b>{undecided} students are still undecided and get no email yet.</b>}
+        {undecided > 0 && (
+          <b>
+            {undecided === 1 ? "1 student is" : `${undecided} students are`} still undecided and get
+            no email yet.
+          </b>
+        )}
       </p>
+      <div className="mt-3 border-2 border-border bg-secondary p-3">
+        <p className="font-bold">Or send them all from a Google Sheet</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Download every student as an Excel file: name, email, WhatsApp, the squad their result is
+          for, and the result. Upload it to Google Sheets, then the club's Apps Script writes and
+          sends each email from {recruitment.mailFrom}. The file holds students' contact details:
+          keep it private and delete it after the emails are sent.
+        </p>
+        <button type="button" className={`${plain} mt-2`} onClick={downloadMailList}>
+          Download mail list (.xlsx)
+        </button>
+      </div>
       {MAILED.map((status) => {
         const list = candidates.filter((c) => c.status === status);
         if (!list.length) return null;
@@ -1120,7 +1153,8 @@ function Emails({ candidates }: { candidates: Candidate[] }) {
                     <span>
                       <b>{c.name}</b>{" "}
                       <span className="text-sm text-muted-foreground">
-                        {c.first}, {c.email || "no email"}
+                        {resultSquad(c)}, {c.email || "no email"}
+                        {resultSquad(c) !== c.first && ` (1st choice ${c.first})`}
                       </span>
                     </span>
                     {mail ? (
