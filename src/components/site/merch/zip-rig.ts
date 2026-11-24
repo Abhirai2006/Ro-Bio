@@ -1,4 +1,4 @@
-// The working zip on the zip hoodie. The model's front is cut down the zip line, and each front panel swings open
+// The working zip on the club jacket. The model's front is cut down the zip line, and each front panel swings open
 // as the slider comes down. The opening is driven by a row of damped springs, one per band of height, pulled
 // towards where the zip lets the cloth go and tied to the bands above and below, so the fabric lags, sways and
 // settles like cloth on a hanger instead of moving like a door.
@@ -118,7 +118,23 @@ export type ZipRig = {
   dispose: () => void;
 };
 
-export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRig | null {
+/** Where the zip runs on a model, in metres from the hem, and how the cloth above its top behaves. */
+export type ZipFit = {
+  /** The top of the zip: the collar or the hood meets here when the zip is closed. */
+  top: number;
+  bottom: number;
+  /**
+   * How far the cloth above the top (a hood rim, an open collar) relaxes outward while the zip is closed, 0 to 1.
+   * A hood sewn to the zip tops drifts a little; a collar cut open in the model stays as it was made.
+   */
+  restAbove?: number;
+};
+
+export function createZipRig(
+  root: THREE.Object3D,
+  metal: THREE.Material,
+  fit: ZipFit,
+): ZipRig | null {
   let found: THREE.Mesh | null = null;
   const zips: THREE.Mesh[] = [];
   const cords: THREE.Mesh[] = [];
@@ -135,8 +151,9 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
 
   // --- the body, baked to world space and cut open down the front
   const geo = bake(body.geometry, body.matrixWorld);
-  const TOP = 0.745,
-    BOTTOM = 0.025;
+  const TOP = fit.top,
+    BOTTOM = fit.bottom;
+  const restAbove = fit.restAbove ?? 0.4;
   // through the zip and on up through the front of the hood, which is sewn to the zip tops
   if (cut(geo, TOP + 0.1) < 10) return null;
   body.geometry = geo;
@@ -211,7 +228,8 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
   /** How far the zip lets the cloth at height y open, for slider position z. */
   const opening = (y: number, z: number) => {
     const ys = TOP - (TOP - BOTTOM) * z;
-    const free = Math.min(1, Math.max(0, (y - ys) / 0.2)) ** 0.85 * (0.4 + 0.6 * z);
+    const free =
+      Math.min(1, Math.max(0, (y - ys) / 0.2)) ** 0.85 * (restAbove + (1 - restAbove) * z);
     const released = smooth(0.94, 1, z);
     return free + (1 - free) * released;
   };
@@ -287,9 +305,11 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
     }
   };
 
-  // the drawcords hang from each side of the hood opening, so each one swings out with its own panel
+  // the trims on the front (the zip tape ends and the snaps) move with the panel they sit on
   const cordParts = cords.map((m) => {
     const g = bake(m.geometry, m.matrixWorld);
+    // a part that runs across the zip line (the tape ends at the collar) is split too, or it would stretch open
+    cut(g, TOP + 0.1);
     m.geometry = g;
     root.attach(m);
     m.position.set(0, 0, 0);
@@ -353,8 +373,27 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
     (a, m) => (!a || height(m) > height(a) ? m : a),
     null,
   );
-  if (strip) strip.visible = false;
-  const riders = zips.filter((m) => m !== strip);
+  // a model with only a slider has no strip to hide
+  if (strip && zips.length > 1) strip.visible = false;
+  const riders = zips.length > 1 ? zips.filter((m) => m !== strip) : [...zips];
+  // a model with no slider of its own gets one: a small block and its pull tab, at the top of the zip
+  const made: THREE.BufferGeometry[] = [];
+  if (!riders.length) {
+    const z0 = lineZ(TOP);
+    const block = new THREE.BoxGeometry(0.014, 0.024, 0.007);
+    const tab = new THREE.BoxGeometry(0.009, 0.026, 0.0028);
+    made.push(block, tab);
+    const slider = new THREE.Mesh(block, metal);
+    slider.position.set(0, TOP - 0.012, z0 + 0.005);
+    const pull = new THREE.Mesh(tab, metal);
+    pull.position.set(0, TOP - 0.03, z0 + 0.008);
+    for (const m of [slider, pull]) {
+      m.castShadow = true;
+      m.name = "zip-slider";
+      root.add(m);
+      riders.push(m);
+    }
+  }
   const riderRest = riders.map((m) => {
     const bb = new THREE.Box3().setFromObject(m);
     return { m, base: m.position.clone(), y: (bb.min.y + bb.max.y) / 2 };
@@ -441,6 +480,7 @@ export function createZipRig(root: THREE.Object3D, metal: THREE.Material): ZipRi
     },
     dispose: () => {
       toothGeo.dispose();
+      made.forEach((g) => g.dispose());
       sides.forEach((s) => s.mesh.dispose());
     },
   };
