@@ -8,7 +8,6 @@ import {
   isKind,
   isStyle,
   pieceLikes,
-  printBase,
   swatch,
 } from "@/lib/merch";
 import { merch } from "@/lib/site";
@@ -34,18 +33,21 @@ describe("merch page", () => {
   it("knows the pieces and colours", () => {
     expect(isKind("jacket")).toBe(true);
     expect(isKind("socks")).toBe(false);
-    expect(isColour("lilac")).toBe(true);
-    expect(isColour("duo")).toBe(true);
-    expect(isColour("red")).toBe(false);
+    expect(isKind("hoodie")).toBe(false);
+    expect(isColour("grey")).toBe(true);
+    expect(isColour("lilac")).toBe(false);
   });
 
-  it("matches the design team's lilac and has a two-tone with white below", () => {
-    expect(merch.colours.find((c) => c.id === "lilac")?.hex).toBe("#b997ff");
-    expect(swatch("duo")).toContain("#f1f0ec");
-    expect(swatch("black")).toBe("#1a191f");
-    // the chest and sleeve prints sit on the lilac top of the two-tone
-    expect(printBase("duo")).toBe("lilac");
-    expect(printBase("white")).toBe("white");
+  it("comes in the producer's grey only, with its size chart", () => {
+    expect(merch.colours.map((c) => c.id)).toEqual(["grey"]);
+    expect(swatch("grey")).toBe("#a3a5a7");
+    expect(merch.sizes.map((s) => [s.size, s.width])).toEqual([
+      ["S", 20],
+      ["M", 21],
+      ["L", 22],
+      ["XL", 23],
+      ["XXL", 24],
+    ]);
   });
 
   it("offers the three number styles the club picked and the design team's pixel style", () => {
@@ -58,18 +60,16 @@ describe("merch page", () => {
   it("adds a piece's likes across colours", () => {
     expect(
       pieceLikes(
-        { counts: { "jacket:black": 2, "jacket:lilac": 3, "tee:black": 9 }, mine: [] },
+        { counts: { "jacket:grey": 2, "jacket:lilac": 3, "tee:black": 9 }, mine: [] },
         "jacket",
       ),
-    ).toBe(5);
+    ).toBe(2);
   });
 
-  it("has every price the club set, zip jacket and hoodie first", () => {
-    expect(merch.products.map((p) => [p.kind, p.price])).toEqual([
-      ["jacket", 580],
-      ["hoodie", 550],
-      ["tee", 300],
-      ["polo", 380],
+  it("is the one club jacket at the price the club set", () => {
+    expect(merch.products.map((p) => [p.kind, p.name, p.price])).toEqual([
+      ["jacket", "Club Jacket", 570],
     ]);
+    expect(merch.draft).toBe(false);
   });
 });
