@@ -221,7 +221,6 @@ export function MerchStudio() {
       </div>
 
       <PrintMap />
-      <Credits />
     </section>
   );
 }
@@ -364,39 +363,6 @@ function PrintMap() {
           </figure>
         ))}
       </div>
-    </div>
-  );
-}
-
-function Credits() {
-  return (
-    <div className="mt-12 border-t-2 border-dashed border-border pt-4 text-xs text-muted-foreground">
-      <p>
-        3D jacket, a free model from Sketchfab under{" "}
-        <a
-          href="https://creativecommons.org/licenses/by/4.0/"
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-2"
-        >
-          CC BY 4.0
-        </a>
-        , recoloured, with its arms lowered and its files made smaller:{" "}
-        {merch.models.map((m, i) => (
-          <span key={m.kind}>
-            <a
-              href={m.url}
-              target="_blank"
-              rel="noreferrer"
-              className="underline underline-offset-2"
-            >
-              {m.title}
-            </a>{" "}
-            by {m.author}
-            {i < merch.models.length - 1 ? "; " : "."}
-          </span>
-        ))}
-      </p>
     </div>
   );
 }
