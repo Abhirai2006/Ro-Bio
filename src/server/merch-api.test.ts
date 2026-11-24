@@ -81,11 +81,11 @@ describe("merch likes", () => {
       await t.call("like", {
         method: "POST",
         cookie,
-        body: { kind: "jacket", colour: "black", liked: true },
+        body: { kind: "jacket", colour: "grey", liked: true },
       });
     const r = await t.call("tally", { cookie });
-    expect(r.data.counts["jacket:black"]).toBe(1);
-    expect(r.data.mine).toEqual(["jacket:black"]);
+    expect(r.data.counts["jacket:grey"]).toBe(1);
+    expect(r.data.mine).toEqual(["jacket:grey"]);
     expect(r.cookie).toBeNull();
   });
 
@@ -95,14 +95,14 @@ describe("merch likes", () => {
     await t.call("like", {
       method: "POST",
       cookie,
-      body: { kind: "hoodie", colour: "lilac", liked: true },
+      body: { kind: "jacket", colour: "grey", liked: true },
     });
     const r = await t.call("like", {
       method: "POST",
       cookie,
-      body: { kind: "hoodie", colour: "lilac", liked: false },
+      body: { kind: "jacket", colour: "grey", liked: false },
     });
-    expect(r.data.counts["hoodie:lilac"]).toBeUndefined();
+    expect(r.data.counts["jacket:grey"]).toBeUndefined();
   });
 
   it("adds up likes from different browsers", async () => {
@@ -112,16 +112,16 @@ describe("merch likes", () => {
       await t.call("like", {
         method: "POST",
         cookie,
-        body: { kind: "tee", colour: "white", liked: true },
+        body: { kind: "jacket", colour: "grey", liked: true },
       });
     }
-    expect((await t.call("tally")).data.counts["tee:white"]).toBe(3);
+    expect((await t.call("tally")).data.counts["jacket:grey"]).toBe(3);
   });
 
   it("refuses likes without the cookie, from other sites, or for things that do not exist", async () => {
     const t = setup();
     const cookie = await browser(t);
-    const body = { kind: "jacket", colour: "black", liked: true };
+    const body = { kind: "jacket", colour: "grey", liked: true };
     expect((await t.call("like", { method: "POST", body })).status).toBe(400);
     expect(
       (await t.call("like", { method: "POST", cookie, body, origin: "https://evil.test" })).status,
@@ -135,16 +135,16 @@ describe("merch likes", () => {
     ).toBe(400);
   });
 
-  it("takes likes for the two-tone and votes for the pixel number, but not a style as a colour", async () => {
+  it("takes likes for the grey jacket and votes for the pixel number, but not a style as a colour", async () => {
     const t = setup();
     const cookie = await browser(t);
     const like = (kind: string, colour: string) =>
       t.call("like", { method: "POST", cookie, body: { kind, colour, liked: true } });
-    expect((await like("jacket", "duo")).status).toBe(200);
+    expect((await like("jacket", "grey")).status).toBe(200);
     expect((await like("number", "pixel")).status).toBe(200);
-    expect((await like("tee", "pixel")).status).toBe(400);
+    expect((await like("jacket", "pixel")).status).toBe(400);
     const r = await t.call("tally", { cookie });
-    expect(r.data.counts["jacket:duo"]).toBe(1);
+    expect(r.data.counts["jacket:grey"]).toBe(1);
     expect(r.data.counts["number:pixel"]).toBe(1);
   });
 
@@ -188,7 +188,7 @@ describe("merch likes", () => {
         await t.call("like", {
           method: "POST",
           cookie,
-          body: { kind: "polo", colour: "black", liked: i % 2 === 0 },
+          body: { kind: "jacket", colour: "grey", liked: i % 2 === 0 },
         })
       ).status;
     expect(last).toBe(429);
@@ -201,7 +201,7 @@ describe("merch feedback", () => {
     const cookie = await browser(t);
     const note = {
       kind: "jacket",
-      colour: "lilac",
+      colour: "grey",
       name: "Asha",
       text: "Make the logo\u0000 smaller",
     };
@@ -227,12 +227,12 @@ describe("merch feedback", () => {
     await t.call("note", {
       method: "POST",
       cookie,
-      body: { kind: "tee", colour: "black", text: "Nice" },
+      body: { kind: "jacket", colour: "grey", text: "Nice" },
     });
     await t.call("like", {
       method: "POST",
       cookie,
-      body: { kind: "tee", colour: "black", liked: true },
+      body: { kind: "jacket", colour: "grey", liked: true },
     });
     const id = (await t.call("admin/list", { pass: ADMIN })).data.notes[0]!.id;
     expect((await t.call(`admin/note?id=${id}`, { method: "DELETE", pass: ADMIN })).status).toBe(
