@@ -174,8 +174,9 @@ sizes live in `merch` in `src/lib/site.ts`.
   `src/components/site/merch/garment-scene.ts`.
 - **College crest:** it comes as a peel-off sticker, so the page shows it on the right sleeve and calls it a sticker.
 - **Zip:** drag it open on the model or with the slider under it (`src/components/site/merch/zip-rig.ts`).
-- **Model:** the free Sketchfab "AGC Project Bomber Jacket" by TaySlays93 under CC BY 4.0, credited at the foot of
-  the page. It was recoloured, given lowered arms and made smaller. It lives in `public/merch/models/jacket/`.
+- **Model:** the free Sketchfab "AGC Project Bomber Jacket" by TaySlays93 under CC BY 4.0, credited under Credits
+  on the Terms page (the licence needs that credit, so keep it). It was recoloured, given lowered arms, had its snap
+  buttons taken off and was made smaller. It lives in `public/merch/models/jacket/`.
 - **Home page:** the "Wear the club" section shows a picture of the jacket (`src/components/site/MerchTeaser.tsx`).
 - **Voting has ended:** the page no longer offers likes or notes and sets no cookie. The likes and notes from the
   draft stay at `/merch/admin` (passcode: the `MERCH_ADMIN_PASSCODE` secret in Cloudflare) until you delete them
@@ -208,7 +209,7 @@ sizes live in `merch` in `src/lib/site.ts`.
 | [TanStack Start](https://tanstack.com/start) and [React 19](https://react.dev) | Pages, routing and server rendering |
 | [Tailwind CSS 4](https://tailwindcss.com) | Styling, colours and the blueprint look |
 | [three.js](https://threejs.org) | The 3D robot arm and the 3D club jacket, loaded after the page |
-| [Sketchfab](https://sketchfab.com) models (CC BY 4.0) | The club jacket on the merch page, recoloured and credited on the page |
+| [Sketchfab](https://sketchfab.com) models (CC BY 4.0) | The club jacket on the merch page, recoloured and credited on the Terms page |
 | [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/) | The recruitment sign-ups, the old merch likes and notes, and the passcode pages for judges and admins |
 | Hand-written physics | Robo Sumo and the sample bench, with no physics engine |
 | [Cloudflare Workers](https://workers.cloudflare.com) | Hosting, with a fresh deploy on every push to `main` |
