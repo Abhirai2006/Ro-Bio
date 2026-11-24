@@ -80,7 +80,7 @@ Everything here was built by students: the 3D robot arm, the Robo Sumo physics, 
 | Open Robo's menu and pick **X-ray** | His skeleton and heart show through, next to the biology inside |
 | Tap the heartbeat in the header | It speeds up while you play |
 | Visit a page that does not exist, like `/tem` | Robo guesses you meant `/team` and the flatline comes back to life |
-| Open `/merch` (shared with members) and drag the zip on the zip hoodie | The club kit in 3D: the front parts, sways and settles like cloth, and your name and number print on it |
+| Open `/merch` and drag the zip on the club jacket | The jacket in 3D: the fronts part, sway and settle like cloth |
 
 <br />
 
@@ -161,51 +161,34 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 <br />
 
-## The merch studio (members only, for now)
+## The club jacket
 
-<img src="docs/screenshots/merch.jpg" alt="The merch studio: a black zip hoodie in 3D with the Mono robot and a name on the chest, beside the piece, colour, like and name pickers" width="100%" />
+<img src="docs/screenshots/merch.jpg" alt="The merch page: the grey club jacket in 3D with the stars and Mono on the chest, beside its price, colour, details and sizes" width="100%" />
 
-`/merch` shows the draft club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, in black, white,
-lilac and a lilac and white two-tone, with the artwork from our design team.
-Members can turn each piece, try their own name and number, like a piece in a colour and send a short note.
-While `merch.draft` is `true` in `src/lib/site.ts` the page is not in the menu, the sitemap or search engines:
-share the link in the club group.
+`/merch` shows the club jacket in 3D: a grey bomber with a full zip, for Rs 570, with the artwork from our design
+team. Visitors can turn it, zoom in, look at each side and drag the zip open. The name, price, colour, details and
+sizes live in `merch` in `src/lib/site.ts`.
 
-- **Likes:** one per browser for each piece and colour, kept in a Cloudflare Durable Object (`MERCH_STORE`).
-  A random id in an HttpOnly cookie stops a reload from liking twice. There are no accounts, so a different
-  browser or a private window can like again.
-- **Artwork:** the design team's files live in `public/merch/art/`: the "Define the Future" back poster (a clear
-  backed version for black and white, and the lilac version with its background cut out for lilac and the
-  two-tone), their robot Mono for the chest (the light version, a blue robot on a white disc, on every colour)
-  and their two stars, which sit behind the name. The front name is drawn in pixel letters in
-  `src/components/site/merch/art.ts`: on the hoodies it sits on the right chest, on the tee and polo under Mono.
-  On white fabric the stars are tinted light blue so they show.
-- **Sleeve number styles:** members pick Armour, Ink slash, Kanji or Pixel (`NUMBER_STYLES` in `src/lib/merch.ts`,
-  drawn in `src/components/site/merch/art.ts`) and can vote for their favourite. The votes show on the admin page.
-- **Two-tone:** a colour with a `lower` shade in `merch.colours` is split at the waist; the height for each piece is
-  `split` in `PRINT` in `src/components/site/merch/garment-scene.ts`.
-- **Zip:** the zip hoodie's zip can be dragged open on the model or with the slider under it
-  (`src/components/site/merch/zip-rig.ts`).
-- **Notes:** only the core team reads them, at `/merch/admin`. Add the passcode once in the Cloudflare dashboard:
-  Workers, ro-bio, Settings, Variables and Secrets, add a secret named `MERCH_ADMIN_PASSCODE`.
-- **Models:** free Sketchfab models under CC BY 4.0, credited at the foot of the page. They were recoloured,
-  cleaned of brand marks, given lowered arms and made smaller. They live in `public/merch/models/`.
-- **When the merch is decided:** delete all likes and notes from `/merch/admin`.
-- **Going public is one switch:** set `draft: false` in `merch` in `src/lib/site.ts`. The home page then shows a
-  "Wear the club" section with a short loop of the zip hoodie (`src/components/site/MerchTeaser.tsx`), Merch joins
-  the menu, the footer and the sitemap, search engines may list the page, and `/merch` becomes a showcase: the
-  likes, style votes and notes are hidden and no cookie is set.
+- **Artwork:** the design team's final files live in `public/merch/art/`: the "Define the Future" poster on the
+  back, their robot Mono on the left chest and their stars on the right chest. Where each print sits is `PRINT` in
+  `src/components/site/merch/garment-scene.ts`.
+- **College crest:** it comes as a peel-off sticker, so the page shows it on the right sleeve and calls it a sticker.
+- **Zip:** drag it open on the model or with the slider under it (`src/components/site/merch/zip-rig.ts`).
+- **Model:** the free Sketchfab "AGC Project Bomber Jacket" by TaySlays93 under CC BY 4.0, credited at the foot of
+  the page. It was recoloured, given lowered arms and made smaller. It lives in `public/merch/models/jacket/`.
+- **Home page:** the "Wear the club" section shows a picture of the jacket (`src/components/site/MerchTeaser.tsx`).
+- **Voting has ended:** the page no longer offers likes or notes and sets no cookie. The likes and notes from the
+  draft stay at `/merch/admin` (passcode: the `MERCH_ADMIN_PASSCODE` secret in Cloudflare) until you delete them
+  there.
+- **Back to a members' draft:** set `draft: true` in `merch` in `src/lib/site.ts` to take the page out of the menu,
+  the sitemap and search engines.
 
 <table>
   <tr>
-    <td align="center" width="50%"><img src="docs/screenshots/merch-zip.jpg" alt="The zip hoodie zipped up, half open and fully open" /><br /><sub><b>A working zip</b>: drag it down and the fronts part, sway and settle</sub></td>
-    <td align="center" width="50%"><img src="docs/screenshots/merch-numbers.jpg" alt="The sleeve number in the Armour, Ink slash, Kanji and Pixel styles" /><br /><sub><b>Four sleeve number styles</b> members choose and vote for</sub></td>
+    <td align="center" width="62%"><img src="docs/screenshots/merch-zip.jpg" alt="The club jacket zipped up, half open and fully open" /><br /><sub><b>A working zip</b>: drag it down and the fronts part, sway and settle</sub></td>
+    <td align="center" width="38%"><img src="docs/screenshots/merch-back.jpg" alt="The back of the grey club jacket with the Define the Future poster" /><br /><sub><b>The back print</b>: the design team's "Define the Future" poster</sub></td>
   </tr>
 </table>
-
-<img src="docs/screenshots/merch-back.jpg" alt="The back of the two-tone zip hoodie with the Define the Future poster" width="50%" />
-
-<sub>The back print: the design team's "Define the Future" poster, here on the lilac and white two-tone.</sub>
 
 <br />
 
@@ -213,7 +196,7 @@ share the link in the club group.
 
 - **20 May 2026:** RO-BIO starts at Mysore University School of Engineering.
 - **Most Saturdays:** engineers from companies like L&T come to campus and teach practical skills.
-- **The website:** the 3D pick-and-place arm, Robo, the Robo Sumo game, the team page, the Bot Forge page and the 3D merch studio for members.
+- **The website:** the 3D pick-and-place arm, Robo, the Robo Sumo game, the team page, the Bot Forge page and the 3D club jacket.
 - **Events:** Robo Spark, an interactive group discussion for first years on 3 November 2026, and Bot Forge, on a date that is coming soon.
 
 <br />
@@ -224,9 +207,9 @@ share the link in the club group.
 | --- | --- |
 | [TanStack Start](https://tanstack.com/start) and [React 19](https://react.dev) | Pages, routing and server rendering |
 | [Tailwind CSS 4](https://tailwindcss.com) | Styling, colours and the blueprint look |
-| [three.js](https://threejs.org) | The 3D robot arm and the 3D merch studio, loaded after the page |
-| [Sketchfab](https://sketchfab.com) models (CC BY 4.0) | The four garments in the merch studio, recoloured and cleaned of brand marks, credited on the page |
-| [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/) | The merch likes and notes, and the passcode pages for judges and admins |
+| [three.js](https://threejs.org) | The 3D robot arm and the 3D club jacket, loaded after the page |
+| [Sketchfab](https://sketchfab.com) models (CC BY 4.0) | The club jacket on the merch page, recoloured and credited on the page |
+| [Cloudflare Durable Objects](https://developers.cloudflare.com/durable-objects/) | The recruitment sign-ups, the old merch likes and notes, and the passcode pages for judges and admins |
 | Hand-written physics | Robo Sumo and the sample bench, with no physics engine |
 | [Cloudflare Workers](https://workers.cloudflare.com) | Hosting, with a fresh deploy on every push to `main` |
 | [Vitest](https://vitest.dev) | The unit tests |
@@ -249,7 +232,7 @@ Club members do not need to touch the code to update the site. Every fact lives 
 | Core team | `coreTeam`. Each person is `m("Name", sem, "DEPT")` |
 | Semester on the team cards | `currentSem` adds one to the announced semester. Update it when the semester changes |
 | What we work on | `focusAreas` |
-| Merch prices, colours, the draft note and the 3D model credits | `merch` |
+| The club jacket's name, price, colour, sizes and the 3D model credit | `merch` |
 | Vision and mission | `vision` and `mission` |
 | Venue map | `mapUrl` and `mapEmbed` |
 | Live web address | `url`, once a custom domain is connected |
@@ -292,7 +275,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 ## Privacy and security
 
-- **No accounts, no analytics, no tracking scripts.** The only cookie is a random id on the members' merch page, so each browser likes a design once. It is HttpOnly and only sent to the merch likes service. The [Privacy Policy](https://ro-bio.hub-muse.workers.dev/privacy) lists it and the few settings kept in your own browser.
+- **No accounts, no analytics, no tracking scripts, and no cookies of our own.** The [Privacy Policy](https://ro-bio.hub-muse.workers.dev/privacy) lists the few settings kept in your own browser.
 - **Two outside services.** Fonts load from Google Fonts, and the venue map on the Contact and Bot Forge pages is a Google Maps embed. The Privacy Policy explains both.
 - Every page is sent with a strict Content Security Policy and security headers ([`src/server.ts`](src/server.ts)). Clickjacking, MIME sniffing, and camera, microphone and location access are blocked.
 - The merch API only accepts likes and notes sent from the site's own pages, checks every field, and slows down floods from one network. Admin pages need a passcode kept as a Cloudflare secret, never in this repository.
@@ -312,7 +295,6 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 - Bot Forge date and registration, once the club confirms them
 - Real photos for the gallery and team cards
 - Write-ups of the projects members are building
-- The designer's final artwork on the merch, then the merch page opened to everyone
 - The full list is in [roadmap.md](roadmap.md)
 
 <br />
