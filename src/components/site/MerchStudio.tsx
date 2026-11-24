@@ -1,49 +1,18 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { Heart } from "lucide-react";
-import { merch, type MerchKind } from "@/lib/site";
-import {
-  AUTHOR_MAX,
-  NAME_MAX,
-  NOTE_MAX,
-  cleanName,
-  cleanNumber,
-  colour,
-  likeKey,
-  merchApi,
-  NUMBER_STYLES,
-  styleKey,
-  type NumberStyle,
-  pieceLikes,
-  printBase,
-  product,
-  rupees,
-  swatch,
-  type ColourId,
-  type Pick,
-  type Tally,
-} from "@/lib/merch";
+import { useEffect, useRef, useState } from "react";
+import { merch } from "@/lib/site";
+import { colour, product, rupees, swatch, type Pick } from "@/lib/merch";
 import type { MerchScene, View } from "@/components/site/merch/garment-scene";
 import {
-  CHEST_NAME,
   CREST_SRC,
   MONO_ASPECT,
-  POSTER_ASPECT,
+  MONO_SRC,
+  POSTER_SRC,
+  STARS_ASPECT,
   STARS_SRC,
-  drawChestName,
-  drawNumber,
-  fontsReady,
-  loadImage,
-  monoSrc,
-  posterSrc,
 } from "@/components/site/merch/art";
 
-/** The studio backdrop behind each colour: light enough for black, deep enough for white. */
-const STAGE: Record<ColourId, string> = {
-  black: "radial-gradient(120% 90% at 50% 38%, #f4f2f7 0%, #dedbe6 55%, #c6c2d2 100%)",
-  white: "radial-gradient(120% 90% at 50% 38%, #cfcdd8 0%, #b3b0c1 55%, #9895a9 100%)",
-  lilac: "radial-gradient(120% 90% at 50% 38%, #f6f4fa 0%, #e2deec 55%, #c9c4d8 100%)",
-  duo: "radial-gradient(120% 90% at 50% 38%, #dedbe6 0%, #c9c5d6 55%, #aeaabf 100%)",
-};
+/** The studio backdrop: light enough that the grey cloth and its indigo prints both read. */
+const STAGE = "radial-gradient(120% 90% at 50% 38%, #f4f2f7 0%, #dedbe6 55%, #c6c2d2 100%)";
 
 const VIEWS: { id: View; label: string }[] = [
   { id: "front", label: "Front" },
@@ -52,103 +21,17 @@ const VIEWS: { id: View; label: string }[] = [
   { id: "left", label: "Left arm" },
 ];
 
-const LIKED_KEY = "robio-merch-liked";
-const readLiked = (): string[] => {
-  try {
-    return JSON.parse(localStorage.getItem(LIKED_KEY) ?? "[]") as string[];
-  } catch {
-    return [];
-  }
-};
-const saveLiked = (v: string[]) => {
-  try {
-    localStorage.setItem(LIKED_KEY, JSON.stringify(v));
-  } catch {
-    /* storage blocked: the server still remembers this browser through its cookie */
-  }
-};
-
-function Step({ n, title, children }: { n: string; title: string; children: ReactNode }) {
-  return (
-    <fieldset className="border-t-2 border-border pt-4 first:border-t-0 first:pt-0">
-      <legend className="flex items-baseline gap-2">
-        <span className="font-pixel text-[10px] text-primary">{n}</span>
-        <span className="font-display text-sm font-bold uppercase tracking-wider">{title}</span>
-      </legend>
-      <div className="mt-3">{children}</div>
-    </fieldset>
-  );
-}
-
-/** Likes and votes are for members while the merch is a draft; the public showcase has none, and sets no cookie. */
-const voting = merch.draft;
-
-function useTally() {
-  const [tally, setTally] = useState<Tally>({ counts: {}, mine: [] });
-  const [state, setState] = useState<"loading" | "ready" | "offline">("loading");
-  useEffect(() => {
-    if (!voting) return;
-    let live = true;
-    const local = readLiked();
-    if (local.length) setTally((t) => ({ ...t, mine: local }));
-    merchApi<Tally>("tally")
-      .then((t) => {
-        if (!live) return;
-        setTally(t);
-        saveLiked(t.mine);
-        setState("ready");
-      })
-      .catch(() => live && setState("offline"));
-    return () => {
-      live = false;
-    };
-  }, []);
-  const toggle = useCallback(
-    async (kind: string, c: string) => {
-      const k = `${kind}:${c}`;
-      const liked = !tally.mine.includes(k);
-      const before = tally;
-      // show it at once, then settle on what the server says
-      setTally({
-        counts: { ...tally.counts, [k]: Math.max(0, (tally.counts[k] ?? 0) + (liked ? 1 : -1)) },
-        mine: liked ? [...tally.mine, k] : tally.mine.filter((x) => x !== k),
-      });
-      try {
-        const t = await merchApi<Tally>("like", {
-          method: "POST",
-          body: JSON.stringify({ kind, colour: c, liked }),
-        });
-        setTally(t);
-        saveLiked(t.mine);
-        return null;
-      } catch (e) {
-        setTally(before);
-        return (e as Error).message;
-      }
-    },
-    [tally],
-  );
-  return { tally, state, toggle };
-}
-
 export function MerchStudio() {
-  const [pick, setPick] = useState<Pick>({
-    kind: merch.products[0]!.kind,
-    colour: "black",
-    name: cleanName(merch.demoName),
-    number: merch.demoNumber,
-    style: "plate",
-  });
+  const item = merch.products[0]!;
+  const pick: Pick = { kind: item.kind, colour: merch.colours[0]!.id };
   const [phase, setPhase] = useState<"loading" | "ready" | "nogl">("loading");
   const [busy, setBusy] = useState(false);
   const [spin, setSpin] = useState(false);
   const [view, setView] = useState<View | null>("front");
-  const [likeError, setLikeError] = useState("");
   const [zip, setZip] = useState(0);
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<MerchScene | null>(null);
   const first = useRef(pick);
-  const { tally, state, toggle } = useTally();
 
   useEffect(() => {
     let cancelled = false;
@@ -187,50 +70,24 @@ export function MerchStudio() {
     };
   }, []);
 
-  useEffect(() => {
-    scene.current?.set(pick);
-  }, [pick]);
-
-  const item = product(pick.kind);
-  const set = <K extends keyof Pick>(k: K, v: Pick[K]) => setPick((p) => ({ ...p, [k]: v }));
   const moveZip = (v: number) => {
     setZip(v);
     scene.current?.zip(v);
   };
-  // a fresh look at the zip hoodie starts zipped up
-  useEffect(() => {
-    if (pick.kind !== "jacket") setZip(0);
-  }, [pick.kind]);
   const goView = (v: View) => {
     setView(v);
     setSpin(false);
     scene.current?.view(v);
   };
-  const key = likeKey(pick.kind, pick.colour);
-  const liked = tally.mine.includes(key);
-  const likes = tally.counts[key] ?? 0;
-  const onLike = async () => {
-    setLikeError("");
-    const err = await toggle(pick.kind, pick.colour);
-    if (err) setLikeError(err);
-  };
-  const label = `${colour(pick.colour).name} ${item.name}`;
+  const label = `${colour(pick.colour).name} ${product(pick.kind).name}`;
 
   return (
     <section aria-label="Merch studio" className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-      {merch.draft && (
-        <p className="mb-6 flex flex-wrap items-center gap-2 border-2 border-dashed border-border bg-muted px-3 py-2 text-sm">
-          <span className="bg-ink px-1.5 py-0.5 font-pixel text-[10px] text-paper dark:bg-lilac dark:text-ink">
-            DRAFT
-          </span>
-          {merch.draftNote}
-        </p>
-      )}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start">
         <div className="lg:sticky lg:top-20">
           <div
             className="relative overflow-hidden border-2 border-border shadow-hard"
-            style={{ background: STAGE[pick.colour], transition: "background 400ms ease" }}
+            style={{ background: STAGE }}
           >
             <div
               aria-hidden="true"
@@ -251,12 +108,9 @@ export function MerchStudio() {
                 {item.name}
               </span>
             </div>
-            <div className="pointer-events-none absolute right-3 top-3 flex flex-col items-end gap-1">
+            <div className="pointer-events-none absolute right-3 top-3">
               <span className="border-2 border-ink bg-paper px-2.5 py-1 font-mono text-sm font-semibold text-ink shadow-[3px_3px_0_0_var(--ink)]">
                 {rupees(item.price)}
-              </span>
-              <span className="bg-paper/85 px-1.5 font-pixel text-[9px] text-ink">
-                {merch.priceNote.toUpperCase()}
               </span>
             </div>
             <div className="absolute left-3 top-20 flex flex-col gap-1.5">
@@ -330,562 +184,156 @@ export function MerchStudio() {
               </button>
             </div>
           </div>
-          {pick.kind === "jacket" && (
-            <div className="mt-3 flex flex-wrap items-center gap-3 border-2 border-border bg-card px-3 py-2">
-              <label htmlFor="zip-range" className="font-pixel text-[10px] text-primary">
-                ZIP
-              </label>
-              <input
-                id="zip-range"
-                type="range"
-                min={0}
-                max={100}
-                value={Math.round(zip * 100)}
-                onChange={(e) => moveZip(Number(e.target.value) / 100)}
-                aria-valuetext={
-                  zip < 0.02 ? "Zipped up" : zip > 0.98 ? "Open" : `${Math.round(zip * 100)}% open`
-                }
-                className="h-2 min-w-[140px] flex-1 cursor-pointer accent-[var(--primary)]"
-              />
-              <button
-                type="button"
-                onClick={() => moveZip(zip > 0.5 ? 0 : 1)}
-                className="border-2 border-border px-2.5 py-1 text-xs font-bold hover:bg-muted"
-              >
-                {zip > 0.5 ? "Zip it up" : "Unzip"}
-              </button>
-              <span className="w-full text-xs text-muted-foreground">
-                Or grab the puller on the model and drag it down.
-              </span>
-            </div>
-          )}
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-2 border-border bg-card px-3 py-2">
+            <label htmlFor="zip-range" className="font-pixel text-[10px] text-primary">
+              ZIP
+            </label>
+            <input
+              id="zip-range"
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(zip * 100)}
+              onChange={(e) => moveZip(Number(e.target.value) / 100)}
+              aria-valuetext={
+                zip < 0.02 ? "Zipped up" : zip > 0.98 ? "Open" : `${Math.round(zip * 100)}% open`
+              }
+              className="h-2 min-w-[140px] flex-1 cursor-pointer accent-[var(--primary)]"
+            />
+            <button
+              type="button"
+              onClick={() => moveZip(zip > 0.5 ? 0 : 1)}
+              className="border-2 border-border px-2.5 py-1 text-xs font-bold hover:bg-muted"
+            >
+              {zip > 0.5 ? "Zip it up" : "Unzip"}
+            </button>
+            <span className="w-full text-xs text-muted-foreground">
+              Or grab the puller on the model and drag it down.
+            </span>
+          </div>
           <p className="mt-3 text-sm text-muted-foreground">
             Drag to turn it. Tap X, Y or Z on the gizmo to look along that axis. Pinch, use the
             buttons, or hold Ctrl and scroll to zoom. Double tap to face the front again.
           </p>
         </div>
 
-        <div className="flex flex-col gap-5 border-2 border-border bg-card p-4 shadow-hard md:p-5">
-          <Step n="01" title="Piece">
-            <div className="grid grid-cols-2 gap-2">
-              {merch.products.map((p) => {
-                const on = pick.kind === p.kind;
-                return (
-                  <label
-                    key={p.kind}
-                    className={`relative flex cursor-pointer flex-col border-2 p-2.5 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${
-                      on ? "border-primary bg-secondary" : "border-border hover:bg-muted"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="piece"
-                      value={p.kind}
-                      checked={on}
-                      onChange={() => set("kind", p.kind)}
-                      className="sr-only"
-                    />
-                    <span className="text-sm font-bold leading-tight">{p.name}</span>
-                    <span className="mt-0.5 text-xs text-muted-foreground">
-                      {p.gsm ? `${p.gsm} GSM ` : ""}
-                      {p.fabric.toLowerCase()}
-                    </span>
-                    <span className="mt-2 flex items-baseline justify-between gap-1">
-                      <span className="font-mono text-sm font-semibold">{rupees(p.price)}</span>
-                      {voting && (
-                        <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
-                          <Heart aria-hidden="true" className="h-3 w-3" />
-                          {pieceLikes(tally, p.kind)}
-                          <span className="sr-only"> likes</span>
-                        </span>
-                      )}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Prices are per piece. {merch.priceNote}.
-            </p>
-          </Step>
-
-          <Step n="02" title="Colour">
-            <div className="flex flex-wrap gap-2">
-              {merch.colours.map((c) => {
-                const on = pick.colour === c.id;
-                return (
-                  <label
-                    key={c.id}
-                    className={`flex cursor-pointer items-center gap-2 border-2 py-1.5 pl-1.5 pr-3 text-sm font-semibold has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring ${
-                      on ? "border-primary bg-secondary" : "border-border hover:bg-muted"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="colour"
-                      value={c.id}
-                      checked={on}
-                      onChange={() => set("colour", c.id)}
-                      className="sr-only"
-                    />
-                    <span
-                      aria-hidden="true"
-                      className="h-6 w-6 border-2 border-ink"
-                      style={{ background: swatch(c.id) }}
-                    />
-                    {c.name}
-                  </label>
-                );
-              })}
-            </div>
-          </Step>
-
-          {voting && (
-            <div className="border-2 border-border bg-muted p-3">
-              <button
-                type="button"
-                onClick={onLike}
-                aria-pressed={liked}
-                disabled={state === "offline"}
-                className={`flex w-full items-center justify-center gap-2 border-2 border-border px-4 py-3 font-bold shadow-hard transition-transform hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60 ${
-                  liked ? "bg-primary text-primary-foreground" : "bg-background"
-                }`}
-              >
-                <Heart
-                  aria-hidden="true"
-                  className={`h-5 w-5 transition-transform ${liked ? "scale-110 fill-current" : ""}`}
-                />
-                {liked ? `You like the ${label}` : `Like the ${label}`}
-              </button>
-              <p className="mt-2 text-center text-sm" aria-live="polite">
-                <span className="font-mono font-semibold">{likes}</span>{" "}
-                {likes === 1 ? "member likes" : "members like"} this colour
-                {state === "offline" && " (likes are offline right now)"}
-              </p>
-              {likeError && (
-                <p className="mt-1 text-center text-sm text-destructive">{likeError}</p>
-              )}
-              <p className="mt-1 text-center text-xs text-muted-foreground">
-                One like per piece and colour from each browser. Tap again to take it back.
-              </p>
-            </div>
-          )}
-
-          <Step n="03" title="Try your name and number">
-            <div className="grid grid-cols-[1fr_88px] gap-2">
-              <label className="flex flex-col gap-1 text-xs font-bold">
-                Name on the front
-                <input
-                  value={pick.name}
-                  maxLength={NAME_MAX}
-                  autoComplete="off"
-                  spellCheck={false}
-                  onChange={(e) => set("name", cleanName(e.target.value))}
-                  className="border-2 border-border bg-background px-2.5 py-2 font-display text-base font-bold uppercase tracking-wider outline-none focus:border-primary"
-                />
-              </label>
-              <label className="flex flex-col gap-1 text-xs font-bold">
-                Number
-                <input
-                  value={pick.number}
-                  inputMode="numeric"
-                  maxLength={2}
-                  autoComplete="off"
-                  onChange={(e) => set("number", cleanNumber(e.target.value))}
-                  className="border-2 border-border bg-background px-2.5 py-2 text-center font-display text-base font-black italic outline-none focus:border-primary"
-                />
-              </label>
-            </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Just a preview, nothing is saved. The number goes on the left sleeve and the college
-              crest on the right.
-            </p>
-            <p className="mt-4 text-xs font-bold">Number style</p>
-            <div className="mt-1.5 grid grid-cols-4 gap-2">
-              {NUMBER_STYLES.map((st) => (
-                <StyleCard
-                  key={st.id}
-                  id={st.id}
-                  name={st.name}
-                  on={pick.style === st.id}
-                  pick={pick}
-                  votes={tally.counts[styleKey(st.id)] ?? 0}
-                  voted={tally.mine.includes(styleKey(st.id))}
-                  voting={voting}
-                  onPick={() => set("style", st.id)}
-                  onVote={async () => {
-                    setLikeError("");
-                    const err = await toggle("number", st.id);
-                    if (err) setLikeError(err);
-                  }}
-                />
-              ))}
-            </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              {voting
-                ? "Tap a style to see it on the sleeve. Tap its heart to vote for it."
-                : "Tap a style to see it on the sleeve."}
-            </p>
-          </Step>
-
-          {voting && <Feedback kind={pick.kind} c={pick.colour} label={label} />}
-        </div>
+        <JacketPanel />
       </div>
 
-      {voting && (
-        <Board
-          tally={tally}
-          state={state}
-          onPick={(kind, c) => setPick((p) => ({ ...p, kind, colour: c }))}
-        />
-      )}
-      <PrintMap pick={pick} />
-      <Lineup />
+      <PrintMap />
       <Credits />
     </section>
   );
 }
 
-/** One number style: a live preview on the fabric colour, and a heart to vote for it. */
-function StyleCard({
-  id,
-  name,
-  on,
-  pick,
-  votes,
-  voted,
-  voting,
-  onPick,
-  onVote,
-}: {
-  id: NumberStyle;
-  name: string;
-  on: boolean;
-  pick: Pick;
-  votes: number;
-  voted: boolean;
-  voting: boolean;
-  onPick: () => void;
-  onVote: () => void;
-}) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const [fonts, setFonts] = useState(0);
-  useEffect(() => {
-    let live = true;
-    void fontsReady().then(() => live && setFonts((n) => n + 1));
-    return () => {
-      live = false;
-    };
-  }, []);
-  useEffect(() => {
-    const cv = ref.current;
-    if (!cv) return;
-    const art = drawNumber(document.createElement("canvas"), pick.number, pick.colour, id);
-    cv.width = cv.height = 220;
-    const g = cv.getContext("2d")!;
-    // the sleeves sit above the two-tone line, so the card shows the top colour
-    g.fillStyle = colour(printBase(pick.colour)).hex;
-    g.fillRect(0, 0, 220, 220);
-    g.drawImage(art, 0, 0, 220, 220);
-  }, [id, pick.number, pick.colour, fonts]);
+/** The jacket itself: price, colour, what it has, and the producer's size chart. */
+function JacketPanel() {
+  const item = merch.products[0]!;
+  const c = merch.colours[0]!;
   return (
-    <div
-      className={`flex flex-col border-2 ${on ? "border-primary bg-secondary" : "border-border"}`}
-    >
-      <button
-        type="button"
-        onClick={onPick}
-        aria-pressed={on}
-        aria-label={`Show the ${name} number style`}
-        className="block"
-      >
-        <canvas ref={ref} className="block aspect-square w-full" />
-      </button>
-      <div className="flex items-center justify-between gap-1 px-1.5 py-1">
-        <span className="truncate text-[11px] font-bold leading-tight">{name}</span>
-        {voting && (
-          <button
-            type="button"
-            onClick={onVote}
-            aria-pressed={voted}
-            aria-label={`${voted ? "Take back your vote for" : "Vote for"} ${name}`}
-            className="flex shrink-0 items-center gap-0.5 font-mono text-[11px]"
-          >
-            <Heart
-              aria-hidden="true"
-              className={`h-3.5 w-3.5 ${voted ? "fill-primary text-primary" : ""}`}
-            />
-            {votes}
-          </button>
-        )}
+    <div className="flex flex-col gap-5 border-2 border-border bg-card p-4 shadow-hard md:p-5">
+      <div>
+        <p className="font-pixel text-[10px] text-primary">THE CLUB JACKET</p>
+        <p className="mt-1 flex items-baseline justify-between gap-2">
+          <span className="font-display text-2xl font-black">{item.name}</span>
+          <span className="font-mono text-xl font-semibold">{rupees(item.price)}</span>
+        </p>
+        <p className="mt-2 flex items-center gap-2 text-sm font-semibold">
+          <span
+            aria-hidden="true"
+            className="h-5 w-5 border-2 border-ink"
+            style={{ background: swatch(c.id) }}
+          />
+          {c.name}
+        </p>
       </div>
-    </div>
-  );
-}
-
-function Feedback({ kind, c, label }: { kind: MerchKind; c: ColourId; label: string }) {
-  const [text, setText] = useState("");
-  const [name, setName] = useState("");
-  const [sent, setSent] = useState<"idle" | "sending" | "sent">("idle");
-  const [error, setError] = useState("");
-  const send = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSent("sending");
-    try {
-      await merchApi("note", {
-        method: "POST",
-        body: JSON.stringify({ kind, colour: c, name, text }),
-      });
-      setSent("sent");
-      setText("");
-    } catch (err) {
-      setError((err as Error).message);
-      setSent("idle");
-    }
-  };
-  return (
-    <form
-      onSubmit={send}
-      className="border-t-2 border-border pt-4"
-      aria-label="Tell us what you think"
-    >
-      <p className="flex items-baseline gap-2">
-        <span className="font-pixel text-[10px] text-primary">04</span>
-        <span className="font-display text-sm font-bold uppercase tracking-wider">
-          Tell us what you think
-        </span>
-      </p>
-      <label className="mt-3 flex flex-col gap-1 text-xs font-bold">
-        About the {label}
-        <textarea
-          value={text}
-          maxLength={NOTE_MAX}
-          rows={3}
-          required
-          placeholder="Love the two-tone, but the back print could be a bit smaller."
-          onChange={(e) => {
-            setText(e.target.value);
-            if (sent === "sent") setSent("idle");
-          }}
-          className="resize-y border-2 border-border bg-background px-2.5 py-2 text-sm font-normal outline-none focus:border-primary"
-        />
-      </label>
-      <div className="mt-2 flex gap-2">
-        <input
-          value={name}
-          maxLength={AUTHOR_MAX}
-          autoComplete="name"
-          placeholder="Your name (optional)"
-          aria-label="Your name, optional"
-          onChange={(e) => setName(e.target.value)}
-          className="min-w-0 flex-1 border-2 border-border bg-background px-2.5 py-2 text-sm outline-none focus:border-primary"
-        />
-        <button
-          type="submit"
-          disabled={sent === "sending" || text.trim().length < 2}
-          className="border-2 border-border bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
-        >
-          {sent === "sending" ? "Sending" : "Send"}
-        </button>
-      </div>
-      <p className="mt-1.5 text-xs text-muted-foreground" aria-live="polite">
-        {sent === "sent"
-          ? "Thank you! The core team will read it."
-          : error || "Only the core team reads these."}
-      </p>
-    </form>
-  );
-}
-
-function Board({
-  tally,
-  state,
-  onPick,
-}: {
-  tally: Tally;
-  state: "loading" | "ready" | "offline";
-  onPick: (kind: MerchKind, c: ColourId) => void;
-}) {
-  const rows = merch.products
-    .flatMap((p) =>
-      merch.colours.map((c) => ({ p, c, n: tally.counts[likeKey(p.kind, c.id)] ?? 0 })),
-    )
-    .sort((a, b) => b.n - a.n);
-  const top = Math.max(1, ...rows.map((r) => r.n));
-  const total = rows.reduce((s, r) => s + r.n, 0);
-  return (
-    <div className="mt-16">
-      <p className="font-pixel text-xs text-primary">LIKES SO FAR</p>
-      <h2 className="mt-2 text-2xl font-black md:text-3xl">What members like</h2>
-      <p className="mt-2 max-w-2xl text-muted-foreground">
-        {state === "offline"
-          ? "The likes could not be loaded right now. Try again in a minute."
-          : total
-            ? `${total} ${total === 1 ? "like" : "likes"} so far. Tap a row to see it in 3D.`
-            : "No likes yet. Be the first: pick a piece and a colour above and tap Like."}
-      </p>
-      <ol className="mt-6 grid gap-2 md:grid-cols-2">
-        {rows.map((r, i) => (
-          <li key={`${r.p.kind}-${r.c.id}`}>
-            <button
-              type="button"
-              onClick={() => {
-                onPick(r.p.kind, r.c.id);
-                document
-                  .querySelector("[data-merch-stage]")
-                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }}
-              className="flex w-full items-center gap-3 border-2 border-border bg-card px-3 py-2 text-left hover:bg-muted"
-            >
-              <span className="w-6 font-mono text-xs text-muted-foreground">{i + 1}</span>
-              <span
-                aria-hidden="true"
-                className="h-5 w-5 shrink-0 border-2 border-ink"
-                style={{ background: swatch(r.c.id) }}
-              />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold">
-                  {r.c.name} {r.p.name}
-                </span>
-                <span className="mt-1 block h-1.5 bg-muted">
-                  <span
-                    className="block h-full bg-primary transition-[width] duration-500"
-                    style={{ width: `${(r.n / top) * 100}%` }}
-                  />
-                </span>
-              </span>
-              <span className="flex items-center gap-1 font-mono text-sm font-semibold">
-                <Heart aria-hidden="true" className="h-3.5 w-3.5" />
-                {r.n}
-              </span>
-            </button>
+      <ul className="grid gap-1.5 border-t-2 border-border pt-4 text-sm">
+        {item.details.map((d) => (
+          <li key={d} className="flex gap-2">
+            <span aria-hidden="true" className="text-primary">
+              +
+            </span>
+            {d}
           </li>
         ))}
-      </ol>
+      </ul>
+      <div className="border-t-2 border-border pt-4">
+        <p className="font-pixel text-[10px] text-primary">SIZES</p>
+        <table className="mt-2 w-full border-collapse text-sm">
+          <caption className="sr-only">Chest width for each size, in inches</caption>
+          <thead>
+            <tr className="border-b-2 border-border text-left">
+              <th scope="col" className="py-1 font-bold">
+                Size
+              </th>
+              <th scope="col" className="py-1 text-right font-bold">
+                Chest width
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {merch.sizes.map((s) => (
+              <tr key={s.size} className="border-b border-border/30 last:border-b-0">
+                <th scope="row" className="py-1 text-left font-mono font-semibold">
+                  {s.size}
+                </th>
+                <td className="py-1 text-right font-mono">{s.width} in</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Chest width measured across the front, from the producer's size chart.
+        </p>
+      </div>
     </div>
   );
 }
 
-function PrintMap({ pick }: { pick: Pick }) {
-  const frontRef = useRef<HTMLCanvasElement>(null);
-  const backRef = useRef<HTMLCanvasElement>(null);
-  const chipRef = useRef<HTMLCanvasElement>(null);
-  const [imgs, setImgs] = useState<{ poster?: HTMLImageElement; mono?: HTMLImageElement }>({});
-  const [stars, setStars] = useState<HTMLImageElement | null>(null);
-  const [fonts, setFonts] = useState(0);
-  const top = colour(printBase(pick.colour)).hex;
-  const lower = colour(pick.colour).lower;
-  const long = pick.kind === "hoodie" || pick.kind === "jacket";
-  const layout = long ? "patch" : "line";
-
-  useEffect(() => {
-    let live = true;
-    void fontsReady().then(() => live && setFonts((n) => n + 1));
-    loadImage(STARS_SRC)
-      .then((img) => live && setStars(img))
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, []);
-  useEffect(() => {
-    let live = true;
-    Promise.all([loadImage(posterSrc(pick.colour)), loadImage(monoSrc(pick.colour, pick.kind))])
-      .then(([poster, mono]) => live && setImgs({ poster, mono }))
-      .catch(() => {});
-    return () => {
-      live = false;
-    };
-  }, [pick.colour, pick.kind]);
-
-  useEffect(() => {
-    const cv = frontRef.current;
-    if (!cv) return;
-    cv.width = cv.height = 800;
-    const g = cv.getContext("2d")!;
-    g.clearRect(0, 0, 800, 800);
-    const name = drawChestName(
-      document.createElement("canvas"),
-      pick.name,
-      pick.colour,
-      layout,
-      stars,
-    );
-    const nm = CHEST_NAME[layout];
-    if (layout === "patch") {
-      // as worn: the name on the right chest, Mono on the left, so the name is on the left as you look at it
-      const mw = 330,
-        nw = 400;
-      if (imgs.mono)
-        g.drawImage(imgs.mono, 430, 400 - (mw * MONO_ASPECT) / 2, mw, mw * MONO_ASPECT);
-      g.drawImage(name, 20, 400 - (nw * nm.h) / nm.w / 2, nw, (nw * nm.h) / nm.w);
-    } else {
-      const mw = 620;
-      if (imgs.mono) g.drawImage(imgs.mono, 90, 70, mw, mw * MONO_ASPECT);
-      g.drawImage(name, 100, 70 + mw * MONO_ASPECT - 10, 600, (600 * nm.h) / nm.w);
-    }
-  }, [imgs.mono, stars, pick.name, pick.colour, layout, fonts]);
-
-  useEffect(() => {
-    const cv = backRef.current;
-    if (!cv) return;
-    cv.width = cv.height = 800;
-    const g = cv.getContext("2d")!;
-    g.clearRect(0, 0, 800, 800);
-    const h = 720,
-      w = h / POSTER_ASPECT;
-    if (imgs.poster) g.drawImage(imgs.poster, (800 - w) / 2, 40, w, h);
-  }, [imgs.poster]);
-
-  useEffect(() => {
-    const cv = chipRef.current;
-    if (!cv) return;
-    const art = drawNumber(document.createElement("canvas"), pick.number, pick.colour, pick.style);
-    cv.width = cv.height = art.height;
-    const g = cv.getContext("2d")!;
-    g.drawImage(art, 0, 0);
-  }, [pick.number, pick.colour, pick.style, fonts]);
-
+/** The same artwork the 3D jacket wears, laid flat on the grey. */
+function PrintMap() {
+  const grey = merch.colours[0]!.hex;
   const tiles = [
     {
       tag: "FRONT",
-      title: "Mono and your name",
-      size: long ? "Mono about 10 cm wide" : "Mono about 25 cm wide",
-      body: <canvas ref={frontRef} className="h-full w-full" />,
-      note: long
-        ? "The design team's robot on the left chest, your name over their stars on the right."
-        : "The design team's robot across the chest, your name over their stars under it.",
-      bg: top,
+      title: "Mono and the stars",
+      body: (
+        <div className="flex h-full w-full items-center justify-between gap-[6%] px-[8%]">
+          <img
+            src={STARS_SRC}
+            alt=""
+            className="w-[44%]"
+            style={{ aspectRatio: String(1 / STARS_ASPECT) }}
+          />
+          <img
+            src={MONO_SRC}
+            alt=""
+            className="w-[40%]"
+            style={{ aspectRatio: String(1 / MONO_ASPECT) }}
+          />
+        </div>
+      ),
+      note: "The stars on the right chest, Mono on the left, as worn.",
     },
     {
       tag: "BACK",
       title: "Define the Future",
-      size: "about 30 cm wide",
-      body: <canvas ref={backRef} className="h-full w-full" />,
-      note: "The design team's poster, with the RO-BIO HUB mark, from the shoulders down.",
-      // on the two-tone, the white starts near the foot of the poster
-      bg: lower ? `linear-gradient(to bottom, ${top} 0 84%, ${lower} 84% 100%)` : top,
-    },
-    {
-      tag: "LEFT SLEEVE",
-      title: `Number: ${NUMBER_STYLES.find((st) => st.id === pick.style)!.name}`,
-      size: `about ${long ? 11 : 6.6} cm wide`,
-      body: <canvas ref={chipRef} className="h-full w-full" />,
-      note: "Pick the style in step 03. Members can vote for the one they like best.",
-      bg: top,
+      body: (
+        <div className="flex h-full w-full items-center justify-center p-[6%]">
+          <img src={POSTER_SRC} alt="" className="max-h-full max-w-full" />
+        </div>
+      ),
+      note: "The design team's poster with the RO-BIO HUB mark, across the back.",
     },
     {
       tag: "RIGHT SLEEVE",
-      title: "College crest",
-      size: `about ${long ? 7.5 : 5.5} cm tall`,
+      title: "College crest sticker",
       body: (
         <div className="grid h-full w-full place-items-center">
           <img src={CREST_SRC} alt="" className="h-[58%] w-auto" />
         </div>
       ),
-      note: "The Mysore University School of Engineering crest, where a kit wears its badge.",
-      bg: top,
+      note: "The Mysore University School of Engineering crest. It comes as a peel-off sticker.",
     },
   ];
 
@@ -894,23 +342,19 @@ function PrintMap({ pick }: { pick: Pick }) {
       <p className="font-pixel text-xs text-primary">PRINT MAP</p>
       <h2 className="mt-2 text-2xl font-black md:text-3xl">Where everything goes</h2>
       <p className="mt-2 max-w-2xl text-muted-foreground">
-        The same artwork the 3D model wears, laid flat on your colour. Artwork by our design team.
+        The same artwork the 3D jacket wears, laid flat on the grey. Artwork by our design team.
       </p>
-      <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-3 md:gap-4">
         {tiles.map((t) => (
           <figure
             key={t.tag}
             data-robo-perch
             className="flex flex-col border-2 border-border bg-card shadow-hard"
           >
-            <div className="flex items-center justify-between gap-2 border-b-2 border-border bg-secondary px-2 py-1">
+            <div className="border-b-2 border-border bg-secondary px-2 py-1">
               <span className="font-pixel text-[10px] tracking-wider">{t.tag}</span>
-              <span className="font-mono text-[11px]">{t.size}</span>
             </div>
-            <div
-              className="aspect-square overflow-hidden"
-              style={{ background: t.bg, transition: "background 300ms ease" }}
-            >
+            <div className="aspect-square overflow-hidden" style={{ background: grey }}>
               {t.body}
             </div>
             <figcaption className="border-t-2 border-border p-3">
@@ -924,64 +368,11 @@ function PrintMap({ pick }: { pick: Pick }) {
   );
 }
 
-const COUNT: Record<number, string> = { 2: "two", 3: "three", 4: "four", 5: "five", 6: "six" };
-
-function Lineup() {
-  const names = merch.colours.map((c) => c.name);
-  return (
-    <div className="mt-16">
-      <p className="font-pixel text-xs text-primary">THE LINE UP</p>
-      <h2 className="mt-2 text-2xl font-black md:text-3xl">
-        Four pieces, {COUNT[merch.colours.length] ?? merch.colours.length} colours
-      </h2>
-      <div className="mt-6 overflow-x-auto border-2 border-border shadow-hard">
-        <table className="w-full min-w-[620px] border-collapse bg-card text-left text-sm">
-          <thead className="bg-secondary">
-            <tr>
-              {["Piece", "Price", "Fabric", "Details"].map((h) => (
-                <th
-                  key={h}
-                  scope="col"
-                  className="border-b-2 border-border px-3 py-2 font-pixel text-[10px] font-normal"
-                >
-                  {h.toUpperCase()}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {merch.products.map((p) => (
-              <tr key={p.kind} className="border-b border-border/30 last:border-b-0">
-                <th scope="row" className="px-3 py-3 font-bold">
-                  {p.name}
-                </th>
-                <td className="px-3 py-3">
-                  <span className="font-mono font-semibold">{rupees(p.price)}</span>
-                  <span className="block text-xs text-muted-foreground">negotiable</span>
-                </td>
-                <td className="px-3 py-3">
-                  {p.gsm
-                    ? `${p.gsm} GSM ${p.fabric.toLowerCase()}`
-                    : `${p.fabric}, weight to be confirmed`}
-                </td>
-                <td className="px-3 py-3 text-muted-foreground">{p.details.join(". ")}.</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-3 text-sm text-muted-foreground">
-        Every piece comes in {names.slice(0, -1).join(", ")} and {names[names.length - 1]}.
-      </p>
-    </div>
-  );
-}
-
 function Credits() {
   return (
     <div className="mt-12 border-t-2 border-dashed border-border pt-4 text-xs text-muted-foreground">
       <p>
-        3D garments, free models from Sketchfab under{" "}
+        3D jacket, a free model from Sketchfab under{" "}
         <a
           href="https://creativecommons.org/licenses/by/4.0/"
           target="_blank"
@@ -990,7 +381,7 @@ function Credits() {
         >
           CC BY 4.0
         </a>
-        , recoloured, with brand marks removed, arms lowered and files made smaller:{" "}
+        , recoloured, with its arms lowered and its files made smaller:{" "}
         {merch.models.map((m, i) => (
           <span key={m.kind}>
             <a
