@@ -4,7 +4,7 @@ import { merch, type MerchKind } from "@/lib/site";
 
 export type ColourId = (typeof merch.colours)[number]["id"];
 
-/** The sleeve number styles members can choose between. */
+/** The sleeve number styles members voted on while the merch was a draft. Kept so the stored votes still read. */
 export const NUMBER_STYLES = [
   { id: "plate", name: "Armour", note: "Robot anime armour plate" },
   { id: "ink", name: "Ink slash", note: "Brush and red slash" },
@@ -17,9 +17,6 @@ export type NumberStyle = (typeof NUMBER_STYLES)[number]["id"];
 export type Pick = {
   kind: MerchKind;
   colour: ColourId;
-  name: string;
-  number: string;
-  style: NumberStyle;
 };
 
 export const NAME_MAX = 16;
@@ -75,9 +72,6 @@ export function swatch(id: ColourId) {
   const c = colour(id);
   return c.lower ? `linear-gradient(to bottom, ${c.hex} 0 55%, ${c.lower} 55% 100%)` : c.hex;
 }
-
-/** The fabric under the chest, sleeve and back prints. On the two-tone that is the top colour. */
-export const printBase = (id: ColourId): Exclude<ColourId, "duo"> => (id === "duo" ? "lilac" : id);
 
 export function rupees(n: number) {
   return `₹${n.toLocaleString("en-IN")}`;
