@@ -685,95 +685,54 @@ export const mission = [
 ];
 
 /**
- * Club merch, shown on /merch. It is a draft for members to look at, like and comment on, not a shop yet:
- * the page is left out of the menu and of search engines while `draft` is true. Prices are per piece in rupees
- * and still open to talk about. `gsm` is the fabric weight, left out until the vendor confirms it.
+ * Club merch, shown on /merch: the club jacket, confirmed with the producer. While `draft` is true the page is a
+ * hidden link for members with likes and notes; now it is public, in the menu and on the home page.
  */
-export type MerchKind = "jacket" | "hoodie" | "tee" | "polo";
+export type MerchKind = "jacket";
 export const merch = {
   drop: "Drop 01",
-  draft: true,
+  draft: false,
   draftNote:
     "Draft kit with the artwork from our design team. Tell us what you think before it goes to print.",
-  priceNote: "Price is negotiable",
-  /** The demo name and number on the 3D models. Members can type their own to see how it looks. */
-  demoName: "Abhirai",
-  demoNumber: "07",
-  /** Zip hoodie and hoodie first: the club's own favourites. */
   products: [
     {
       kind: "jacket",
-      name: "Zip Hoodie",
-      price: 580,
-      fabric: "Fleece",
-      details: ["Full front zip", "Hood with drawcords", "Front pockets", "Rib cuffs and hem"],
+      name: "Club Jacket",
+      price: 570,
+      details: [
+        "Full front zip",
+        "Stand-up rib collar",
+        "Side pockets and a sleeve pocket",
+        "Rib cuffs and hem",
+        "College crest as a peel-off sticker",
+      ],
     },
-    {
-      kind: "hoodie",
-      name: "Hoodie",
-      price: 550,
-      fabric: "Fleece",
-      details: ["Hood with drawcords", "Kangaroo pocket", "Rib cuffs and hem"],
-    },
-    {
-      kind: "tee",
-      name: "Round Neck Tee",
-      price: 300,
-      gsm: 180,
-      fabric: "Cotton jersey",
-      details: ["Crew neck", "Short sleeves", "Regular fit"],
-    },
-    {
-      kind: "polo",
-      name: "Polo",
-      price: 380,
-      gsm: 220,
-      fabric: "Cotton pique",
-      details: ["Knit collar", "Button placket", "Raglan sleeves"],
-    },
-  ] as {
-    kind: MerchKind;
+  ] as { kind: MerchKind; name: string; price: number; details: string[] }[],
+  /** The producer's heather grey, from the fabric swatch the club picked. */
+  colours: [{ id: "grey", name: "Grey", hex: "#a3a5a7" }] as {
+    id: "grey";
     name: string;
-    price: number;
-    gsm?: number;
-    fabric: string;
-    details: string[];
+    hex: string;
+    lower?: string;
   }[],
-  /** `lower` makes a colour two-tone: `hex` on top, `lower` from the waist down, like the design team's bomber. */
-  colours: [
-    { id: "black", name: "Ink Black", hex: "#1a191f" },
-    { id: "white", name: "Paper White", hex: "#f1f0ec" },
-    { id: "lilac", name: "Lilac", hex: "#b997ff" },
-    { id: "duo", name: "Two-tone", hex: "#b997ff", lower: "#f1f0ec" },
-  ] as { id: "black" | "white" | "lilac" | "duo"; name: string; hex: string; lower?: string }[],
+  /** The producer's size chart: chest width in inches, measured across the front. */
+  sizes: [
+    { size: "S", width: 20 },
+    { size: "M", width: 21 },
+    { size: "L", width: 22 },
+    { size: "XL", width: 23 },
+    { size: "XXL", width: 24 },
+  ],
   /**
-   * The 3D garments are free models from Sketchfab under CC BY 4.0, which asks for this credit. We recoloured
-   * them, took out the brand marks, lowered the arms and made the files smaller.
+   * The 3D jacket is a free model from Sketchfab under CC BY 4.0, which asks for this credit. We recoloured it,
+   * lowered the arms and made the files smaller.
    */
   models: [
     {
       kind: "jacket",
-      title: "Hooded Jacket",
-      author: "ArtDevice",
-      url: "https://sketchfab.com/3d-models/hooded-jacket-562280813fa74612a89369d4b791e011",
-    },
-    {
-      kind: "hoodie",
-      title: "Adidas Hoodie",
-      author: "Garrett Marshall Art",
-      url: "https://sketchfab.com/3d-models/adidas-hoodie-e4c89a5628db4c7abadbd18bb407a2a8",
-    },
-    {
-      kind: "tee",
-      title: "T Shirt",
-      author: "funlab117",
-      url: "https://sketchfab.com/3d-models/t-shirt-c1a3e5eb9b5445f4b7d4be82f1127eba",
-    },
-    {
-      kind: "polo",
-      title: "Mans Polo",
-      author: "mrarrt95",
-      url: "https://sketchfab.com/3d-models/mans-polo-8d8ffad8f85746f39b68f58629a8ce68",
+      title: "AGC Project Bomber Jacket",
+      author: "TaySlays93",
+      url: "https://sketchfab.com/3d-models/agc-project-bomber-jacket-603f6559d0cc4152aadf0d8cd8e299e0",
     },
   ] as { kind: MerchKind; title: string; author: string; url: string }[],
 };
