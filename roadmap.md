@@ -10,7 +10,8 @@
 
 ## Next
 - [x] Merch: the design team's artwork on all four pieces (back poster, Mono and the name on the front), a pixel sleeve number and a lilac and white two-tone.
-- [ ] Merch: confirm the fleece weight (`gsm` in `merch`), then set `draft: false` to show it on the home page and in the menu.
+- [x] Merch decided: the grey Club Jacket at Rs 570, a 3D bomber with the final artwork and the college crest as a peel-off sticker. The page is public, with voting removed.
+- [ ] Merch: delete the draft likes and notes from `/merch/admin`.
 - [x] Blog: the first post, the Robo Spark write-up by Abdul Muhaymin Khan, with its own page linked from the event.
 - [ ] Real content from the club: our story (About), workshop speakers, project write-ups, photos for Gallery and Team.
 - [ ] Bot Forge registration, once the club confirms the rules.
