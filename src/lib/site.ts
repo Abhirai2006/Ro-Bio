@@ -702,7 +702,7 @@ export const merch = {
       details: [
         "Full front zip",
         "Stand-up rib collar",
-        "Side pockets and a sleeve pocket",
+        "Side pockets",
         "Rib cuffs and hem",
         "College crest as a peel-off sticker",
       ],
@@ -724,8 +724,8 @@ export const merch = {
     { size: "XXL", width: 24 },
   ],
   /**
-   * The 3D jacket is a free model from Sketchfab under CC BY 4.0, which asks for this credit. We recoloured it,
-   * lowered the arms and made the files smaller.
+   * The 3D jacket is a free model from Sketchfab under CC BY 4.0, which asks for this credit. It is shown in
+   * Credits on the Terms page. Keep it there while the model is on the site.
    */
   models: [
     {
