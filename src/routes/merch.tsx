@@ -6,18 +6,7 @@ import { canonical } from "@/lib/seo";
 
 export const Route = createFileRoute("/merch")({
   head: () => ({
-    // the fonts for the sleeve number styles, only on this page; the Japanese one only carries the numerals
-    links: [
-      ...(merch.draft ? [] : [canonical("/merch")]),
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Permanent+Marker&family=Potta+One&family=Silkscreen:wght@700&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: `https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@900&text=${encodeURIComponent("零一二三四五六七八九十番魂")}&display=swap`,
-      },
-    ],
+    links: merch.draft ? [] : [canonical("/merch")],
     // a draft for members, shared by link, stays out of search engines; the final kit is a public showcase
     meta: merch.draft
       ? [
@@ -26,7 +15,7 @@ export const Route = createFileRoute("/merch")({
           {
             name: "description",
             content:
-              "Draft RO-BIO kit for members: a zip hoodie, a hoodie, a round neck tee and a polo in four colours. Turn each one in 3D, like your favourite and tell us what you think.",
+              "Draft RO-BIO club jacket for members. Turn it in 3D, like it and tell us what you think.",
           },
           { property: "og:title", content: "RO-BIO merch drafts" },
           {
@@ -40,12 +29,12 @@ export const Route = createFileRoute("/merch")({
           {
             name: "description",
             content:
-              "The RO-BIO club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo in four colours. Turn each piece, unzip the zip hoodie and try your own name and number.",
+              "The RO-BIO club jacket in 3D: a grey bomber with a full zip and the design team's Define the Future print, for Rs 570. Turn it, unzip it and see every print.",
           },
           { property: "og:title", content: "RO-BIO merch" },
           {
             property: "og:description",
-            content: "The club kit in 3D. Turn it, unzip it, put your name on it.",
+            content: "The club jacket in 3D. Turn it, unzip it, see every print.",
           },
         ],
   }),
@@ -56,12 +45,9 @@ function Merch() {
   return (
     <>
       <PageIntro label={`RO-BIO KIT / ${merch.drop.toUpperCase()}`} title="Wear the club.">
-        A zip hoodie, a hoodie, a round neck tee and a polo, with artwork by our design team: the
-        Define the Future print on the back, the robot Mono and a name on the front, the college
-        crest on one sleeve and a number on the other.{" "}
-        {merch.draft
-          ? "Turn each piece around, try the colours, like the ones you would wear and tell us what to change."
-          : "Turn each piece around, unzip the zip hoodie and try the colours with your own name and number."}
+        The club jacket: a grey bomber with a full zip and artwork by our design team. The Define
+        the Future print on the back, the robot Mono and the stars on the front, and the college
+        crest as a peel-off sticker for the right sleeve. Turn it around and unzip it.
       </PageIntro>
       <MerchStudio />
     </>
