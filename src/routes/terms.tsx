@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/site/legal";
 import { canonical } from "@/lib/seo";
-import { site } from "@/lib/site";
+import { merch, site } from "@/lib/site";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
@@ -70,6 +70,24 @@ function Page() {
         The text, design, logo and artwork on this site belong to RO-BIO and its creators. You may
         quote short parts with a clear credit and a link back. Please do not reuse the logo or
         branding without asking us first.
+      </p>
+
+      <h2>Credits</h2>
+      <p>
+        The 3D club jacket on the merch page is a free model from Sketchfab under{" "}
+        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+          CC BY 4.0
+        </a>
+        . We recoloured it, lowered its arms, took off its snap buttons and made its files smaller:{" "}
+        {merch.models.map((m, i) => (
+          <span key={m.kind}>
+            <a href={m.url} target="_blank" rel="noreferrer">
+              {m.title}
+            </a>{" "}
+            by {m.author}
+            {i < merch.models.length - 1 ? "; " : "."}
+          </span>
+        ))}
       </p>
 
       <h2>Other websites</h2>
