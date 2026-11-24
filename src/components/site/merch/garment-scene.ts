@@ -76,7 +76,7 @@ const PRINT: Record<
   }
 > = {
   jacket: {
-    back: 0.365,
+    back: 0.345,
     poster: 0.26,
     mono: [0.11, 0.47, 0.11],
     stars: [-0.11, 0.46, 0.13],
