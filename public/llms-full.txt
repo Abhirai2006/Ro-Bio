@@ -76,6 +76,7 @@ Only if you sign up for core recruitment on the Join page. That form asks for yo
 - [Workshops](https://ro-bio.hub-muse.workers.dev/workshops): Workshops for members and students (content coming soon).
 - [Projects](https://ro-bio.hub-muse.workers.dev/projects): Projects built by the club.
 - [Gallery](https://ro-bio.hub-muse.workers.dev/gallery): Photos from the club.
+- [Merch](https://ro-bio.hub-muse.workers.dev/merch): The RO-BIO club jacket in 3D: a grey bomber with a full zip and the design team's artwork, for Rs 570.
 - [Blog](https://ro-bio.hub-muse.workers.dev/blog): Posts from the club: 2 so far, the latest on 13 Nov 2026.
 - [How I built the RO-BIO website](https://ro-bio.hub-muse.workers.dev/blog/how-i-built-the-website): By Abhishek Rai A, 13 Nov 2026. A robot arm, a sumo ring, a heartbeat and a robot called Robo: how the club's website came together, who helped, and what is coming next.
 - [Sparking the Future: How We Kicked Off RO-BIO with Robo Spark!](https://ro-bio.hub-muse.workers.dev/blog/robo-spark-kickoff): By Abdul Muhaymin Khan, 4 Nov 2026. How our first event went: first years designing robots without their phones, a few dal-serving drones, and what this blog is for.
