@@ -70,7 +70,7 @@ try {
           [
             "/merch",
             "Merch",
-            "The club kit in 3D: a zip hoodie, a hoodie, a round neck tee and a polo, with prices and colours.",
+            `The RO-BIO club jacket in 3D: a grey bomber with a full zip and the design team's artwork, for Rs ${merch.products[0].price}.`,
           ],
         ]),
     [
