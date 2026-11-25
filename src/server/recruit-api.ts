@@ -60,8 +60,7 @@ type Store = ReturnType<DurableObjectNamespace<RecruitStore>["get"]>;
 /** Why the /join form is not taking sign-ups right now, or "" when it is. */
 async function closedReason(store: Store, now: number): Promise<string> {
   if (recruitment.status !== "open") return "Sign-ups for this round are closed.";
-  if (!recruitmentOpen(now))
-    return `Sign-ups closed on ${recruitment.closesLabel}. If you still want to apply, come to the interview room and ask an organiser.`;
+  if (!recruitmentOpen(now)) return "DM us on Instagram if you are interested.";
   if (await store.isPaused())
     return "Sign-ups are paused for now. Check the WhatsApp group, or ask an organiser at the interview room.";
   return "";
