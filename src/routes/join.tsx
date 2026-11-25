@@ -361,7 +361,15 @@ function SignUp() {
         </div>
       ) : state && !state.open ? (
         <p role="status" className="mt-6 border-2 border-border bg-muted p-5 font-bold">
-          {state.reason}
+          {state.reason}{" "}
+          <a
+            href={site.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary underline underline-offset-2"
+          >
+            {site.instagramHandle}
+          </a>
         </p>
       ) : (
         <form
