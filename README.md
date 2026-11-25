@@ -151,7 +151,7 @@ He respects reduced-motion settings and can be rested or hidden with one click, 
 
 <img src="docs/screenshots/bot-forge.jpg" alt="The Bot Forge event page" width="100%" />
 
-**Bot Forge** is the club's first robotics competition, with Robo Sumo and a Robot Race. The date is coming soon, and the page says so plainly until it is set.
+**Bot Forge** is the club's first robotics competition, with Robo Sumo and a Robot Race, on 8 December 2026. Registration opens once the club confirms the rules, and the page says so plainly until then.
 
 <br />
 
@@ -293,7 +293,7 @@ Every push to `main` builds and deploys by itself on Cloudflare Workers.
 
 ## What is next
 
-- Bot Forge date and registration, once the club confirms them
+- Bot Forge registration, once the club confirms the rules
 - Real photos for the gallery and team cards
 - Write-ups of the projects members are building
 - The full list is in [roadmap.md](roadmap.md)
