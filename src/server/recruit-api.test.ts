@@ -413,7 +413,7 @@ describe("the public /join sign-up", () => {
     const { apply, store } = applySetup();
     const state = await apply(undefined, AFTER);
     expect(state.data["open"]).toBe(false);
-    expect(state.data["reason"]).toMatch(/closed/);
+    expect(state.data["reason"]).toMatch(/DM us on Instagram/);
     expect((await apply(form(), AFTER)).status).toBe(403);
     expect(store.list()).toHaveLength(0);
   });
