@@ -264,6 +264,7 @@ export const teamPhotos: Record<string, string> = {
   "Shrishant Bashetty": "/team/people/shrishant-bashetty.webp",
   "Brunda H S": "/team/people/brunda-h-s.webp",
   "Varsha H K": "/team/people/varsha-h-k.webp",
+  "Thushar K L": "/team/people/thushar-k-l.webp",
   "Shloka D Raj": "/team/people/shloka-d-raj.webp",
   "Pushkal Sai A": "/team/people/pushkal-sai-a.webp",
   "Monica S": "/team/people/monica-s.webp",
@@ -286,6 +287,14 @@ export const teamLinkedIn: Record<string, string> = {
   "Shrishant Bashetty": "https://www.linkedin.com/in/shrishant-bashetty-5442a732a",
   "Viren Biddappa K A": "https://www.linkedin.com/in/viren-biddappa-k-a-634430304",
   "Preetham Gowda S R": "https://www.linkedin.com/in/preetham-gowda-sr-3aa8103b7",
+};
+
+/**
+ * Peerlist profile links, by name, for people who asked for Peerlist instead of LinkedIn.
+ * Their card flips to show this link the same way. Someone in both lists shows LinkedIn.
+ */
+export const teamPeerlist: Record<string, string> = {
+  "Thushar K L": "https://peerlist.io/kthushar032",
 };
 
 /**
