@@ -1,7 +1,15 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { coreTeam, faculty, squadArtPending, squadPages, teamLinkedIn, teamPhotos } from "./site";
+import {
+  coreTeam,
+  faculty,
+  squadArtPending,
+  squadPages,
+  teamLinkedIn,
+  teamPeerlist,
+  teamPhotos,
+} from "./site";
 import { squadFx, type SquadSlug } from "./squad-fx";
 import { squadLoops } from "./squad-loops";
 import { BLUEPRINT_LABELS, CODE_LINES } from "./squad-warp";
@@ -57,6 +65,14 @@ describe("squad pages", () => {
   it("keeps LinkedIn links clean: https, the /in/ part only, no tracking or trailing slash", () => {
     for (const [name, url] of Object.entries(teamLinkedIn))
       expect(url, name).toMatch(/^https:\/\/www\.linkedin\.com\/in\/[a-z0-9-]+$/);
+  });
+
+  it("keeps Peerlist links clean and only for real team members", () => {
+    const names = new Set(coreTeam.flatMap((s) => s.members.map((m) => m.name)));
+    for (const [name, url] of Object.entries(teamPeerlist)) {
+      expect(names.has(name), name).toBe(true);
+      expect(url, name).toMatch(/^https:\/\/peerlist\.io\/[a-z0-9._-]+$/);
+    }
   });
 
   it("gives every squad exactly one head", () => {
