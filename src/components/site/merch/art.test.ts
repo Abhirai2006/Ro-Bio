@@ -6,7 +6,7 @@ import { CREST_SRC, MONO_SRC, POSTER_SRC, STARS_SRC } from "./art";
 describe("merch print art", () => {
   it("has every print file the jacket wears", () => {
     for (const src of [POSTER_SRC, MONO_SRC, STARS_SRC, CREST_SRC])
-      expect(existsSync(resolve("public", src.slice(1))), src).toBe(true);
+      expect(existsSync(resolve("public", src.split("?")[0]!.slice(1))), src).toBe(true);
   });
 
   it("has the 3D jacket and its texture", () => {
