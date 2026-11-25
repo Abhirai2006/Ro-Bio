@@ -19,6 +19,7 @@ import {
   POSTER_SRC,
   STARS_ASPECT,
   STARS_SRC,
+  versioned,
 } from "./art";
 
 export type View = "front" | "back" | "right" | "left";
@@ -242,7 +243,11 @@ export function createMerchScene(
   // the two-tone line, shared by every fabric material: the colour below it and its height on the piece on show
   const duo = { uLower: { value: shown.lower }, uSplit: { value: PRINT[pick.kind].split } };
 
-  const gltf = new GLTFLoader();
+  // every file of the model (the .gltf, its .bin and its texture) carries the merch fingerprint, so an updated
+  // jacket is never mixed with pieces of the old one from the browser's cache
+  const manager = new THREE.LoadingManager();
+  manager.setURLModifier(versioned);
+  const gltf = new GLTFLoader(manager);
   const cache = new Map<MerchKind, Promise<Built>>();
   let current: Built | null = null;
   const raycaster = new THREE.Raycaster();
