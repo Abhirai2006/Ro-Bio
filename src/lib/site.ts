@@ -54,7 +54,7 @@ export const events: ClubEvent[] = [
     slug: "bot-forge",
     title: "Bot Forge",
     kind: "Competition",
-    date: null,
+    date: "2026-12-08",
     venue: site.address,
     activities: [
       { name: "Robo Sumo", tag: "EVENT" },
