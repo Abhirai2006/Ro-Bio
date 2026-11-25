@@ -13,27 +13,26 @@ export function MerchTeaser() {
   if (merch.draft) return null;
   return (
     <section className="mx-auto mt-20 max-w-6xl px-4" aria-labelledby="wear-the-club">
-      <p className="font-pixel text-xs text-primary">RO-BIO KIT / {merch.drop.toUpperCase()}</p>
       <div
         data-robo-perch
-        className="mt-4 grid overflow-hidden border-2 border-border bg-card shadow-hard-violet md:grid-cols-[1.15fr_1fr]"
+        className="grid overflow-hidden border-2 border-border bg-card shadow-hard-violet md:grid-cols-[1.15fr_1fr]"
       >
         <div
           className="relative aspect-[5/4] border-b-2 border-border md:border-b-0 md:border-r-2"
           style={{
             background:
               // the same studio light the picture was taken in, so its edges disappear
-              "radial-gradient(70% 80% at 50% 45%, #e9e6ee 0%, #e2dee9 60%, #d6d2df 100%)",
+              "linear-gradient(#e1dee8, #d6d3df)",
           }}
         >
           <img
             src="/merch/jacket-still.webp"
             alt="The grey club jacket from the front, with the stars and Mono on the chest"
-            width={526}
-            height={576}
+            width={1000}
+            height={800}
             loading="lazy"
             decoding="async"
-            className="absolute inset-0 h-full w-full object-contain [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]"
+            className="absolute inset-0 h-full w-full object-contain"
           />
         </div>
         <div className="flex flex-col justify-center p-6 md:p-10">
