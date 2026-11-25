@@ -911,7 +911,7 @@
   }
 }
 
-/* Mobile menu: the page underneath stops scrolling and Robo steps aside while it is open. */
+/* The site menu: the page underneath stops scrolling and Robo steps aside while it is open. */
 html[data-menu="open"] body {
   overflow: hidden;
 }
@@ -920,6 +920,14 @@ html[data-menu="open"] .robo-ui {
 }
 .menu-panel {
   animation: menu-drop 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.menu-dim {
+  animation: menu-fade 0.2s ease both;
+}
+@keyframes menu-fade {
+  from {
+    opacity: 0;
+  }
 }
 .menu-row {
   animation: menu-row 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
