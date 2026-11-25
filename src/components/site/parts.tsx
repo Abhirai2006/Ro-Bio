@@ -15,7 +15,7 @@ import { HeaderEcg } from "@/components/site/HeaderEcg";
 
 export const logoUrl = logo;
 
-// `hint` is the one-liner under each link in the mobile menu. It repeats what that page already says.
+// `hint` is the one-liner under each link in the menu. It repeats what that page already says.
 const nav = [
   { to: "/about", label: "About", hint: "Who we are" },
   { to: "/events", label: "Events", hint: "What's coming up" },
@@ -25,11 +25,13 @@ const nav = [
   { to: "/gallery", label: "Gallery", hint: "Photos and drawings" },
   { to: "/blog", label: "Blog", hint: "Lab notes" },
   // the merch page joins the menu once it stops being a draft for members (merch.draft in src/lib/site.ts)
-  ...(merch.draft ? [] : ([{ to: "/merch", label: "Merch", hint: "The club kit in 3D" }] as const)),
+  ...(merch.draft
+    ? []
+    : ([{ to: "/merch", label: "Merch", hint: "The club jacket in 3D" }] as const)),
   { to: "/contact", label: "Contact", hint: "Call us or DM us" },
   // the sign-up page joins the menu while recruitment is open (recruitment.status in src/lib/site.ts)
   ...(recruitment.status === "open"
-    ? ([{ to: "/join", label: "Join", hint: "Core recruitment is open" }] as const)
+    ? ([{ to: "/join", label: "Join", hint: "Join the core team" }] as const)
     : []),
 ] as const;
 
@@ -101,33 +103,15 @@ export function SiteHeader() {
             RO-BIO
           </span>
         </Link>
-        <nav aria-label="Main" className="hidden lg:block">
-          <ul className="flex gap-0.5 xl:gap-1">
-            {nav.map((n) => (
-              <li key={n.to}>
-                <Link
-                  to={n.to}
-                  className="px-2 py-2 text-sm font-bold hover:text-primary xl:px-2.5"
-                  activeProps={{
-                    className:
-                      "px-2 py-2 text-sm font-bold text-primary underline decoration-2 underline-offset-4 xl:px-2.5",
-                  }}
-                >
-                  {n.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
         <div className="flex items-center gap-2">
           <HeaderEcg />
           <ThemeToggle />
           <button
             ref={toggle}
             type="button"
-            className="flex items-center gap-2 border-2 border-border bg-ink px-2.5 py-1.5 font-pixel text-[11px] text-paper lg:hidden dark:bg-lilac dark:text-ink"
+            className="flex items-center gap-2 border-2 border-border bg-ink px-2.5 py-1.5 font-pixel text-[11px] text-paper dark:bg-lilac dark:text-ink"
             aria-expanded={open}
-            aria-controls="mobile-nav"
+            aria-controls="site-nav"
             onClick={() => (open ? close() : setOpen(true))}
           >
             <span aria-hidden="true" className="relative block h-3 w-4">
@@ -145,13 +129,17 @@ export function SiteHeader() {
           </button>
         </div>
       </div>
-      {open && <MobileNav onClose={close} toggle={toggle} />}
+      {open && <SiteMenu onClose={close} toggle={toggle} />}
     </header>
   );
 }
 
-/** Full-height menu for phones. Rows slide in one after another; Esc closes; focus stays inside while it is open. */
-function MobileNav({
+/**
+ * The site menu, behind the MENU button on every screen. On a phone it fills the screen below the header; on a
+ * computer it drops down as a grid of cards over a dimmed page. Rows slide in one after another, Esc or a click
+ * outside closes it, and focus stays inside while it is open.
+ */
+function SiteMenu({
   onClose,
   toggle,
 }: {
@@ -183,102 +171,107 @@ function MobileNav({
       e.preventDefault();
       els[to]!.focus();
     };
-    const wide = matchMedia("(min-width: 1024px)");
-    const grow = () => wide.matches && onClose();
     addEventListener("keydown", key);
-    wide.addEventListener("change", grow);
     return () => {
       delete root.dataset["menu"];
       removeEventListener("keydown", key);
-      wide.removeEventListener("change", grow);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Portalled to <body>: the header's backdrop blur would otherwise trap a fixed panel inside the header box.
   return createPortal(
-    <div
-      ref={panel}
-      id="mobile-nav"
-      className="menu-panel blueprint fixed inset-x-0 bottom-0 z-40 overflow-y-auto overscroll-contain border-t-2 border-border bg-background lg:hidden"
-      style={{ top }}
-    >
-      <div className="flex items-center gap-3 border-b-2 border-border bg-ink px-4 py-2 text-paper">
-        <span className="shrink-0 font-pixel text-[10px] text-lilac">SELECT A PAGE</span>
-        <PulseLine className="h-6 flex-1 text-lens" />
-        <span className="shrink-0 font-mono text-[10px] opacity-70">{nav.length} PAGES</span>
-      </div>
-      <nav aria-label="Mobile">
-        <ul>
-          {nav.map((n, i) => {
-            const here = pathname === n.to || pathname.startsWith(n.to + "/");
-            return (
-              <li
-                key={n.to}
-                className="menu-row border-b-2 border-border"
-                style={{ "--i": i } as React.CSSProperties}
-              >
-                <Link
-                  to={n.to}
-                  data-here={here || undefined}
-                  onClick={() => onClose()}
-                  className={`group flex items-center gap-4 px-4 py-3 transition-colors active:bg-secondary ${here ? "bg-primary text-primary-foreground active:bg-primary" : "bg-card/80"}`}
+    <>
+      {/* on a computer the page stays visible under the menu, dimmed; a click on it closes the menu */}
+      <div
+        aria-hidden="true"
+        className="menu-dim fixed inset-x-0 bottom-0 z-40 hidden bg-black/55 lg:block"
+        style={{ top }}
+        onClick={() => onClose(true)}
+      />
+      <div
+        ref={panel}
+        id="site-nav"
+        className="menu-panel blueprint fixed inset-x-0 bottom-0 z-40 overflow-y-auto overscroll-contain border-t-2 border-border bg-background lg:bottom-auto lg:max-h-[calc(100vh-5rem)] lg:border-b-2 lg:shadow-hard"
+        style={{ top }}
+      >
+        <div className="flex items-center gap-3 border-b-2 border-border bg-ink px-4 py-2 text-paper">
+          <span className="shrink-0 font-pixel text-[10px] text-lilac">SELECT A PAGE</span>
+          <PulseLine className="h-6 flex-1 text-lens" />
+          <span className="shrink-0 font-mono text-[10px] opacity-70">{nav.length} PAGES</span>
+        </div>
+        <nav aria-label="Main">
+          <ul className="lg:mx-auto lg:grid lg:max-w-6xl lg:grid-cols-5 lg:gap-3 lg:px-4 lg:pt-5">
+            {nav.map((n, i) => {
+              const here = pathname === n.to || pathname.startsWith(n.to + "/");
+              return (
+                <li
+                  key={n.to}
+                  className="menu-row border-b-2 border-border lg:border-b-0"
+                  style={{ "--i": i } as React.CSSProperties}
                 >
-                  <span className={`font-mono text-xs ${here ? "" : "text-primary"}`}>
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-display text-2xl font-black italic leading-tight">
-                      {n.label}
+                  <Link
+                    to={n.to}
+                    data-here={here || undefined}
+                    onClick={() => onClose()}
+                    className={`group flex items-center gap-4 px-4 py-3 transition active:bg-secondary lg:h-full lg:gap-3 lg:border-2 lg:border-border lg:shadow-hard lg:hover:-translate-y-1 ${here ? "bg-primary text-primary-foreground active:bg-primary" : "bg-card/80 lg:hover:bg-secondary"}`}
+                  >
+                    <span className={`font-mono text-xs ${here ? "" : "text-primary"}`}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-display text-2xl font-black italic leading-tight lg:text-xl">
+                        {n.label}
+                      </span>
+                      <span
+                        className={`block text-xs ${here ? "opacity-90" : "text-muted-foreground"}`}
+                      >
+                        {here ? "You are here" : n.hint}
+                      </span>
                     </span>
                     <span
-                      className={`block text-xs ${here ? "opacity-90" : "text-muted-foreground"}`}
+                      aria-hidden="true"
+                      className={`grid h-10 w-10 shrink-0 place-items-center border-2 text-lg font-bold transition-transform group-active:translate-x-1 lg:hidden ${here ? "border-primary-foreground" : "border-border bg-background shadow-hard"}`}
                     >
-                      {here ? "You are here" : n.hint}
+                      {here ? "●" : "→"}
                     </span>
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={`grid h-10 w-10 shrink-0 place-items-center border-2 text-lg font-bold transition-transform group-active:translate-x-1 ${here ? "border-primary-foreground" : "border-border bg-background shadow-hard"}`}
-                  >
-                    {here ? "●" : "→"}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-      <div
-        className="menu-row grid grid-cols-2 gap-3 p-4"
-        style={{ "--i": nav.length } as React.CSSProperties}
-      >
-        <Link
-          to="/events/$slug"
-          params={{ slug: next.slug }}
-          onClick={() => onClose()}
-          className="border-2 border-border bg-ink p-3 text-paper shadow-hard-violet"
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+        <div
+          className="menu-row grid grid-cols-2 gap-3 p-4 lg:mx-auto lg:max-w-6xl lg:pb-6"
+          style={{ "--i": nav.length } as React.CSSProperties}
         >
-          <span className="block font-pixel text-[9px] text-lilac">NEXT UP</span>
-          <span className="mt-1 block font-display text-lg font-black italic leading-tight">
-            {next.title}
-          </span>
-          <span className="block font-mono text-[11px] opacity-80">{eventDate(next)}</span>
-        </Link>
-        <a
-          href={site.instagram}
-          target="_blank"
-          rel="noreferrer"
-          className="border-2 border-border bg-lilac p-3 text-ink shadow-hard"
-        >
-          <span className="block font-pixel text-[9px]">SAY HI</span>
-          <span className="mt-1 block font-display text-lg font-black leading-tight">
-            Instagram
-          </span>
-          <span className="block font-mono text-[11px]">{site.instagramHandle}</span>
-        </a>
+          <Link
+            to="/events/$slug"
+            params={{ slug: next.slug }}
+            onClick={() => onClose()}
+            className="border-2 border-border bg-ink p-3 text-paper shadow-hard-violet"
+          >
+            <span className="block font-pixel text-[9px] text-lilac">NEXT UP</span>
+            <span className="mt-1 block font-display text-lg font-black italic leading-tight">
+              {next.title}
+            </span>
+            <span className="block font-mono text-[11px] opacity-80">{eventDate(next)}</span>
+          </Link>
+          <a
+            href={site.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="border-2 border-border bg-lilac p-3 text-ink shadow-hard"
+          >
+            <span className="block font-pixel text-[9px]">SAY HI</span>
+            <span className="mt-1 block font-display text-lg font-black leading-tight">
+              Instagram
+            </span>
+            <span className="block font-mono text-[11px]">{site.instagramHandle}</span>
+          </a>
+        </div>
       </div>
-    </div>,
+    </>,
     document.body,
   );
 }
