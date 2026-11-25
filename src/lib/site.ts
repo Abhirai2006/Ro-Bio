@@ -203,7 +203,7 @@ export const coreTeam: Squad[] = [
     about: "Plans and runs RO-BIO's events: the layout, the schedule, the crew and the volunteers.",
     members: [
       m("Tejaswini V", 6, "BMRE", true),
-      m("Kartik Kushalappa", 6),
+      m("Karthik Kushalappa", 6),
       m("Abhijna Samanth", 6),
       m("Abdul Muhaymin Khan", 6),
       m("Tejaswini", 4),
@@ -259,6 +259,8 @@ export const teamPhotos: Record<string, string> = {
   "Archana G": "/team/people/archana-g.webp",
   "Abhishek Rai A": "/team/people/abhishek-rai-a.webp",
   "Anagha A Raichurkar": "/team/people/anagha-a-raichurkar.webp",
+  "Ananya R": "/team/people/ananya-r.webp",
+  "Karthik Kushalappa": "/team/people/karthik-kushalappa.webp",
   "Abdul Muhaymin Khan": "/team/people/abdul-muhaymin-khan.webp",
   "Abhijna Samanth": "/team/people/abhijna-samanth.webp",
   Tejaswini: "/team/people/tejaswini.webp",
@@ -282,6 +284,8 @@ export const teamPhotos: Record<string, string> = {
 export const teamLinkedIn: Record<string, string> = {
   "Abhishek Rai A": "https://www.linkedin.com/in/abhishek-rai-a-00067238b",
   "Anagha A Raichurkar": "https://www.linkedin.com/in/anagha-a-raichurkar-51b349291",
+  "Ananya R": "https://www.linkedin.com/in/ananya-r-b77765318",
+  "Karthik Kushalappa": "https://www.linkedin.com/in/karthik-kushalappa-841094377",
   "Abdul Muhaymin Khan": "https://www.linkedin.com/in/abdul-muhaymin-khan-18103b2a8",
   "Abhijna Samanth": "https://www.linkedin.com/in/abhijna-samanth-k-m-6b4b49376",
   "Gagan Yadav A": "https://www.linkedin.com/in/gagan-yadav-8317a629a",
