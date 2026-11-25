@@ -1,5 +1,12 @@
 import { useRef, useState } from "react";
-import { currentSem, ordinal, teamLinkedIn, teamPhotos, type Member } from "@/lib/site";
+import {
+  currentSem,
+  ordinal,
+  teamLinkedIn,
+  teamPeerlist,
+  teamPhotos,
+  type Member,
+} from "@/lib/site";
 import { memberThought } from "@/lib/robo-talk";
 import "./team-cards.css";
 
@@ -39,12 +46,35 @@ export function Portrait({ name, className = "" }: { name: string; className?: s
   );
 }
 
-/** The part of a LinkedIn link after /in/, like "anagha-a-raichurkar-51b349291". */
-const linkedInId = (url: string) => url.replace(/^.*\/in\//, "").replace(/[/?#].*$/, "");
+/** The part of a link after the site's own address, like "anagha-a-raichurkar-51b349291". */
+const profileId = (url: string, base: RegExp) => url.replace(base, "").replace(/[/?#].*$/, "");
+
+/** Where someone's profile link points: LinkedIn, or Peerlist for those who asked for it. */
+function profileOf(name: string) {
+  const linkedin = teamLinkedIn[name];
+  if (linkedin)
+    return {
+      url: linkedin,
+      site: "LinkedIn",
+      mark: "in",
+      shown: "linkedin.com/in/",
+      id: profileId(linkedin, /^.*\/in\//),
+    };
+  const peerlist = teamPeerlist[name];
+  if (peerlist)
+    return {
+      url: peerlist,
+      site: "Peerlist",
+      mark: "P",
+      shown: "peerlist.io/",
+      id: profileId(peerlist, /^https?:\/\/(www\.)?peerlist\.io\//),
+    };
+  return null;
+}
 
 /**
  * One team member: photo, name, role or HEAD badge, semester and branch. Someone who gave a LinkedIn
- * link gets a card that flips over when tapped, with their LinkedIn ID and a button to open it.
+ * or Peerlist link gets a card that flips over when tapped, with their ID and a button to open it.
  */
 export function MemberCard({
   member,
@@ -57,7 +87,7 @@ export function MemberCard({
   squadTitle?: string;
 }) {
   const thought = memberThought(member, squadTitle);
-  const link = teamLinkedIn[member.name];
+  const profile = profileOf(member.name);
   const badge = member.role ?? (member.head ? "Head" : undefined);
   const [flipped, setFlipped] = useState(false);
   const flipBtn = useRef<HTMLButtonElement>(null);
@@ -82,22 +112,22 @@ export function MemberCard({
         <p className="mt-1 font-mono text-sm text-muted-foreground">
           {ordinal(currentSem(member.sem))} sem {member.dept}
         </p>
-        {link && (
+        {profile && (
           <button
             ref={flipBtn}
             type="button"
             className="mcard-flip"
             aria-expanded={flipped}
-            aria-label={`Show ${member.name}'s LinkedIn`}
+            aria-label={`Show ${member.name}'s ${profile.site}`}
             onClick={(e) => {
               e.stopPropagation();
               flip(true, e.detail === 0);
             }}
           >
             <span className="mcard-in" aria-hidden="true">
-              in
+              {profile.mark}
             </span>
-            LinkedIn
+            {profile.site}
             <span className="mcard-turn" aria-hidden="true">
               <svg viewBox="0 0 16 16" width="14" height="14">
                 <path
@@ -120,7 +150,7 @@ export function MemberCard({
     </>
   );
   const style = { animationDelay: `${Math.min(index, 10) * 70}ms` };
-  if (!link)
+  if (!profile)
     return (
       <article
         data-thought={thought}
@@ -130,7 +160,6 @@ export function MemberCard({
         {front}
       </article>
     );
-  const id = linkedInId(link);
   return (
     <article
       data-thought={thought}
@@ -149,22 +178,22 @@ export function MemberCard({
         <div
           className="mcard-face mcard-back"
           inert={!flipped}
-          aria-label={`${member.name} on LinkedIn`}
+          aria-label={`${member.name} on ${profile.site}`}
           role="group"
         >
-          <p className="font-pixel text-[10px] tracking-widest">LINKEDIN</p>
+          <p className="font-pixel text-[10px] tracking-widest">{profile.site.toUpperCase()}</p>
           <p className="mcard-name font-display">{member.name}</p>
           <p className="mcard-id font-mono">
-            <span>linkedin.com/in/</span>
-            {id}
+            <span>{profile.shown}</span>
+            {profile.id}
           </p>
           <a
             ref={openBtn}
-            href={link}
+            href={profile.url}
             target="_blank"
             rel="noreferrer"
             className="mcard-open"
-            aria-label={`Open ${member.name}'s LinkedIn profile (opens in a new tab)`}
+            aria-label={`Open ${member.name}'s ${profile.site} profile (opens in a new tab)`}
           >
             Open profile <span aria-hidden="true">↗</span>
           </a>
