@@ -42,7 +42,7 @@ export function buildFaqs(
     (c) =>
       c.prizes[0] === info.contests[0]!.prizes[0] && c.prizes[1] === info.contests[0]!.prizes[1],
   )
-    ? `${rs(info.contests[0]!.prizes[0])} for first place and ${rs(info.contests[0]!.prizes[1])} for second in each contest`
+    ? `${rs(info.contests[0]!.prizes[0])} for first place and ${rs(info.contests[0]!.prizes[1])} for second in each event`
     : and(info.contests.map((c) => `${rs(c.prizes[0])} and ${rs(c.prizes[1])} in ${c.title}`));
   const sizes = and(info.contests.map((c) => `${c.team[0]} to ${c.team[1]} for ${c.title}`));
   const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026", no weekday
@@ -58,12 +58,12 @@ export function buildFaqs(
     { q: "Where is RO-BIO based?", a: `${site.address}.` },
     {
       q: "What is Bot Forge?",
-      a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(info.contests.length)} contests: ${and(info.contests.map((c) => c.title))}, plus a Tech Expo of senior students' projects. There are ${rs(total)} in cash prizes: ${prizeLine}. Every participant gets ${info.forEveryone}.`,
+      a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(info.contests.length)} events: ${and(info.contests.map((c) => c.title))}. There are ${rs(total)} in cash prizes: ${prizeLine}. Every participant gets ${info.forEveryone}.`,
     },
     {
       q: "When is Bot Forge?",
       a: bf.date
-        ? `Bot Forge is on ${formatDate(bf.date)}${bf.time ? `, ${bf.time}` : ""}, at ${site.college}. The inauguration is at 11 am and the contests start at 2 pm.`
+        ? `Bot Forge is on ${formatDate(bf.date)}${bf.time ? `, ${bf.time}` : ""}, at ${site.college}. The inauguration is at 11 am and the events start at 2 pm.`
         : `The date for Bot Forge is coming soon. It will be announced on the Bot Forge page and on Instagram ${site.instagramHandle}.`,
     },
     {
