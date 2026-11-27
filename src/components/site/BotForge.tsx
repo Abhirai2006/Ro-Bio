@@ -70,8 +70,6 @@ export function PrizePair({ c, dark = false }: { c: Contest; dark?: boolean }) {
 
 /** The cash prize banner: the total, then first and second for every contest. The page's main message. */
 export function PrizeBanner() {
-  const [first, second] = botForgeInfo.contests[0]!.prizes;
-  const same = botForgeInfo.contests.every((c) => c.prizes[0] === first && c.prizes[1] === second);
   return (
     // Room above the banner for the robot, so he never covers the text above it.
     <div className="relative pt-[78px] sm:pt-[96px] md:pt-[120px]">
@@ -97,14 +95,8 @@ export function PrizeBanner() {
           </span>
           <span className="mt-3 block text-2xl md:text-3xl">in cash prizes to win</span>
         </h2>
-        {same && (
-          <p className="mt-3 max-w-xl text-lg opacity-90">
-            {rupees(first)} for first place and {rupees(second)} for second, in every one of the{" "}
-            {botForgeInfo.contests.length} contests.
-          </p>
-        )}
-        <p className="mt-3 inline-block border-2 border-dashed border-lens px-3 py-2 font-bold">
-          Plus, every participant gets {botForgeInfo.forEveryone}.
+        <p className="mt-4 inline-block border-2 border-dashed border-lens px-3 py-2 font-bold">
+          Every participant gets {botForgeInfo.forEveryone}.
         </p>
         <ul className="mt-6 grid gap-4 md:grid-cols-3">
           {botForgeInfo.contests.map((c) => (
@@ -267,7 +259,7 @@ export function ContestCards() {
             className="flex h-full flex-col border-2 border-border bg-card shadow-hard"
           >
             <div className="flex items-center justify-between border-b-2 border-border bg-secondary px-2 py-1">
-              <span className="font-pixel text-[10px] tracking-wider">CONTEST</span>
+              <span className="font-pixel text-[10px] tracking-wider">EVENT</span>
               <span className="font-pixel text-[10px]">
                 TEAMS OF {c.team[0]} TO {c.team[1]}
               </span>
