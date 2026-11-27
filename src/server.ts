@@ -6,6 +6,7 @@ import { handleJudgeApi, type JudgeEnv } from "./server/judge-api";
 import { handleCertApi, type CertEnv } from "./server/cert-api";
 import { handleRecruitApi, type RecruitEnv } from "./server/recruit-api";
 import { handleMerchApi, type MerchEnv } from "./server/merch-api";
+import { handleBotForgeApi, type BotForgeEnv } from "./server/botforge-api";
 import { serveClip, type AssetsEnv } from "./server/media-range";
 
 // The Robo Spark score sheet. Cloudflare needs the Durable Object class exported from the Worker's main file.
@@ -16,6 +17,8 @@ export { CertStore } from "./server/cert-store";
 export { RecruitStore } from "./server/recruit-store";
 // Merch likes and feedback. Same reason: the class must be exported here.
 export { MerchStore } from "./server/merch-store";
+// Bot Forge teams, members and payments. Same reason: the class must be exported here.
+export { BotForgeStore } from "./server/botforge-store";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -68,7 +71,7 @@ const CSP = [
   "img-src 'self' data: blob:", // blob: lets a certificate be drawn onto a canvas for the PNG download
   "media-src 'self'", // the squad clips in /team/art
   "frame-src https://www.google.com https://maps.google.com", // the venue map on Contact and Bot Forge
-  "connect-src 'self'",
+  "connect-src 'self' blob:", // blob: lets three.js unpack the textures inside a .glb model (the Shark Tank shark)
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -109,6 +112,8 @@ export default {
         return withSecurityHeaders(await handleRecruitApi(request, env as RecruitEnv));
       if (new URL(request.url).pathname.startsWith("/api/merch/"))
         return withSecurityHeaders(await handleMerchApi(request, env as MerchEnv));
+      if (new URL(request.url).pathname.startsWith("/api/bot-forge/"))
+        return withSecurityHeaders(await handleBotForgeApi(request, env as BotForgeEnv));
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return withSecurityHeaders(await normalizeCatastrophicSsrResponse(response));
