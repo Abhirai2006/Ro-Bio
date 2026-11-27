@@ -82,6 +82,11 @@ export function SharkBurst() {
           try {
             world.current = createSharkWorld(stage.current, {
               url: botForgeInfo.shark.model,
+              fishing: {
+                robotUrl: botForgeInfo.shark.fisherRobot,
+                rodUrl: botForgeInfo.shark.fishingRod,
+                notesUrl: botForgeInfo.shark.rupeeNotes,
+              },
               banner: banner.current,
               hole: hole.current as unknown as HTMLElement,
               lite: level === "lite",
@@ -143,7 +148,10 @@ export function SharkBurst() {
         aria-hidden="true"
         hidden={mode === "still"}
       />
-      <div className="mx-auto max-w-6xl px-4 pb-14 pt-16 md:pb-20 md:pt-24">
+      {/* Room above the banner for the fisherman, who sits on its top edge. */}
+      <div
+        className={`mx-auto max-w-6xl px-4 pb-14 md:pb-20 ${mode === "still" ? "pt-16 md:pt-24" : "pt-[190px] md:pt-[250px]"}`}
+      >
         <div className="relative">
           <div
             ref={banner}
@@ -243,6 +251,16 @@ export function SharkBurst() {
               {credit.license}
             </a>
             .
+            {botForgeInfo.shark.moreCredits.map((m) => (
+              <span key={m.url}>
+                {" "}
+                {m.what}: “
+                <a href={m.url} target="_blank" rel="noreferrer" className="underline">
+                  {m.title}
+                </a>
+                ” by {m.author}, {credit.license}.
+              </span>
+            ))}
           </p>
           {mode === "3d" && (
             <span className="flex flex-wrap gap-2">
