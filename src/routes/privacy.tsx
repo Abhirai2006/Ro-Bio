@@ -10,13 +10,13 @@ export const Route = createFileRoute("/privacy")({
       {
         name: "description",
         content:
-          "What the RO-BIO website stores and shares: the recruitment sign-up, no accounts, no analytics, no cookies of our own.",
+          "What the RO-BIO website stores and shares: the Bot Forge team registration and the recruitment sign-up. No accounts, no analytics, no cookies of our own.",
       },
       { property: "og:title", content: "Privacy Policy | RO-BIO" },
       {
         property: "og:description",
         content:
-          "What the RO-BIO website stores and shares: the recruitment sign-up, no accounts, no analytics, no cookies of our own.",
+          "What the RO-BIO website stores and shares: the Bot Forge team registration and the recruitment sign-up. No accounts, no analytics, no cookies of our own.",
       },
     ],
     links: [canonical("/privacy")],
@@ -34,10 +34,10 @@ function Page() {
 
       <h2>The short version</h2>
       <p>
-        The only place this site asks for personal information is the core recruitment sign-up on
-        the Join page (see below). There are no accounts or newsletters. We do not use analytics or
-        advertising trackers. The site sets no cookies of its own, and the Google map on the Contact
-        and Bot Forge pages comes from Google.
+        This site asks for personal information in two places only: the Bot Forge team registration
+        and the core recruitment sign-up on the Join page (both below). There are no accounts or
+        newsletters. We do not use analytics or advertising trackers. The site sets no cookies of
+        its own, and the Google map on the Contact and Bot Forge pages comes from Google.
       </p>
 
       <h2>What our hosting provider sees</h2>
@@ -68,6 +68,12 @@ function Page() {
           <strong>robio-robo</strong> (local storage): remembers if you chose to rest or hide Robo,
           the robot that roams the site. It stays until you clear your browser data.
         </li>
+        <li>
+          <strong>robio-botforge-team</strong> (local storage): after you register a Bot Forge team
+          on a phone, it remembers the team number, team name and contest, so the payment form can
+          fill in the team number. No one's name, USN, phone or email. It stays until you clear your
+          browser data.
+        </li>
       </ul>
       <p>None of these contains personal information, and none is sent to us.</p>
       <p>
@@ -76,7 +82,9 @@ function Page() {
         so they stay signed in), <strong>robio-recruit-drafts</strong> (local storage: marks not
         saved yet), <strong>robio-recruit-admin</strong> (session storage: the admin passcode until
         the tab closes) and <strong>robio-recruit-sent</strong> (local storage, admins only: which
-        result emails were opened, as numbers, no names). Signing out removes the passcodes.
+        result emails were opened, as numbers, no names). The Bot Forge admin page keeps its
+        passcode in <strong>robio-botforge-admin</strong> (session storage) until the tab closes.
+        Signing out removes the passcodes.
       </p>
 
       <h2>Other companies involved</h2>
@@ -138,10 +146,26 @@ function Page() {
         can ask us to delete yours sooner.
       </p>
 
-      <h2>If we add registration later</h2>
+      <h2>Bot Forge registration</h2>
       <p>
-        Bot Forge registration is not open yet. Before it opens, we will update this policy to say
-        what it collects, why, who can see it and how long we keep it.
+        Teams register for Bot Forge on this site. We store what the team types in a private part of
+        this site: the contest, the team name, each member's name, USN, branch and semester, the
+        team leader's WhatsApp number and email, whether the team asked for a club kit, and the UPI
+        transaction number (UTR) the team sends after paying the entry fee. We also keep a team
+        number we give the team. To slow down spam we keep a scrambled code made from the sender's
+        IP address for ten minutes, never the address itself.
+      </p>
+      <p>
+        Only the club's admins can see this, behind a passcode. We use it only to run Bot Forge: to
+        check payments against the club's UPI account, hand out club kits, check teams in on the
+        day, contact the team leader and make certificates. The payment itself happens in your own
+        UPI app, between you and the account holder: this site never sees your bank details.
+      </p>
+      <p>
+        If a team wins, its team name and its members' names are shown on the Bot Forge results page
+        on this site, never their USNs, phone numbers or emails. Every team agrees to this when it
+        registers. We delete the rest of the registration details from this site after Bot Forge,
+        and you can ask us to delete yours sooner.
       </p>
 
       <h2>Your rights</h2>
