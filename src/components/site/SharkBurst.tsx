@@ -152,7 +152,7 @@ export function SharkBurst() {
           >
             <div className="bf-banner-face blueprint grid items-stretch md:grid-cols-[1.1fr_1fr]">
               <div className="relative z-10 p-6 md:p-10">
-                <p className="font-pixel text-[11px] text-lens">BOT FORGE / CONTEST</p>
+                <p className="font-pixel text-[11px] text-lens">BOT FORGE</p>
                 <h1
                   id="shark-title"
                   className="mt-3 font-display text-5xl font-black leading-none md:text-7xl"
