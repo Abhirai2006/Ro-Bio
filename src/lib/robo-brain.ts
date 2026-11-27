@@ -31,7 +31,6 @@ const IDLE = [
   "Press X-ray. Yes, I am part biology.",
   "There is a robot arm next to me. It solves inverse kinematics.",
   "Further down, a robot follows a line. You can tune it.",
-  "Bot Forge is on 28 Oct. I am very excited.",
 ];
 const POKES = [
   "Hi, human!",
