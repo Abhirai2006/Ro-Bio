@@ -56,8 +56,7 @@ function ContestPage() {
               <p className="font-pixel text-xs text-primary">
                 <Link to="/events/bot-forge" className="underline underline-offset-2">
                   BOT FORGE
-                </Link>{" "}
-                / CONTEST
+                </Link>
               </p>
               <h1 className="mt-3 text-5xl font-black leading-[1.05] md:text-7xl">{c.title}</h1>
               <p className="mt-4 max-w-xl text-lg text-muted-foreground">{c.pitch}</p>
@@ -140,7 +139,7 @@ function ContestPage() {
       )}
 
       <section className="mx-auto max-w-6xl px-4 pt-16" aria-labelledby="general-h">
-        <SectionHead label="FOR EVERY CONTEST" id="general-h">
+        <SectionHead label="FOR EVERY EVENT" id="general-h">
           The rules everyone follows
         </SectionHead>
         <ul className="mt-6 list-disc space-y-2 border-2 border-border bg-card p-5 pl-10 shadow-hard">
@@ -153,7 +152,7 @@ function ContestPage() {
       <section className="mx-auto grid max-w-6xl items-start gap-6 px-4 py-16 md:grid-cols-[1.4fr_1fr]">
         <div>
           <SectionHead label="ALSO AT BOT FORGE" id="others-h">
-            The other contests
+            The other events
           </SectionHead>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
             {others.map((o) => (
