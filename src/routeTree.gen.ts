@@ -33,6 +33,10 @@ import { Route as RecruitAdminRouteImport } from './routes/recruit.admin'
 import { Route as RecruitJudgeRouteImport } from './routes/recruit.judge'
 import { Route as TeamSquadRouteImport } from './routes/team_.$squad'
 import { Route as VerifyNoRouteImport } from './routes/verify.$no'
+import { Route as EventsBotForgeIndexRouteImport } from './routes/events.bot-forge.index'
+import { Route as EventsBotForgeContestRouteImport } from './routes/events.bot-forge.$contest'
+import { Route as EventsBotForgeAdminRouteImport } from './routes/events.bot-forge.admin'
+import { Route as EventsBotForgeRegisterRouteImport } from './routes/events.bot-forge.register'
 import { Route as EventsRoboSparkJudgeRouteImport } from './routes/events.robo-spark.judge'
 import { Route as EventsRoboSparkMissionsRouteImport } from './routes/events.robo-spark.missions'
 import { Route as EventsRoboSparkPresentRouteImport } from './routes/events.robo-spark.present'
@@ -157,6 +161,26 @@ const VerifyNoRoute = VerifyNoRouteImport.update({
   path: '/verify/$no',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EventsBotForgeIndexRoute = EventsBotForgeIndexRouteImport.update({
+  id: '/events/bot-forge/',
+  path: '/events/bot-forge/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsBotForgeContestRoute = EventsBotForgeContestRouteImport.update({
+  id: '/events/bot-forge/$contest',
+  path: '/events/bot-forge/$contest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsBotForgeAdminRoute = EventsBotForgeAdminRouteImport.update({
+  id: '/events/bot-forge/admin',
+  path: '/events/bot-forge/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsBotForgeRegisterRoute = EventsBotForgeRegisterRouteImport.update({
+  id: '/events/bot-forge/register',
+  path: '/events/bot-forge/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsRoboSparkJudgeRoute = EventsRoboSparkJudgeRouteImport.update({
   id: '/events/robo-spark/judge',
   path: '/events/robo-spark/judge',
@@ -198,9 +222,13 @@ export interface FileRoutesByFullPath {
   '/team/$squad': typeof TeamSquadRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
+  '/events/bot-forge/$contest': typeof EventsBotForgeContestRoute
+  '/events/bot-forge/admin': typeof EventsBotForgeAdminRoute
+  '/events/bot-forge/register': typeof EventsBotForgeRegisterRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
   '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
   '/events/robo-spark/present': typeof EventsRoboSparkPresentRoute
+  '/events/bot-forge/': typeof EventsBotForgeIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -227,9 +255,13 @@ export interface FileRoutesByTo {
   '/team/$squad': typeof TeamSquadRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events': typeof EventsIndexRoute
+  '/events/bot-forge/$contest': typeof EventsBotForgeContestRoute
+  '/events/bot-forge/admin': typeof EventsBotForgeAdminRoute
+  '/events/bot-forge/register': typeof EventsBotForgeRegisterRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
   '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
   '/events/robo-spark/present': typeof EventsRoboSparkPresentRoute
+  '/events/bot-forge': typeof EventsBotForgeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -257,9 +289,13 @@ export interface FileRoutesById {
   '/team_/$squad': typeof TeamSquadRoute
   '/verify/$no': typeof VerifyNoRoute
   '/events/': typeof EventsIndexRoute
+  '/events/bot-forge/$contest': typeof EventsBotForgeContestRoute
+  '/events/bot-forge/admin': typeof EventsBotForgeAdminRoute
+  '/events/bot-forge/register': typeof EventsBotForgeRegisterRoute
   '/events/robo-spark/judge': typeof EventsRoboSparkJudgeRoute
   '/events/robo-spark/missions': typeof EventsRoboSparkMissionsRoute
   '/events/robo-spark/present': typeof EventsRoboSparkPresentRoute
+  '/events/bot-forge/': typeof EventsBotForgeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -288,9 +324,13 @@ export interface FileRouteTypes {
     | '/team/$squad'
     | '/verify/$no'
     | '/events/'
+    | '/events/bot-forge/$contest'
+    | '/events/bot-forge/admin'
+    | '/events/bot-forge/register'
     | '/events/robo-spark/judge'
     | '/events/robo-spark/missions'
     | '/events/robo-spark/present'
+    | '/events/bot-forge/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -317,9 +357,13 @@ export interface FileRouteTypes {
     | '/team/$squad'
     | '/verify/$no'
     | '/events'
+    | '/events/bot-forge/$contest'
+    | '/events/bot-forge/admin'
+    | '/events/bot-forge/register'
     | '/events/robo-spark/judge'
     | '/events/robo-spark/missions'
     | '/events/robo-spark/present'
+    | '/events/bot-forge'
   id:
     | '__root__'
     | '/'
@@ -346,9 +390,13 @@ export interface FileRouteTypes {
     | '/team_/$squad'
     | '/verify/$no'
     | '/events/'
+    | '/events/bot-forge/$contest'
+    | '/events/bot-forge/admin'
+    | '/events/bot-forge/register'
     | '/events/robo-spark/judge'
     | '/events/robo-spark/missions'
     | '/events/robo-spark/present'
+    | '/events/bot-forge/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -376,9 +424,13 @@ export interface RootRouteChildren {
   TeamSquadRoute: typeof TeamSquadRoute
   VerifyNoRoute: typeof VerifyNoRoute
   EventsIndexRoute: typeof EventsIndexRoute
+  EventsBotForgeContestRoute: typeof EventsBotForgeContestRoute
+  EventsBotForgeAdminRoute: typeof EventsBotForgeAdminRoute
+  EventsBotForgeRegisterRoute: typeof EventsBotForgeRegisterRoute
   EventsRoboSparkJudgeRoute: typeof EventsRoboSparkJudgeRoute
   EventsRoboSparkMissionsRoute: typeof EventsRoboSparkMissionsRoute
   EventsRoboSparkPresentRoute: typeof EventsRoboSparkPresentRoute
+  EventsBotForgeIndexRoute: typeof EventsBotForgeIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -551,6 +603,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyNoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/events/bot-forge/': {
+      id: '/events/bot-forge/'
+      path: '/events/bot-forge'
+      fullPath: '/events/bot-forge/'
+      preLoaderRoute: typeof EventsBotForgeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/bot-forge/$contest': {
+      id: '/events/bot-forge/$contest'
+      path: '/events/bot-forge/$contest'
+      fullPath: '/events/bot-forge/$contest'
+      preLoaderRoute: typeof EventsBotForgeContestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/bot-forge/admin': {
+      id: '/events/bot-forge/admin'
+      path: '/events/bot-forge/admin'
+      fullPath: '/events/bot-forge/admin'
+      preLoaderRoute: typeof EventsBotForgeAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/bot-forge/register': {
+      id: '/events/bot-forge/register'
+      path: '/events/bot-forge/register'
+      fullPath: '/events/bot-forge/register'
+      preLoaderRoute: typeof EventsBotForgeRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/robo-spark/judge': {
       id: '/events/robo-spark/judge'
       path: '/events/robo-spark/judge'
@@ -600,9 +680,13 @@ const rootRouteChildren: RootRouteChildren = {
   TeamSquadRoute: TeamSquadRoute,
   VerifyNoRoute: VerifyNoRoute,
   EventsIndexRoute: EventsIndexRoute,
+  EventsBotForgeContestRoute: EventsBotForgeContestRoute,
+  EventsBotForgeAdminRoute: EventsBotForgeAdminRoute,
+  EventsBotForgeRegisterRoute: EventsBotForgeRegisterRoute,
   EventsRoboSparkJudgeRoute: EventsRoboSparkJudgeRoute,
   EventsRoboSparkMissionsRoute: EventsRoboSparkMissionsRoute,
   EventsRoboSparkPresentRoute: EventsRoboSparkPresentRoute,
+  EventsBotForgeIndexRoute: EventsBotForgeIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
