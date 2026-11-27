@@ -151,6 +151,25 @@ export function SumoArt({ className = "" }: { className?: string }) {
   );
 }
 
+/**
+ * The poster's two line-art mechs, peeking in from the top corners of a section, as on the poster. They hover
+ * slowly while a scanner glow runs along their lines. Put inside a section that is `relative overflow-hidden`.
+ */
+export function MechCorners() {
+  const mech = (src: string, side: "left" | "right", w: number, h: number) => (
+    <div className={`bf-mech bf-mech-${side}`} aria-hidden="true">
+      <img src={src} alt="" width={w} height={h} />
+      <span className="bf-mech-scan" style={{ "--mech": `url(${src})` } as React.CSSProperties} />
+    </div>
+  );
+  return (
+    <>
+      {mech(botForgeInfo.art.mechLeft, "left", 399, 581)}
+      {mech(botForgeInfo.art.mechRight, "right", 294, 495)}
+    </>
+  );
+}
+
 /** A slide with a rising chart: Shark Tank's card. No shark here: the shark lives on its own page. */
 export function PitchArt({ className = "" }: { className?: string }) {
   return (
