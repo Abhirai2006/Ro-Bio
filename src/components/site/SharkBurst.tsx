@@ -1,7 +1,7 @@
-// The Shark Tank banner. On computers a sheet of glass covers it: a realistic 3D shark hits it from behind, cracks
-// it, shatters it into pieces that fall with real physics, bursts out of the hole and then swims all over the
-// page. Only on the Shark Tank page. On phones, for people who turn off motion, and where 3D does not work, the
-// banner shows a still picture of the shark already out of the hole.
+// The Shark Tank banner. On computers and capable phones a sheet of glass covers it: a realistic 3D shark hits
+// it from behind, cracks it, shatters it into pieces that fall with real physics, bursts out of the hole and then
+// swims all over the page. Only on the Shark Tank page. On low-power phones, for people who turn off motion, and
+// where 3D does not work, the banner shows a still picture instead (botForgeInfo.shark.still in src/lib/site.ts).
 import { useEffect, useRef, useState } from "react";
 import { botForgeInfo, contestBySlug, rupees } from "@/lib/site";
 import type { SharkWorld } from "./shark-scene";
@@ -9,11 +9,28 @@ import "./bot-forge.css";
 
 type Phase = "idle" | "crack" | "burst" | "done" | "still";
 
-/** True where the 3D shark should run: a computer with a mouse, motion allowed. */
-const wants3d = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia("(min-width: 768px) and (pointer: fine)").matches &&
-  !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/**
+ * Where the 3D shark runs: "full" on a computer, "lite" on a phone with enough power, or null where the picture
+ * shows instead: motion turned off, Data Saver on, no 3D, or a phone with little memory or few cores.
+ */
+function power(): "full" | "lite" | null {
+  if (typeof window === "undefined") return null;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean };
+  };
+  if (nav.connection?.saveData) return null;
+  try {
+    const c = document.createElement("canvas");
+    if (!(c.getContext("webgl2") ?? c.getContext("webgl"))) return null;
+  } catch {
+    return null;
+  }
+  if (window.matchMedia("(min-width: 768px) and (pointer: fine)").matches) return "full";
+  if ((nav.deviceMemory ?? 4) < 4 || (nav.hardwareConcurrency ?? 4) < 4) return null;
+  return "lite";
+}
 
 const CRACKS = [
   "M100 100 L70 82 L52 86 L20 60",
@@ -54,7 +71,8 @@ export function SharkBurst() {
       setMode("still");
       setPhase("still");
     };
-    if (!wants3d()) return still();
+    const level = power();
+    if (!level) return still();
     let cancelled = false;
     let seen: IntersectionObserver | null = null;
     const start = () =>
@@ -66,6 +84,13 @@ export function SharkBurst() {
               url: botForgeInfo.shark.model,
               banner: banner.current,
               hole: hole.current as unknown as HTMLElement,
+              lite: level === "lite",
+              onSlow: () => {
+                if (cancelled) return;
+                world.current?.dispose();
+                world.current = null;
+                still();
+              },
               onReady: () => {
                 if (cancelled) return;
                 setMode("3d");
