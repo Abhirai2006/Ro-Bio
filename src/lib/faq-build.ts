@@ -8,17 +8,42 @@ type Site = {
   startedOn: string;
   instagramHandle: string;
 };
-type Event = { slug: string; kind: string; date: string | null; activities: { name: string }[] };
+type Event = {
+  slug: string;
+  kind: string;
+  date: string | null;
+  time?: string;
+  activities: { name: string }[];
+};
+/** The Bot Forge facts the answers need, from botForgeInfo in site.ts. */
+type BotForgeFacts = {
+  openTo: string;
+  fee: number;
+  opensLabel: string;
+  closesLabel: string;
+  contests: { title: string; team: [number, number]; prizes: [number, number] }[];
+};
 
 export function buildFaqs(
   site: Site,
   events: Event[],
   formatDate: (iso: string) => string,
   teamSize: number,
+  info: BotForgeFacts,
 ): { q: string; a: string }[] {
   const bf = events.find((e) => e.slug === "bot-forge")!;
-  const parts = bf.activities.map((a) => a.name).join(", ");
   const count = (n: number) => ["no", "one", "two", "three", "four", "five", "six"][n] ?? String(n);
+  const rs = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+  const and = (xs: string[]) =>
+    xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+  const total = info.contests.reduce((s, c) => s + c.prizes[0] + c.prizes[1], 0);
+  const prizeLine = info.contests.every(
+    (c) =>
+      c.prizes[0] === info.contests[0]!.prizes[0] && c.prizes[1] === info.contests[0]!.prizes[1],
+  )
+    ? `${rs(info.contests[0]!.prizes[0])} for first place and ${rs(info.contests[0]!.prizes[1])} for second in each contest`
+    : and(info.contests.map((c) => `${rs(c.prizes[0])} and ${rs(c.prizes[1])} in ${c.title}`));
+  const sizes = and(info.contests.map((c) => `${c.team[0]} to ${c.team[1]} for ${c.title}`));
   const plain = (iso: string) => formatDate(iso).replace(/^[A-Za-z]{3},\s*/, ""); // "20 May 2026", no weekday
   return [
     {
@@ -32,17 +57,17 @@ export function buildFaqs(
     { q: "Where is RO-BIO based?", a: `${site.address}.` },
     {
       q: "What is Bot Forge?",
-      a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(bf.activities.length)} ${bf.activities.length === 1 ? "event" : "events"}: ${parts}.`,
+      a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(info.contests.length)} contests: ${and(info.contests.map((c) => c.title))}, plus a Tech Expo of senior students' projects. There are ${rs(total)} in cash prizes: ${prizeLine}.`,
     },
     {
       q: "When is Bot Forge?",
       a: bf.date
-        ? `Bot Forge is on ${formatDate(bf.date)}. The start time has not been announced yet.`
+        ? `Bot Forge is on ${formatDate(bf.date)}${bf.time ? `, ${bf.time}` : ""}, at ${site.college}. The inauguration is at 11 am and the contests start at 2 pm.`
         : `The date for Bot Forge is coming soon. It will be announced on the Bot Forge page and on Instagram ${site.instagramHandle}.`,
     },
     {
       q: "How do I register for Bot Forge?",
-      a: `Registration details are coming soon. Team size, deadline and rules are not final yet. They will be announced on the Bot Forge page and on Instagram ${site.instagramHandle}.`,
+      a: `Register your team on the Bot Forge page of this website, from ${info.opensLabel} to ${info.closesLabel}. It is open to ${info.openTo}. Teams of ${sizes}, and each student in one team only. The entry fee is ${rs(info.fee)} per team, paid by UPI, and it is not refundable.`,
     },
     {
       q: "How can I contact RO-BIO?",
@@ -58,7 +83,7 @@ export function buildFaqs(
     },
     {
       q: "Does this website collect my personal data?",
-      a: "Only if you sign up for core recruitment on the Join page. That form asks for your name, USN, branch, semester, WhatsApp number, email and squad choices, used only to run the interviews and send results, and deleted after recruitment. There are no accounts or analytics, and the site itself sets no cookies. The Google map on the Contact and Bot Forge pages comes from Google, under its own policy. The Privacy Policy has the details.",
+      a: "Only if you register a team for Bot Forge, or signed up for core recruitment. The Bot Forge form asks for each member's name, USN, branch and semester, the team leader's WhatsApp number and email, and your UPI transaction number, used only to run Bot Forge and deleted after it. If your team wins, its name and members' names appear on the results page. There are no accounts or analytics, and the site itself sets no cookies. The Google map on the Contact and Bot Forge pages comes from Google, under its own policy. The Privacy Policy has the details.",
     },
   ];
 }
