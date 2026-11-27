@@ -171,7 +171,7 @@ export function generalRules(): string[] {
   return [
     `Open to ${botForgeInfo.openTo}. Bring your college ID card.`,
     `Teams of ${sizes}.`,
-    "Each team enters one contest only, and each student is in one team only.",
+    "Each team enters one event only, and each student is in one team only.",
     `The entry fee is ${rupees(botForgeInfo.fee)} per team, paid by UPI when you register. It is not refundable.`,
     `Register on this website by ${botForgeInfo.closesLabel}.`,
     `Every participant gets ${botForgeInfo.forEveryone}.`,
@@ -254,7 +254,7 @@ type Check<T> = { ok: true; value: T } | { ok: false; error: string };
 export function validateTeam(raw: unknown): Check<NewTeam> {
   if (!raw || typeof raw !== "object") return { ok: false, error: "Fill in the form first." };
   const b = raw as Record<string, unknown>;
-  if (!isContest(b["contest"])) return { ok: false, error: "Pick the contest your team enters." };
+  if (!isContest(b["contest"])) return { ok: false, error: "Pick the event your team enters." };
   const c = contestBySlug(b["contest"])!;
   const name = cleanTeamName(b["name"]);
   if (name.length < 2) return { ok: false, error: "Give your team a name." };
