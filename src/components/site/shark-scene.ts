@@ -551,7 +551,7 @@ export function createSharkWorld(
       shark.rotateZ(bank);
     }
     if (swim) swim.timeScale = 0.6 + (speed / maxSpeed) * 0.8;
-    // snapping at the bait: a catch if the visitor held it still too long, otherwise a near miss
+    // one clean bite gets it: the bundle bursts and the notes scatter
     const mouth = shark.position
       .clone()
       .add(new THREE.Vector3(0, 0, 1).applyQuaternion(shark.quaternion).multiplyScalar(150 * k));
@@ -561,11 +561,11 @@ export function createSharkWorld(
       swim.fadeOut(0.12);
       biteUntil = now + 850;
       biteNext = now + 1600;
-      if (fishing && fishing.stillFor() > 1.0 && near < 120 * k) {
+      if (fishing) {
         fishing.catchBait();
         fedUntil = now + 3200;
         newTarget();
-      } else fishing?.tug();
+      }
     }
     if (bite && swim && biteUntil && now > biteUntil) {
       bite.fadeOut(0.25);
