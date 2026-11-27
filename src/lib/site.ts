@@ -76,6 +76,8 @@ export type Contest = {
  */
 export const botForgeInfo = {
   openTo: "MUSE students of every branch and every semester",
+  /** What every team member takes home, win or lose. */
+  forEveryone: "valuable goodies along with a participation certificate",
   /** Entry fee per team, in rupees. Paid by UPI when the team registers. Not refundable. */
   fee: 99,
   opensLabel: "Mon 30 Nov, 10 am",
@@ -102,7 +104,11 @@ export const botForgeInfo = {
     mechLeft: "/events/bot-forge/mech-left.webp",
     mechRight: "/events/bot-forge/mech-right.webp",
   },
-  /** The 3D shark on the Shark Tank page, and the still picture shown on phones instead. */
+  /**
+   * The 3D shark on the Shark Tank page, and the still picture shown instead on low-power phones and for people
+   * who turn off motion. The Design squad is making that picture: when it arrives, save it in
+   * public/events/bot-forge/ and change `still` to its file name.
+   */
   shark: {
     model: "/events/bot-forge/shark.glb",
     still: "/events/bot-forge/shark-still.webp",
