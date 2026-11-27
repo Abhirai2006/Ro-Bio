@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   Coordinators,
   DraftNote,
+  MechCorners,
   PrizePair,
   RegisterButton,
   RuleBlock,
@@ -48,8 +49,9 @@ function ContestPage() {
       {isShark ? (
         <SharkBurst />
       ) : (
-        <section className="blueprint border-b-2 border-border">
-          <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-14 md:grid-cols-[1.2fr_1fr] md:pt-20">
+        <section className="blueprint relative overflow-hidden border-b-2 border-border">
+          <MechCorners />
+          <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 pt-14 md:grid-cols-[1.2fr_1fr] md:pt-20">
             <div>
               <p className="font-pixel text-xs text-primary">
                 <Link to="/events/bot-forge" className="underline underline-offset-2">
