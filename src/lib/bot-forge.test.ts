@@ -103,6 +103,7 @@ describe("Bot Forge rules and payment", () => {
     expect(link.startsWith("upi://pay?")).toBe(true);
     expect(link).toContain(`am=${botForgeInfo.fee}.00`);
     expect(link).toContain("tn=Bot%20Forge%20SUMO-07");
+    expect(link).toContain(`pa=${botForgeInfo.upi.id}&`);
   });
   it("puts one team on each row of the Excel file", () => {
     const t: Team = {
