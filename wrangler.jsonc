@@ -19,18 +19,22 @@
   // Core member recruitment (RECRUIT_STORE): applicants and judges' marks live only in this SQLite store.
   // Its two secrets, added the same way: RECRUIT_ADMIN_PASSCODE and RECRUIT_JUDGE_PASSCODE.
   // Merch likes and feedback (MERCH_STORE): random browser ids, likes and notes. Its secret: MERCH_ADMIN_PASSCODE.
+  // Bot Forge registration (BOTFORGE_STORE): teams, members and payments live only in this SQLite store.
+  // Its secret, added the same way: BOTFORGE_ADMIN_PASSCODE.
   "durable_objects": {
     "bindings": [
       { "name": "JUDGE_SCORES", "class_name": "JudgeScores" },
       { "name": "CERT_STORE", "class_name": "CertStore" },
       { "name": "RECRUIT_STORE", "class_name": "RecruitStore" },
-      { "name": "MERCH_STORE", "class_name": "MerchStore" }
+      { "name": "MERCH_STORE", "class_name": "MerchStore" },
+      { "name": "BOTFORGE_STORE", "class_name": "BotForgeStore" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["JudgeScores"] },
     { "tag": "v2", "new_sqlite_classes": ["CertStore"] },
     { "tag": "v3", "new_sqlite_classes": ["RecruitStore"] },
-    { "tag": "v4", "new_sqlite_classes": ["MerchStore"] }
+    { "tag": "v4", "new_sqlite_classes": ["MerchStore"] },
+    { "tag": "v5", "new_sqlite_classes": ["BotForgeStore"] }
   ]
 }
