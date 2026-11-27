@@ -131,6 +131,77 @@
   }
 }
 
+/* The poster's line-art mechs, peeking in from the top corners behind the page content. */
+.bf-mech {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  width: clamp(110px, 17vw, 250px);
+  pointer-events: none;
+  opacity: 0.85;
+  animation: bf-hover 7s ease-in-out infinite;
+}
+.bf-mech img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.bf-mech-left {
+  left: 0;
+}
+.bf-mech-right {
+  right: 0;
+  width: clamp(85px, 13vw, 190px);
+  animation-delay: -3.5s;
+}
+/* A light band that runs down the lines of the drawing, like a scanner reading a blueprint. */
+.bf-mech-scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    rgb(98 148 255) 48%,
+    #fff 50%,
+    rgb(98 148 255) 52%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 100% 300%;
+  -webkit-mask: var(--mech) center / 100% 100% no-repeat;
+  mask: var(--mech) center / 100% 100% no-repeat;
+  animation: bf-scan 4.5s linear infinite;
+}
+.bf-mech-right .bf-mech-scan {
+  animation-delay: -2.2s;
+}
+.dark .bf-mech {
+  opacity: 0.9;
+}
+@keyframes bf-hover {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+@keyframes bf-scan {
+  from {
+    background-position: 0 100%;
+  }
+  to {
+    background-position: 0 0%;
+  }
+}
+@media (max-width: 767px) {
+  .bf-mech {
+    opacity: 0.35;
+  }
+}
+
 /* The big prize number pulses a little, to draw the eye. */
 .bf-glow {
   text-shadow:
@@ -228,6 +299,8 @@
   }
   .bf-racer img,
   .bf-sumo img,
+  .bf-mech,
+  .bf-mech-scan,
   .bf-sumo::after,
   .bf-banner .bf-banner-face {
     animation: none !important;
