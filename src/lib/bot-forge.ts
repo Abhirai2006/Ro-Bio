@@ -320,7 +320,8 @@ export function upiLink(code: string): string {
     cu: "INR",
     tn: payNote(code),
   });
-  return `upi://pay?${q.toString().replace(/\+/g, "%20")}`;
+  // keep the @ of the UPI ID as it is: some UPI apps do not read it written as %40
+  return `upi://pay?${q.toString().replace(/\+/g, "%20").replace(/%40/g, "@")}`;
 }
 
 // ---- talking to the server ---------------------------------------------------------------------
