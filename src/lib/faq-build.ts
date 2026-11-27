@@ -18,6 +18,7 @@ type Event = {
 /** The Bot Forge facts the answers need, from botForgeInfo in site.ts. */
 type BotForgeFacts = {
   openTo: string;
+  forEveryone: string;
   fee: number;
   opensLabel: string;
   closesLabel: string;
@@ -57,7 +58,7 @@ export function buildFaqs(
     { q: "Where is RO-BIO based?", a: `${site.address}.` },
     {
       q: "What is Bot Forge?",
-      a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(info.contests.length)} contests: ${and(info.contests.map((c) => c.title))}, plus a Tech Expo of senior students' projects. There are ${rs(total)} in cash prizes: ${prizeLine}.`,
+      a: `Bot Forge is RO-BIO's first robotics ${bf.kind.toLowerCase()}, at ${site.college}. It has ${count(info.contests.length)} contests: ${and(info.contests.map((c) => c.title))}, plus a Tech Expo of senior students' projects. There are ${rs(total)} in cash prizes: ${prizeLine}. Every participant gets ${info.forEveryone}.`,
     },
     {
       q: "When is Bot Forge?",
