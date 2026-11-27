@@ -8,6 +8,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { createFishing, type Fishing } from "./fishing";
 
 /** Seconds after play(): the first hit cracks the glass, the second shatters it. */
 export const CRACK_AT = 0.25;
@@ -121,6 +122,8 @@ export function createSharkWorld(
     /** The banner the glass covers, and the spot on it where the shark hits. */
     banner: HTMLElement;
     hole: HTMLElement;
+    /** The robot fisherman and his rod, whose bait the shark chases. */
+    fishing?: { robotUrl: string; rodUrl: string; notesUrl: string };
     /** A phone: a lighter version with fewer pieces, less dust and a lower resolution. */
     lite?: boolean;
     /** Called once if a phone cannot keep the animation smooth, so the page can show the still picture. */
@@ -329,6 +332,9 @@ export function createSharkWorld(
     biteNext = 0;
   let hidden = false;
   let ready = false;
+  let fishing: Fishing | null = null;
+  /** After a catch the shark swims off with its prize for a while before it hunts again. */
+  let fedUntil = 0;
 
   const newTarget = () => {
     const W = (vw / 2) * k,
@@ -365,6 +371,15 @@ export function createSharkWorld(
       }
       ready = true;
       buildGlass();
+      if (opts.fishing)
+        createFishing(scene, { ...opts.fishing, banner: opts.banner })
+          .then((f) => {
+            fishing = f;
+            f.setVisible(!hidden);
+          })
+          .catch(() => {
+            /* no fisherman: the shark just swims */
+          });
       opts.onReady();
     },
     undefined,
@@ -506,12 +521,22 @@ export function createSharkWorld(
     // swimming round the page
     const maxSpeed = 340 * k,
       accel = 520 * k;
+    // go for the bait when there is one; otherwise wander
+    const bait = fishing?.bait() ?? null;
+    const hunting = !!bait && now > fedUntil;
+    if (hunting) target.set(bait.x, bait.y, 1.5);
     const to = target.clone().sub(shark.position);
-    if (to.length() < 60 * k) newTarget();
-    const want = to.clone().setLength(maxSpeed);
+    if (!hunting && to.length() < 60 * k) newTarget();
+    // closing in on the bait it slows down and turns tighter, so it can strike instead of circling
+    const dist = to.length();
+    const closing = hunting && dist < 320 * k;
+    const want = to
+      .clone()
+      .setLength(closing ? Math.max(90 * k, Math.min(maxSpeed, dist * 1.6)) : maxSpeed);
     want.y *= 0.6;
     const steer = want.sub(sharkVel);
-    if (steer.length() > accel * dt) steer.setLength(accel * dt);
+    const grip = closing ? accel * 2.4 : accel;
+    if (steer.length() > grip * dt) steer.setLength(grip * dt);
     sharkVel.add(steer);
     shark.position.addScaledVector(sharkVel, dt);
     const speed = sharkVel.length();
@@ -526,13 +551,21 @@ export function createSharkWorld(
       shark.rotateZ(bank);
     }
     if (swim) swim.timeScale = 0.6 + (speed / maxSpeed) * 0.8;
-    // a snap at the mouse when it swims close
-    const near = pointer.at.distanceTo(new THREE.Vector2(shark.position.x, shark.position.y));
-    if (bite && swim && now > biteNext && near < 170 * k) {
-      bite.reset().setEffectiveWeight(1).fadeIn(0.15).play();
-      swim.fadeOut(0.15);
+    // snapping at the bait: a catch if the visitor held it still too long, otherwise a near miss
+    const mouth = shark.position
+      .clone()
+      .add(new THREE.Vector3(0, 0, 1).applyQuaternion(shark.quaternion).multiplyScalar(150 * k));
+    const near = bait && hunting ? mouth.distanceTo(bait) : Infinity;
+    if (bite && swim && now > biteNext && near < 150 * k) {
+      bite.reset().setEffectiveWeight(1).fadeIn(0.12).play();
+      swim.fadeOut(0.12);
       biteUntil = now + 850;
-      biteNext = now + 3500;
+      biteNext = now + 1600;
+      if (fishing && fishing.stillFor() > 1.0 && near < 120 * k) {
+        fishing.catchBait();
+        fedUntil = now + 3200;
+        newTarget();
+      } else fishing?.tug();
     }
     if (bite && swim && biteUntil && now > biteUntil) {
       bite.fadeOut(0.25);
@@ -566,6 +599,18 @@ export function createSharkWorld(
     }
     stepGlass(dt, t);
     if (started >= 0) stepShark(dt, t);
+    if (fishing) {
+      const hl = opts.hole.getBoundingClientRect();
+      fishing.update(dt, {
+        k,
+        vh,
+        toWorld,
+        pointer: pointer.movedAt > 0 ? pointer.at : null,
+        free: shattered && t > SHATTER_AT + 1.2,
+        rest: toWorld(hl.left + hl.width / 2, hl.top + hl.height / 2),
+        lite,
+      });
+    }
     renderer.clear();
     // While it bursts through, the shark only shows inside the hole; the banner hides the rest of it.
     const lungeAt = SHATTER_AT - 0.12;
@@ -599,9 +644,11 @@ export function createSharkWorld(
     setHidden(h) {
       hidden = h;
       shark.visible = !h && started >= 0 && shattered;
+      fishing?.setVisible(!h);
     },
     dispose() {
       renderer.setAnimationLoop(null);
+      fishing?.dispose();
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", onMove);
       clearGlass();
