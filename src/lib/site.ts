@@ -161,14 +161,8 @@ export const botForgeInfo = {
       time: "2:00 pm",
       what: "Robo Sumo, Robo Race and Shark Tank begin. Shark Tank teams arrive now",
     },
-    { time: "2:00 to 5:30 pm", what: "Tech Expo: senior students' projects on show" },
     { time: "5:30 pm", what: "Prize distribution, and the day ends" },
   ],
-  techExpo: {
-    time: "2:00 to 5:30 pm",
-    about:
-      "Senior students show the projects they built in earlier semesters, on benches with nameplates. Walk round, look closely and ask them how they made it. It is a showcase: no marks and no prizes.",
-  },
   /** The Shark Tank judge, as he agreed to be introduced. No contact details on the site. */
   judge: {
     name: "Dr. Mohammed Nadeem M",
@@ -200,12 +194,9 @@ export const events: ClubEvent[] = [
     time: "11 am to 5:30 pm",
     venue: site.address,
     audience: botForgeInfo.openTo,
-    about: `RO-BIO's first robotics competition: ${botForgeInfo.contests.map((c) => c.title).join(", ")}, with ${rupees(botForgePrizeTotal)} in cash prizes. Plus a Tech Expo of senior students' projects.`,
+    about: `RO-BIO's first robotics competition: ${botForgeInfo.contests.map((c) => c.title).join(", ")}, with ${rupees(botForgePrizeTotal)} in cash prizes.`,
     poster: "/events/bot-forge.webp",
-    activities: [
-      ...botForgeInfo.contests.map((c) => ({ name: c.title, tag: "EVENT" as const })),
-      { name: "Tech Expo", tag: "EXPO" },
-    ],
+    activities: botForgeInfo.contests.map((c) => ({ name: c.title, tag: "EVENT" as const })),
     registration: "open",
     opensAt: "2026-11-30T10:00:00+05:30",
     closesAt: "2026-12-07T00:00:00+05:30",
