@@ -43,8 +43,9 @@ export default defineConfig({
     }),
     viteReact(),
   ],
-  // three.js (the 3D robot arm) is one big file by nature. It loads on its own after the page, so the warning is noise.
-  build: { chunkSizeWarningLimit: 600 },
+  // three.js (the 3D robot arm, the jacket and the Shark Tank shark) is one big file by nature. It loads on its own
+  // after the page, so the warning is noise.
+  build: { chunkSizeWarningLimit: 650 },
   resolve: {
     tsconfigPaths: true, // the "@/..." imports, read from tsconfig.json
     dedupe: [
