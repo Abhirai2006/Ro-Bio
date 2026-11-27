@@ -89,16 +89,16 @@ export const botForgeInfo = {
   upi: { id: "", payee: "" },
   /** True while the rules on the site are a draft. Every rules page says so in a banner. */
   rulesDraft: true,
-  /**
-   * The poster's robots, shown moving on the Bot Forge pages. These are rough cut-outs from the poster for now.
-   * When the Design squad sends each robot as a PNG with a see-through background, put the files in
-   * public/events/bot-forge/ and change these two paths.
-   */
+  /** The Design squad's Bot Forge artwork, from the poster, shown on the Bot Forge pages. */
   art: {
-    /** The Bot Forge crest from the poster, sent by the Design squad. */
+    /** The Bot Forge crest. */
     crest: "/events/bot-forge/crest.webp",
+    /** The sumo wrestler and the racer, cut out of the poster. They move on the contest cards. */
     sumoBot: "/events/bot-forge/sumo-bot.webp",
     raceBot: "/events/bot-forge/race-bot.webp",
+    /** The two line-art mechs from the poster's top corners. They peek in at the top of the pages. */
+    mechLeft: "/events/bot-forge/mech-left.webp",
+    mechRight: "/events/bot-forge/mech-right.webp",
   },
   /** The 3D shark on the Shark Tank page, and the still picture shown on phones instead. */
   shark: {
