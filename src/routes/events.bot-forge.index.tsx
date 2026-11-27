@@ -31,8 +31,8 @@ export const Route = createFileRoute("/events/bot-forge/")({
       { property: "og:image", content: `${site.url}/events/bot-forge.jpg` },
       { property: "og:image:secure_url", content: `${site.url}/events/bot-forge.jpg` },
       { property: "og:image:type", content: "image/jpeg" },
-      { property: "og:image:width", content: "943" },
-      { property: "og:image:height", content: "1600" },
+      { property: "og:image:width", content: "604" },
+      { property: "og:image:height", content: "1024" },
       { property: "og:image:alt", content: "The Bot Forge poster" },
       { name: "twitter:image", content: `${site.url}/events/bot-forge.jpg` },
     ],
@@ -130,9 +130,9 @@ function BotForgePage() {
           <figure className="border-2 border-border bg-card p-2 shadow-hard-violet">
             <img
               src={e.poster}
-              alt={`The Bot Forge poster: ${eventDate(e)} at ${site.college}. Robo Sumo, Robot Race, Shark Tank and Tech Expo.`}
-              width={943}
-              height={1600}
+              alt={`The Bot Forge poster: ${eventDate(e)} at ${site.college}. Robo Sumo, Robo Race and Shark Tank, with a QR code to sign up.`}
+              width={604}
+              height={1024}
               className="block h-auto w-full"
             />
           </figure>
