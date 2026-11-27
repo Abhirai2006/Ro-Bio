@@ -203,9 +203,23 @@
 }
 
 /* The robot on the prize banner: arms out, bobbing a little, as if showing off the prizes. */
+/*
+  The robot on the prize banner. He starts hidden behind the banner, pops up from behind its top edge with a little
+  overshoot, then sways while his whole jacket stays above the edge (he never sinks below his resting place).
+*/
 .bf-presenter {
   transform-origin: 50% 100%;
-  animation: bf-present 3.2s ease-in-out infinite;
+  animation:
+    bf-pop 0.9s cubic-bezier(0.3, 1.6, 0.5, 1) 0.4s both,
+    bf-present 3.2s ease-in-out 1.3s infinite;
+}
+@keyframes bf-pop {
+  from {
+    transform: translateY(110%) rotate(0);
+  }
+  to {
+    transform: translateY(0) rotate(-2deg);
+  }
 }
 @keyframes bf-present {
   0%,
