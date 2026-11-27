@@ -74,9 +74,17 @@ export function PrizeBanner() {
   const same = botForgeInfo.contests.every((c) => c.prizes[0] === first && c.prizes[1] === second);
   return (
     <section
-      className="border-2 border-border bg-ink p-5 text-paper shadow-hard-violet md:p-8"
+      className="relative border-2 border-border bg-ink p-5 text-paper shadow-hard-violet md:p-8"
       aria-labelledby="prizes"
     >
+      {/* The poster's robot, arms out, presenting the prizes. */}
+      <img
+        src={botForgeInfo.art.heroBot}
+        alt=""
+        width={296}
+        height={154}
+        className="bf-presenter pointer-events-none absolute -top-10 right-2 w-32 sm:w-44 md:-top-14 md:right-4 md:w-56"
+      />
       <p className="font-pixel text-[11px] text-lens">BOT FORGE CASH PRIZES</p>
       <h2 id="prizes" className="mt-2 font-display font-black leading-none">
         <span className="bf-glow block text-6xl text-lilac sm:text-7xl md:text-8xl">
@@ -133,7 +141,7 @@ export function RaceArt({ className = "" }: { className?: string }) {
     <div className={`bf-mesh ${className}`} aria-hidden="true">
       <div className="bf-lane" />
       <div className="bf-racer">
-        <img src={botForgeInfo.art.raceBot} alt="" width={320} height={410} loading="lazy" />
+        <img src={botForgeInfo.art.raceBot} alt="" width={187} height={258} loading="lazy" />
       </div>
     </div>
   );
@@ -145,7 +153,7 @@ export function SumoArt({ className = "" }: { className?: string }) {
     <div className={`bf-mesh ${className}`} aria-hidden="true">
       <div className="bf-ring" />
       <div className="bf-sumo">
-        <img src={botForgeInfo.art.sumoBot} alt="" width={315} height={410} loading="lazy" />
+        <img src={botForgeInfo.art.sumoBot} alt="" width={298} height={217} loading="lazy" />
       </div>
     </div>
   );
