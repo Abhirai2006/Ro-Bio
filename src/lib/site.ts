@@ -47,7 +47,141 @@ export type ClubEvent = {
   poster?: string; // a file in public/, like "/events/robo-spark.jpg"
   activities: Activity[];
   registration: "coming-soon" | "open" | "closed" | "none"; // "none": nothing to register for, so the page says nothing
+  /** With registration "open": sign-ups open and close at these moments (India time), on their own. */
+  opensAt?: string;
+  closesAt?: string;
 };
+
+/** The three Bot Forge contests, by the address of their page: /events/bot-forge/robo-sumo and so on. */
+export type ContestSlug = "robo-sumo" | "robo-race" | "shark-tank";
+
+export type Contest = {
+  slug: ContestSlug;
+  title: string;
+  /** One line for the cards and the page intro. */
+  pitch: string;
+  /** Smallest and largest team. */
+  team: [number, number];
+  /** Club kits lent to the first teams that ask, or 0 when the event needs none. */
+  kits: number;
+  /** Cash prizes in rupees: first place, then second. */
+  prizes: [number, number];
+  /** The code at the start of a team number, like SUMO-07. */
+  code: string;
+};
+
+/**
+ * Bot Forge 2026: the day, the contests, the prizes, the fee and the judge. The rules themselves are in
+ * src/lib/bot-forge.ts, built from these numbers. Change a number here and every page follows.
+ */
+export const botForgeInfo = {
+  openTo: "MUSE students of every branch and every semester",
+  /** Entry fee per team, in rupees. Paid by UPI when the team registers. Not refundable. */
+  fee: 99,
+  opensLabel: "Mon 30 Nov, 10 am",
+  closesLabel: "Sun 6 Dec, 11:59 pm",
+  /** Teams that registered can still send their UPI transaction number until this moment. */
+  paymentsCloseAt: "2026-12-08T00:00:00+05:30",
+  /**
+   * Where teams pay. PLACEHOLDER: the President's UPI ID and the name a payment app shows for it.
+   * While `id` is empty, the form takes registrations and says the payment details are coming soon.
+   */
+  upi: { id: "", payee: "" },
+  /** True while the rules on the site are a draft. Every rules page says so in a banner. */
+  rulesDraft: true,
+  /**
+   * The poster's robots, shown moving on the Bot Forge pages. These are rough cut-outs from the poster for now.
+   * When the Design squad sends each robot as a PNG with a see-through background, put the files in
+   * public/events/bot-forge/ and change these two paths.
+   */
+  art: {
+    /** The Bot Forge crest from the poster, sent by the Design squad. */
+    crest: "/events/bot-forge/crest.webp",
+    sumoBot: "/events/bot-forge/sumo-bot.webp",
+    raceBot: "/events/bot-forge/race-bot.webp",
+  },
+  /** The 3D shark on the Shark Tank page, and the still picture shown on phones instead. */
+  shark: {
+    model: "/events/bot-forge/shark.glb",
+    still: "/events/bot-forge/shark-still.webp",
+    credit: {
+      title: "Great White Shark Attack Bite Animation Loop",
+      author: "LasquetiSpice",
+      url: "https://sketchfab.com/3d-models/great-white-shark-attack-bite-animation-loop-936d4110b39945f5a46cb2d831ece920",
+      license: "CC BY 4.0",
+      licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+    },
+  },
+  contests: [
+    {
+      slug: "robo-sumo",
+      title: "Robo Sumo",
+      pitch: "Build a robot at the venue and push the other robot out of the ring.",
+      team: [3, 5],
+      kits: 5,
+      prizes: [3000, 2000],
+      code: "SUMO",
+    },
+    {
+      slug: "robo-race",
+      title: "Robo Race",
+      pitch:
+        "Build a remote controlled robot and race it round an obstacle track against the clock.",
+      team: [3, 5],
+      kits: 5,
+      prizes: [3000, 2000],
+      code: "RACE",
+    },
+    {
+      slug: "shark-tank",
+      title: "Shark Tank",
+      pitch: "Pick any problem, pitch your solution with a PPT, and face the judge's questions.",
+      team: [3, 4],
+      kits: 0,
+      prizes: [3000, 2000],
+      code: "SHARK",
+    },
+  ] as Contest[],
+  /** The day, in order. */
+  schedule: [
+    { time: "11:00 am", what: "Inauguration and the Bot Forge banner drop" },
+    {
+      time: "After the inauguration",
+      what: "Robo Sumo and Robo Race teams build their robots at the venue",
+    },
+    {
+      time: "2:00 pm",
+      what: "Robo Sumo, Robo Race and Shark Tank begin. Shark Tank teams arrive now",
+    },
+    { time: "2:00 to 5:30 pm", what: "Tech Expo: senior students' projects on show" },
+    { time: "5:30 pm", what: "Prize distribution, and the day ends" },
+  ],
+  techExpo: {
+    time: "2:00 to 5:30 pm",
+    about:
+      "Senior students show the projects they built in earlier semesters, on benches with nameplates. Walk round, look closely and ask them how they made it. It is a showcase: no marks and no prizes.",
+  },
+  /** The Shark Tank judge, as he agreed to be introduced. No contact details on the site. */
+  judge: {
+    name: "Dr. Mohammed Nadeem M",
+    points: [
+      "PhD (VTU), and a Fellow of the Higher Education Academy (UK).",
+      "Leap Education Officer at the Leap Education Society, IIT Madras Research Park, where he mentors students on finding problems, design reviews and product development.",
+      "Over a decade of teaching robotics, automation and CAD/CAM, at ATME College of Engineering, Mysuru and the University of Bolton (UAE campus). He wrote the textbook CNC Programming and Robotics.",
+    ],
+  },
+};
+
+/** Every Bot Forge cash prize added up. */
+export const botForgePrizeTotal = botForgeInfo.contests.reduce(
+  (sum, c) => sum + c.prizes[0] + c.prizes[1],
+  0,
+);
+
+/** Rupees the Indian way: 15000 becomes "₹15,000". */
+export const rupees = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
+export const contestBySlug = (slug: string) => botForgeInfo.contests.find((c) => c.slug === slug);
 
 export const events: ClubEvent[] = [
   {
@@ -55,12 +189,18 @@ export const events: ClubEvent[] = [
     title: "Bot Forge",
     kind: "Competition",
     date: "2026-12-08",
+    time: "11 am to 5:30 pm",
     venue: site.address,
+    audience: botForgeInfo.openTo,
+    about: `RO-BIO's first robotics competition: ${botForgeInfo.contests.map((c) => c.title).join(", ")}, with ${rupees(botForgePrizeTotal)} in cash prizes. Plus a Tech Expo of senior students' projects.`,
+    poster: "/events/bot-forge.webp",
     activities: [
-      { name: "Robo Sumo", tag: "EVENT" },
-      { name: "Robot Race", tag: "EVENT" },
+      ...botForgeInfo.contests.map((c) => ({ name: c.title, tag: "EVENT" as const })),
+      { name: "Tech Expo", tag: "EXPO" },
     ],
-    registration: "coming-soon",
+    registration: "open",
+    opensAt: "2026-11-30T10:00:00+05:30",
+    closesAt: "2026-12-07T00:00:00+05:30",
   },
   {
     slug: "robo-spark",
@@ -85,6 +225,20 @@ export const events: ClubEvent[] = [
 
 /** Bot Forge, the club's first competition. Named here because several pages talk about it whatever comes next. */
 export const botForge = events.find((e) => e.slug === "bot-forge")!;
+
+/**
+ * Where an event's registration stands at `now` (milliseconds). An "open" event with opensAt and closesAt
+ * is "coming-soon" before it opens and "closed" once it closes, so nobody has to change it by hand.
+ */
+export function registrationNow(
+  e: Pick<ClubEvent, "registration" | "opensAt" | "closesAt">,
+  now = Date.now(),
+): ClubEvent["registration"] {
+  if (e.registration !== "open" || !e.opensAt || !e.closesAt) return e.registration;
+  if (now < Date.parse(e.opensAt)) return "coming-soon";
+  if (now >= Date.parse(e.closesAt)) return "closed";
+  return "open";
+}
 
 /** Events still to come on `today` (YYYY-MM-DD): dated ones in date order, then the ones whose date is not fixed yet. */
 export function upcomingEvents(today: string) {
@@ -387,7 +541,7 @@ export const recruitment: {
   replyWithinDays: number;
   squads: Record<NonNullable<Squad["slug"]>, SquadCall>;
 } = {
-  status: "open",
+  status: "closed",
   who: "1st and 3rd semester students of every branch",
   schedule: {
     "Mon 23 Nov": {
