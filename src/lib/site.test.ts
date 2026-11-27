@@ -16,19 +16,14 @@ import {
 } from "./site";
 
 describe("club facts", () => {
-  it("Bot Forge is on 8 Dec 2026, with three contests and a Tech Expo", () => {
+  it("Bot Forge is on 8 Dec 2026, with three contests", () => {
     const bf = events.find((e) => e.slug === "bot-forge")!;
     expect(bf.date).toBe("2026-12-08");
     expect(eventDate(bf)).toContain("8 Dec 2026");
     expect(eventDate({ date: null })).toBe("Date coming soon");
     expect(eventDate({ date: "2026-11-06" })).toContain("6 Nov 2026");
     expect(formatDate("2026-11-06")).toContain("6 Nov 2026");
-    expect(bf.activities.map((a) => a.name)).toEqual([
-      "Robo Sumo",
-      "Robo Race",
-      "Shark Tank",
-      "Tech Expo",
-    ]);
+    expect(bf.activities.map((a) => a.name)).toEqual(["Robo Sumo", "Robo Race", "Shark Tank"]);
     expect(bf).not.toHaveProperty("previousDates");
   });
   it("adds up the Bot Forge prizes: 3,000 and 2,000 in each of three contests", () => {
