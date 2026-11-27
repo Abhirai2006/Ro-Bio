@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { handleRecruitApi, type RecruitEnv } from "./recruit-api";
 import { RecruitStore } from "./recruit-store";
 import { sqliteState } from "@/test/sqlite-state";
@@ -306,7 +306,37 @@ describe("upgrading a store made by the first version", () => {
   });
 });
 
+describe("a closed recruitment round", () => {
+  it("refuses sign-ups once recruitment.status is closed", async () => {
+    const { store } = setup();
+    const saved = recruitment.status;
+    recruitment.status = "closed";
+    try {
+      const r = await handleRecruitApi(
+        new Request("https://x.test/api/recruit/apply"),
+        {
+          RECRUIT_STORE: {
+            idFromName: () => ({ toString: () => "core-2026" }),
+            get: () => store as never,
+          },
+        },
+        Date.parse(recruitment.closesAt) - 86400000,
+      );
+      expect(await r.json()).toEqual({
+        open: false,
+        reason: "Sign-ups for this round are closed.",
+      });
+    } finally {
+      recruitment.status = saved;
+    }
+  });
+});
+
 describe("the public /join sign-up", () => {
+  // These check how the form behaves while a round is open, whatever site.ts says today.
+  const saved = recruitment.status;
+  beforeAll(() => void (recruitment.status = "open"));
+  afterAll(() => void (recruitment.status = saved));
   // One day before sign-ups close, and one second after (recruitment.closesAt in site.ts).
   const BEFORE = Date.parse(recruitment.closesAt) - 86400000;
   const AFTER = Date.parse(recruitment.closesAt) + 1000;
