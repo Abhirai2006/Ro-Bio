@@ -31,8 +31,8 @@ export const Route = createFileRoute("/events/bot-forge/")({
       { property: "og:image", content: `${site.url}/events/bot-forge.jpg` },
       { property: "og:image:secure_url", content: `${site.url}/events/bot-forge.jpg` },
       { property: "og:image:type", content: "image/jpeg" },
-      { property: "og:image:width", content: "604" },
-      { property: "og:image:height", content: "1024" },
+      { property: "og:image:width", content: "1070" },
+      { property: "og:image:height", content: "927" },
       { property: "og:image:alt", content: "The Bot Forge poster" },
       { name: "twitter:image", content: `${site.url}/events/bot-forge.jpg` },
     ],
@@ -91,7 +91,7 @@ function BotForgePage() {
       />
       <section className="blueprint relative overflow-hidden border-b-2 border-border">
         <MechCorners />
-        <div className="relative mx-auto grid max-w-6xl items-start gap-10 px-4 pb-14 pt-14 md:grid-cols-[1.5fr_1fr] md:pt-20">
+        <div className="relative mx-auto grid max-w-6xl items-start gap-10 px-4 pb-14 pt-14 md:grid-cols-[1fr_1.15fr] md:pt-20">
           <div>
             <p className="font-pixel text-xs text-primary">COMPETITION / RO-BIO HUB PRESENTS</p>
             <div className="mt-3 flex items-center gap-4">
@@ -130,9 +130,9 @@ function BotForgePage() {
           <figure className="border-2 border-border bg-card p-2 shadow-hard-violet">
             <img
               src={e.poster}
-              alt={`The Bot Forge poster: ${eventDate(e)} at ${site.college}. Robo Sumo, Robo Race and Shark Tank, with a QR code to sign up.`}
-              width={604}
-              height={1024}
+              alt={`The Bot Forge poster: ${eventDate(e)} at ${site.college}. Shark Tank, Robo Sumo and Robo Race, with a QR code to sign up.`}
+              width={1070}
+              height={927}
               className="block h-auto w-full"
             />
           </figure>
