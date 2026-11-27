@@ -93,7 +93,9 @@ export const botForgeInfo = {
   art: {
     /** The Bot Forge crest. */
     crest: "/events/bot-forge/crest.webp",
-    /** The sumo wrestler and the racer, cut out of the poster. They move on the contest cards. */
+    /** The robot with its arms out, presenting the prizes. */
+    heroBot: "/events/bot-forge/hero-bot.webp",
+    /** The sumo wrestler and the racer. They move on the contest cards. */
     sumoBot: "/events/bot-forge/sumo-bot.webp",
     raceBot: "/events/bot-forge/race-bot.webp",
     /** The two line-art mechs from the poster's top corners. They peek in at the top of the pages. */
@@ -105,9 +107,9 @@ export const botForgeInfo = {
     model: "/events/bot-forge/shark.glb",
     still: "/events/bot-forge/shark-still.webp",
     credit: {
-      title: "Great White Shark Attack Bite Animation Loop",
+      title: "Animated Swimming Great White Shark Loop",
       author: "LasquetiSpice",
-      url: "https://sketchfab.com/3d-models/great-white-shark-attack-bite-animation-loop-936d4110b39945f5a46cb2d831ece920",
+      url: "https://sketchfab.com/3d-models/animated-swimming-great-white-shark-loop-297ed35c6a5f43749b0ae189d991a3f1",
       license: "CC BY 4.0",
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
     },
