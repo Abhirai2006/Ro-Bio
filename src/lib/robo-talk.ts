@@ -2,12 +2,16 @@
 // so nothing here goes stale when a date or the team changes. Robot logic first, then a human feeling.
 import {
   botForge,
+  botForgeInfo,
+  botForgePrizeTotal,
   bylineOf,
   coreTeam,
   coreTeamSize,
   currentSem,
   ordinal,
   events,
+  registrationNow,
+  rupees,
   faculty,
   formatDate,
   gallery,
@@ -34,12 +38,15 @@ const bfDay = bf.date ? plain(bf.date).replace(/\s\d{4}$/, "") : null; // "6 Nov
 const when = bfDay ? `is on ${bfDay}` : "is coming soon";
 const n = bf.activities.length,
   all = n === 2 ? "both" : "all of them";
-const regLine =
-  bf.registration === "open"
-    ? "Registration is open. Go, go, go!"
-    : bf.registration === "closed"
+/** Said about registration. Worked out when he says it, because registration opens and closes on its own. */
+const regLine = () => {
+  const r = registrationNow(bf);
+  return r === "open"
+    ? `Registration is open until ${botForgeInfo.closesLabel}. Go, go, go!`
+    : r === "closed"
       ? "Registration is closed. See you there."
-      : "Registration is not open yet. I am refreshing constantly.";
+      : `Registration is not open yet. It opens ${botForgeInfo.opensLabel}. I am refreshing constantly.`;
+};
 
 /** Said when he lands on a page that does not exist. */
 export const LOST = "Uh oh. Nothing here. I checked twice.";
@@ -48,6 +55,10 @@ export const LOST = "Uh oh. Nothing here. I checked twice.";
 export const FORGE_IDLE = `${bf.title} ${when}. Still tuning my motors.`;
 
 const firstName = (name: string) => name.split(" ")[0]!;
+
+/** "A, B and C". */
+const listed = (xs: string[]) =>
+  xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
 /** Who someone is, in a few words: their role, their squad, or their faculty title. */
 export function whoIs(name: string): string {
@@ -81,7 +92,14 @@ export const GREET: Record<string, string> = {
   "/": "Home page loaded. Arm, sumo ring, heartbeat. Everything I love.",
   "/about": "About page. This is where they explain me. Sort of.",
   "/events": `Events. ${events.map((e) => e.title).join(" and ")}. My calendar chip is busy.`,
-  [`/events/${bf.slug}`]: `${bf.title}. ${bf.activities.map((a) => a.name).join(" and ")}. I want to enter ${all}.`,
+  [`/events/${bf.slug}`]: `${bf.title}. ${listed(botForgeInfo.contests.map((c) => c.title))}. ${rupees(botForgePrizeTotal)} in cash prizes. I want to enter ${botForgeInfo.contests.length === 2 ? "both" : "all of them"}.`,
+  [`/events/${bf.slug}/register`]: `Team form. ${rupees(botForgeInfo.fee)} per team. I already picked my team name.`,
+  ...Object.fromEntries(
+    botForgeInfo.contests.map((c) => [
+      `/events/${bf.slug}/${c.slug}`,
+      `${c.title}. ${rupees(c.prizes[0])} for first place. I am taking notes on the rules.`,
+    ]),
+  ),
   ...(spark
     ? {
         [`/events/${spark.slug}`]: `${spark.title}. Teams, one robotics problem, and a podium. I am practising my listening face.`,
@@ -110,7 +128,7 @@ export const GREET: Record<string, string> = {
 };
 
 // First match wins. Tested against the heading text, or the text of the card he is looking at.
-const SECTIONS: [RegExp, string[]][] = [
+const SECTIONS: [RegExp, (string | (() => string))[]][] = [
   [
     /line follower/i,
     [
@@ -119,10 +137,10 @@ const SECTIONS: [RegExp, string[]][] = [
     ],
   ],
   [
-    /robot race/i,
+    /robo(t)? race/i,
     [
-      "Robot Race. Fastest bot wins. My top speed is a brisk walk.",
-      "Robot Race. I would need new motors. And courage.",
+      "Robo Race. Fastest bot wins. My top speed is a brisk walk.",
+      "Robo Race. I would need new motors. And courage.",
     ],
   ],
   [
@@ -145,7 +163,15 @@ const SECTIONS: [RegExp, string[]][] = [
       bfDay
         ? `${bf.title}, ${bfDay}. Mark your calendar.`
         : `${bf.title}. Date coming soon. I keep checking.`,
-      `${bf.title}. ${regLine}`,
+      () => `${bf.title}. ${regLine()}`,
+      `${bf.title}. ${rupees(botForgePrizeTotal)} in cash prizes. I would buy so many batteries.`,
+    ],
+  ],
+  [
+    /shark tank/i,
+    [
+      "Shark Tank. Pitch an idea, face the judge. I would pitch myself.",
+      "Shark Tank. Five minutes to pitch, two for questions. Keep it sharp.",
     ],
   ],
   [/activities/i, [`${n} events. I would enter ${all}. Probably lose ${all}.`]],
@@ -237,7 +263,11 @@ const pick = <T>(a: T[]) => a[Math.floor(Math.random() * a.length)]!;
 /** A line about a section, or a robot-style fallback that reads the heading out loud. */
 export function sectionLine(text: string): string {
   const t = text.replace(/\s+/g, " ").trim();
-  for (const [re, lines] of SECTIONS) if (re.test(t)) return pick(lines);
+  for (const [re, lines] of SECTIONS)
+    if (re.test(t)) {
+      const line = pick(lines);
+      return typeof line === "function" ? line() : line;
+    }
   const h = t.slice(0, 36);
   if (!h) return pick(["What is this? Let me look.", "Nice spot. Good view of the screen."]);
   return pick([
