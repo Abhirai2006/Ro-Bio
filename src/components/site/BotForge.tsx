@@ -73,51 +73,57 @@ export function PrizeBanner() {
   const [first, second] = botForgeInfo.contests[0]!.prizes;
   const same = botForgeInfo.contests.every((c) => c.prizes[0] === first && c.prizes[1] === second);
   return (
-    <section
-      className="relative border-2 border-border bg-ink p-5 text-paper shadow-hard-violet md:p-8"
-      aria-labelledby="prizes"
-    >
-      {/* The poster's robot, arms out, presenting the prizes. */}
+    // Room above the banner for the robot, so he never covers the text above it.
+    <div className="relative pt-[78px] sm:pt-[96px] md:pt-[120px]">
+      {/*
+        The poster's robot, arms out. He sits behind the banner and pops up from behind its top edge, until his
+        whole jacket shows above it.
+      */}
       <img
         src={botForgeInfo.art.heroBot}
         alt=""
         width={296}
         height={154}
-        className="bf-presenter pointer-events-none absolute -top-10 right-2 w-32 sm:w-44 md:-top-14 md:right-4 md:w-56"
+        className="bf-presenter pointer-events-none absolute right-3 top-0 z-0 w-36 sm:w-44 md:right-6 md:w-56"
       />
-      <p className="font-pixel text-[11px] text-lens">BOT FORGE CASH PRIZES</p>
-      <h2 id="prizes" className="mt-2 font-display font-black leading-none">
-        <span className="bf-glow block text-6xl text-lilac sm:text-7xl md:text-8xl">
-          {rupees(botForgePrizeTotal)}
-        </span>
-        <span className="mt-3 block text-2xl md:text-3xl">in cash prizes to win</span>
-      </h2>
-      {same && (
-        <p className="mt-3 max-w-xl text-lg opacity-90">
-          {rupees(first)} for first place and {rupees(second)} for second, in every one of the{" "}
-          {botForgeInfo.contests.length} contests.
+      <section
+        className="relative z-10 border-2 border-border bg-ink p-5 text-paper shadow-hard-violet md:p-8"
+        aria-labelledby="prizes"
+      >
+        <p className="font-pixel text-[11px] text-lens">BOT FORGE CASH PRIZES</p>
+        <h2 id="prizes" className="mt-2 font-display font-black leading-none">
+          <span className="bf-glow block text-6xl text-lilac sm:text-7xl md:text-8xl">
+            {rupees(botForgePrizeTotal)}
+          </span>
+          <span className="mt-3 block text-2xl md:text-3xl">in cash prizes to win</span>
+        </h2>
+        {same && (
+          <p className="mt-3 max-w-xl text-lg opacity-90">
+            {rupees(first)} for first place and {rupees(second)} for second, in every one of the{" "}
+            {botForgeInfo.contests.length} contests.
+          </p>
+        )}
+        <p className="mt-3 inline-block border-2 border-dashed border-lens px-3 py-2 font-bold">
+          Plus, every participant gets {botForgeInfo.forEveryone}.
         </p>
-      )}
-      <p className="mt-3 inline-block border-2 border-dashed border-lens px-3 py-2 font-bold">
-        Plus, every participant gets {botForgeInfo.forEveryone}.
-      </p>
-      <ul className="mt-6 grid gap-4 md:grid-cols-3">
-        {botForgeInfo.contests.map((c) => (
-          <li key={c.slug} className="border-2 border-paper/40 p-4">
-            <Link
-              to="/events/bot-forge/$contest"
-              params={{ contest: c.slug }}
-              className="font-display text-xl font-black underline decoration-lilac underline-offset-4"
-            >
-              {c.title}
-            </Link>
-            <div className="mt-3">
-              <PrizePair c={c} dark />
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
+        <ul className="mt-6 grid gap-4 md:grid-cols-3">
+          {botForgeInfo.contests.map((c) => (
+            <li key={c.slug} className="border-2 border-paper/40 p-4">
+              <Link
+                to="/events/bot-forge/$contest"
+                params={{ contest: c.slug }}
+                className="font-display text-xl font-black underline decoration-lilac underline-offset-4"
+              >
+                {c.title}
+              </Link>
+              <div className="mt-3">
+                <PrizePair c={c} dark />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
   );
 }
 
