@@ -174,7 +174,7 @@ export function generalRules(): string[] {
     "Each team enters one contest only, and each student is in one team only.",
     `The entry fee is ${rupees(botForgeInfo.fee)} per team, paid by UPI when you register. It is not refundable.`,
     `Register on this website by ${botForgeInfo.closesLabel}.`,
-    "Everyone who takes part gets a certificate.",
+    `Every participant gets ${botForgeInfo.forEveryone}.`,
     "The club may change these rules before the event. The final rules go up on this site.",
   ];
 }
