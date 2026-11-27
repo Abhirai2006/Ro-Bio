@@ -47,7 +47,7 @@ const STEPS: [string, string][] = [
   ],
   [
     "Fill in the form",
-    "Pick your contest, add every member, and ask for a club kit if you want one.",
+    "Pick your event, add every member, and ask for a club kit if you want one.",
   ],
   ["Pay the fee", `${rupees(botForgeInfo.fee)} per team by UPI. It is not refundable.`],
   [
@@ -115,7 +115,7 @@ function BotForgePage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <RegisterButton />
               <a href="#contests" className={plainBtn}>
-                See the contests
+                See the events
               </a>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
@@ -142,35 +142,18 @@ function BotForgePage() {
       <section
         id="contests"
         className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-16"
-        aria-labelledby="contests-h"
+        aria-label="The events"
       >
-        <SectionHead label="PICK ONE" id="contests-h">
-          {botForgeInfo.contests.length} contests, {rupees(botForgePrizeTotal)} to win
-        </SectionHead>
-        <p className="mt-3 max-w-2xl text-muted-foreground">
-          Each team enters one contest. Open a contest for its full rules.
-        </p>
-        <div className="mt-8">
-          <ContestCards />
-        </div>
+        <ContestCards />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pt-16" aria-labelledby="day-h">
-        <div className="grid gap-8 md:grid-cols-[1.3fr_1fr]">
-          <div>
-            <SectionHead label="ON THE DAY" id="day-h">
-              {eventDate(e)}
-            </SectionHead>
-            <div className="mt-6">
-              <Schedule />
-            </div>
-          </div>
-          <div className="border-2 border-border bg-lens p-6 text-ink md:mt-16">
-            <p className="font-pixel text-xs">
-              TECH EXPO, {botForgeInfo.techExpo.time.toUpperCase()}
-            </p>
-            <h3 className="mt-2 text-2xl font-black">Senior students' projects, on show</h3>
-            <p className="mt-3">{botForgeInfo.techExpo.about}</p>
+        <div className="max-w-3xl">
+          <SectionHead label="ON THE DAY" id="day-h">
+            {eventDate(e)}
+          </SectionHead>
+          <div className="mt-6">
+            <Schedule />
           </div>
         </div>
       </section>
@@ -194,7 +177,7 @@ function BotForgePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pt-16" aria-labelledby="rules-h">
-        <SectionHead label="FOR EVERY CONTEST" id="rules-h">
+        <SectionHead label="FOR EVERY EVENT" id="rules-h">
           The rules everyone follows
         </SectionHead>
         <div className="mt-6 grid gap-6 md:grid-cols-[1.4fr_1fr]">
@@ -206,7 +189,7 @@ function BotForgePage() {
           <div className="space-y-6">
             <DraftNote />
             <p className="text-muted-foreground">
-              Each contest has its own rules:{" "}
+              Each event has its own rules:{" "}
               {botForgeInfo.contests.map((c, i) => (
                 <span key={c.slug}>
                   {i ? (i === botForgeInfo.contests.length - 1 ? " and " : ", ") : ""}
