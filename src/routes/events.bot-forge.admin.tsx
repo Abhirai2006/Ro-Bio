@@ -250,7 +250,7 @@ function Admin({ pass, onOut }: { pass: string; onOut: () => void }) {
             value={show}
             onChange={(e) => setShow(e.target.value as ContestSlug | "all")}
           >
-            <option value="all">All contests</option>
+            <option value="all">All events</option>
             {botForgeInfo.contests.map((c) => (
               <option key={c.slug} value={c.slug}>
                 {c.title}
