@@ -5,6 +5,7 @@ import {
   ContestCards,
   Coordinators,
   DraftNote,
+  MechCorners,
   PrizeBanner,
   RegisterButton,
   Schedule,
@@ -88,8 +89,9 @@ function BotForgePage() {
           })),
         }}
       />
-      <section className="blueprint border-b-2 border-border">
-        <div className="mx-auto grid max-w-6xl items-start gap-10 px-4 pb-14 pt-14 md:grid-cols-[1.5fr_1fr] md:pt-20">
+      <section className="blueprint relative overflow-hidden border-b-2 border-border">
+        <MechCorners />
+        <div className="relative mx-auto grid max-w-6xl items-start gap-10 px-4 pb-14 pt-14 md:grid-cols-[1.5fr_1fr] md:pt-20">
           <div>
             <p className="font-pixel text-xs text-primary">COMPETITION / RO-BIO HUB PRESENTS</p>
             <div className="mt-3 flex items-center gap-4">
