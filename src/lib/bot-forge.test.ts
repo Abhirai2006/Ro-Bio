@@ -83,6 +83,9 @@ describe("Bot Forge rules and payment", () => {
     ].join(" ");
     expect(all).not.toMatch(/[\u2013\u2014]/);
     expect(generalRules().join(" ")).toContain(rupees(botForgeInfo.fee));
+    expect(generalRules().join(" ")).toContain(
+      "valuable goodies along with a participation certificate",
+    );
     const sumo = botForgeInfo.contests.find((c) => c.slug === "robo-sumo")!;
     expect(
       contestRules("robo-sumo")
