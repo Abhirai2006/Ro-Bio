@@ -63,8 +63,7 @@ const area = (p: P[]) =>
  * of cracks cross them, small pieces near the hit and big ones further out. Points are shared between neighbouring
  * pieces, so the pieces fit together exactly before they fly apart.
  */
-function fracture(w: number, h: number, ix: number, iy: number): P[][] {
-  const rays = 18;
+function fracture(w: number, h: number, ix: number, iy: number, rays = 18): P[][] {
   const angles = Array.from(
     { length: rays },
     (_, i) => ((i + rand(-0.3, 0.3)) / rays) * Math.PI * 2,
@@ -122,12 +121,17 @@ export function createSharkWorld(
     /** The banner the glass covers, and the spot on it where the shark hits. */
     banner: HTMLElement;
     hole: HTMLElement;
+    /** A phone: a lighter version with fewer pieces, less dust and a lower resolution. */
+    lite?: boolean;
+    /** Called once if a phone cannot keep the animation smooth, so the page can show the still picture. */
+    onSlow?: () => void;
     onReady: () => void;
     onFail: () => void;
   },
 ): SharkWorld {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  const lite = !!opts.lite;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lite ? 1.5 : 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.setClearColor(0x000000, 0);
@@ -210,7 +214,7 @@ export function createSharkWorld(
       iy = (b.bottom - (hl.top + hl.height / 2)) * k;
     thickness = 5 * k;
     const far = Math.hypot(Math.max(ix, w - ix), Math.max(iy, h - iy));
-    for (const poly of fracture(w, h, ix, iy)) {
+    for (const poly of fracture(w, h, ix, iy, lite ? 12 : 18)) {
       const cx = poly.reduce((s, p) => s + p[0], 0) / poly.length,
         cy = poly.reduce((s, p) => s + p[1], 0) / poly.length;
       const shape = new THREE.Shape(poly.map(([x, y]) => new THREE.Vector2(x - cx, y - cy)));
@@ -282,7 +286,7 @@ export function createSharkWorld(
       s.edge.opacity = 0.9;
     }
     // Glass dust: a bright puff at the hit that falls and fades.
-    const n = 320;
+    const n = lite ? 140 : 320;
     const pos = new Float32Array(n * 3);
     dustVel = new Float32Array(n * 3);
     const at = new THREE.Vector3();
@@ -369,6 +373,9 @@ export function createSharkWorld(
 
   let started = -1;
   let shattered = false;
+  let frames = 0,
+    frameTime = 0,
+    slowSent = false;
   let last = performance.now();
   const up = new THREE.Vector3(0, 1, 0);
   const look = new THREE.Vector3();
@@ -475,7 +482,8 @@ export function createSharkWorld(
   const stepShark = (dt: number, t: number) => {
     if (!mixer) return;
     const inner = shark.children[0];
-    if (inner) inner.scale.setScalar((360 * k) / (inner.userData["fit"] as number));
+    if (inner)
+      inner.scale.setScalar((Math.min(360, vw * 0.6) * k) / (inner.userData["fit"] as number));
     const now = performance.now();
     const lungeAt = SHATTER_AT - 0.12;
     if (t < lungeAt) {
@@ -536,8 +544,20 @@ export function createSharkWorld(
 
   renderer.setAnimationLoop(() => {
     const now = performance.now();
-    const dt = Math.min((now - last) / 1000, 0.05);
+    const raw = (now - last) / 1000;
+    const dt = Math.min(raw, 0.05);
     last = now;
+    // On a phone, watch the first few seconds of the break: if it cannot keep up, hand over to the picture.
+    if (lite && started >= 0 && !slowSent && !document.hidden) {
+      const since = (now - started) / 1000;
+      if (since > 0.4 && since < 3.4) {
+        frames++;
+        frameTime += raw;
+      } else if (since >= 3.4 && frames > 0) {
+        slowSent = true;
+        if (frameTime / frames > 1 / 26) opts.onSlow?.();
+      }
+    }
     if (!ready || document.hidden) return;
     const t = started < 0 ? 0 : (now - started) / 1000;
     if (started >= 0 && !shattered && t >= SHATTER_AT) {
@@ -573,6 +593,8 @@ export function createSharkWorld(
       followBanner();
       shark.visible = false;
       started = performance.now();
+      frames = 0;
+      frameTime = 0;
     },
     setHidden(h) {
       hidden = h;
