@@ -85,10 +85,10 @@ export const botForgeInfo = {
   /** Teams that registered can still send their UPI transaction number until this moment. */
   paymentsCloseAt: "2026-12-08T00:00:00+05:30",
   /**
-   * Where teams pay. PLACEHOLDER: the President's UPI ID and the name a payment app shows for it.
-   * While `id` is empty, the form takes registrations and says the payment details are coming soon.
+   * Where teams pay: the UPI ID and the name a payment app shows for it. If `id` is ever emptied, the form
+   * still takes registrations and says the payment details are coming soon.
    */
-  upi: { id: "", payee: "" },
+  upi: { id: "abhirai2006@ybl", payee: "Abhishek Rai A" },
   /** True while the rules on the site are a draft. Every rules page says so in a banner. */
   rulesDraft: true,
   /** The Design squad's Bot Forge artwork, from the poster, shown on the Bot Forge pages. */
