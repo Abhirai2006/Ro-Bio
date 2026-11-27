@@ -7,11 +7,15 @@ import { Uptime, Window, logoUrl, useToday } from "@/components/site/parts";
 import { FocusAreas } from "@/components/site/FocusAreas";
 import { MerchTeaser } from "@/components/site/MerchTeaser";
 import {
+  botForge,
+  botForgePrizeTotal,
   contacts,
   coreTeamSize,
   daysBetween,
   eventDate,
   nextEvent,
+  registrationNow,
+  rupees,
   site,
   todayInIndia,
   type ClubEvent,
@@ -21,10 +25,12 @@ import {
 const whenLine = (e: ClubEvent) => `${e.title}, ${e.date ? eventDate(e) : "date coming soon"}`;
 
 /** What the "Registration" chip says, or nothing for an event with nothing to register for. */
-const registrationChip = (e: ClubEvent) =>
-  e.registration === "none"
+const registrationChip = (e: ClubEvent) => {
+  const r = registrationNow(e);
+  return r === "none"
     ? null
-    : `REGISTRATION: ${e.registration === "open" ? "OPEN" : e.registration === "closed" ? "CLOSED" : "COMING SOON"}`;
+    : `REGISTRATION: ${r === "open" ? "OPEN" : r === "closed" ? "CLOSED" : "COMING SOON"}`;
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -178,6 +184,12 @@ function Index() {
             </h2>
             <p className="mt-4 font-display text-2xl font-bold text-primary">{eventDate(next)}</p>
             {next.time && <p className="mt-1 font-mono text-sm">{next.time}</p>}
+            {next === botForge && (
+              <p className="mt-4 font-display text-xl font-black">
+                <span className="bg-ink px-2 text-lilac">{rupees(botForgePrizeTotal)}</span> in cash
+                prizes
+              </p>
+            )}
             <p className="mt-4 text-muted-foreground">{next.venue}</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
@@ -196,7 +208,10 @@ function Index() {
           </div>
           <ul className="grid grid-cols-2 gap-3 self-center">
             {next.activities.map((a, i) => (
-              <li key={a.name} className={i === 2 ? "col-span-2" : ""}>
+              <li
+                key={a.name}
+                className={i === 2 && next.activities.length === 3 ? "col-span-2" : ""}
+              >
                 <Window tag={a.tag}>
                   <p className="font-display font-extrabold">{a.name}</p>
                 </Window>
