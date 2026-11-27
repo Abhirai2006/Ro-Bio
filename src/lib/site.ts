@@ -119,6 +119,30 @@ export const botForgeInfo = {
       license: "CC BY 4.0",
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
     },
+    /** The robot fisherman, his rod, and the bundle of rupee notes he uses as bait. */
+    fisherRobot: "/events/bot-forge/fisher-robot.glb",
+    fishingRod: "/events/bot-forge/fishing-rod.glb",
+    rupeeNotes: "/events/bot-forge/rupee-notes.glb",
+    moreCredits: [
+      {
+        what: "3D robot",
+        title: "Lonely Robot",
+        author: "groone",
+        url: "https://sketchfab.com/3d-models/lonely-robot-e6c960e9af8744e991c85fdf1e1421bd",
+      },
+      {
+        what: "3D fishing rod",
+        title: "Fishing Rod, Rigged and Animated",
+        author: "Ergin ERYILDIR",
+        url: "https://sketchfab.com/3d-models/fishing-rod-rigged-and-animated-78991bf44cf54acb8660bef317d72c7a",
+      },
+      {
+        what: "3D notes",
+        title: "Indian 2000 rupees notes",
+        author: "varun pal",
+        url: "https://sketchfab.com/3d-models/indian-2000-rupees-notes-a273c3495d644057ac4618a7c319340d",
+      },
+    ],
   },
   contests: [
     {
