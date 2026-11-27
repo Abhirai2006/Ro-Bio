@@ -335,6 +335,8 @@ export function createSharkWorld(
   let fishing: Fishing | null = null;
   /** After a catch the shark swims off with its prize for a while before it hunts again. */
   let fedUntil = 0;
+  /** When the shark's first bite landed. Its second bite, a second later, takes the whole bundle. */
+  let firstBiteAt = 0;
 
   const newTarget = () => {
     const W = (vw / 2) * k,
@@ -551,20 +553,28 @@ export function createSharkWorld(
       shark.rotateZ(bank);
     }
     if (swim) swim.timeScale = 0.6 + (speed / maxSpeed) * 0.8;
-    // one clean bite gets it: the bundle bursts and the notes scatter
+    // Two bites: the first tears off a couple of notes, the second, a second later, takes the bundle and the
+    // notes scatter. Pull the bait away in between and the second bite misses; the shark starts again.
     const mouth = shark.position
       .clone()
       .add(new THREE.Vector3(0, 0, 1).applyQuaternion(shark.quaternion).multiplyScalar(150 * k));
     const near = bait && hunting ? mouth.distanceTo(bait) : Infinity;
+    // the visitor got away: the next bite counts as a first bite again
+    if (firstBiteAt && now - firstBiteAt > 2500) firstBiteAt = 0;
     if (bite && swim && now > biteNext && near < 150 * k) {
       bite.reset().setEffectiveWeight(1).fadeIn(0.12).play();
       swim.fadeOut(0.12);
       biteUntil = now + 850;
-      biteNext = now + 1600;
-      if (fishing) {
+      if (fishing && firstBiteAt && now - firstBiteAt <= 2500) {
         fishing.catchBait();
+        firstBiteAt = 0;
         fedUntil = now + 3200;
+        biteNext = now + 1000;
         newTarget();
+      } else if (fishing) {
+        fishing.nibble();
+        firstBiteAt = now;
+        biteNext = now + 1000;
       }
     }
     if (bite && swim && biteUntil && now > biteUntil) {
