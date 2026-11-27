@@ -22,7 +22,7 @@
   position: absolute;
   bottom: 6%;
   left: -45%;
-  width: 42%;
+  width: 30%;
   animation: bf-race 3.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
 }
 .bf-racer img {
@@ -76,9 +76,9 @@
 }
 .bf-sumo {
   position: absolute;
-  bottom: 9%;
-  left: 50%;
-  width: 46%;
+  bottom: 12%;
+  left: 46%;
+  width: 60%;
   transform: translateX(-50%);
 }
 .bf-sumo img {
@@ -202,6 +202,21 @@
   }
 }
 
+/* The robot on the prize banner: arms out, bobbing a little, as if showing off the prizes. */
+.bf-presenter {
+  transform-origin: 50% 100%;
+  animation: bf-present 3.2s ease-in-out infinite;
+}
+@keyframes bf-present {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+}
+
 /* The big prize number pulses a little, to draw the eye. */
 .bf-glow {
   text-shadow:
@@ -253,45 +268,6 @@
 .bf-banner[data-phase="still"] .bf-hole {
   transform: scale(1);
 }
-.bf-shard {
-  position: absolute;
-  width: 15%;
-  aspect-ratio: 1;
-  background: var(--ink);
-  border: 2px solid var(--lilac);
-  opacity: 0;
-  transform: translate(-50%, -50%);
-  transition:
-    transform 1.1s cubic-bezier(0.15, 0.7, 0.3, 1),
-    opacity 1.1s ease-in;
-}
-.bf-banner[data-phase="burst"] .bf-shard {
-  opacity: 1;
-  transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot));
-}
-.bf-banner[data-phase="done"] .bf-shard {
-  opacity: 0;
-  transform: translate(calc(-50% + var(--dx) * 1.4), calc(-50% + var(--dy) * 1.4 + 120px))
-    rotate(calc(var(--rot) * 1.5));
-}
-.bf-banner[data-phase="still"] .bf-shard {
-  opacity: 1;
-  transition: none;
-  transform: translate(calc(-50% + var(--dx) * 0.6), calc(-50% + var(--dy) * 0.6))
-    rotate(var(--rot));
-}
-.bf-shark-view {
-  clip-path: circle(0 at 50% 50%);
-  transition: clip-path 0.45s ease-out;
-}
-.bf-banner[data-phase="burst"] ~ .bf-shark-view {
-  clip-path: circle(20% at 50% 50%);
-}
-.bf-banner[data-phase="done"] ~ .bf-shark-view,
-.bf-banner[data-phase="still"] ~ .bf-shark-view {
-  clip-path: circle(100% at 50% 50%);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .bf-racer {
     animation: none;
@@ -301,6 +277,7 @@
   .bf-sumo img,
   .bf-mech,
   .bf-mech-scan,
+  .bf-presenter,
   .bf-sumo::after,
   .bf-banner .bf-banner-face {
     animation: none !important;
