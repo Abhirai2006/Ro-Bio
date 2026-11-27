@@ -183,7 +183,7 @@ function TeamForm({
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!c) return setError("Pick the contest your team enters.");
+    if (!c) return setError("Pick the event your team enters.");
     setBusy(true);
     setError("");
     try {
@@ -221,7 +221,7 @@ function TeamForm({
     >
       <p className="text-sm text-muted-foreground">Everything marked * is needed.</p>
       <fieldset>
-        <legend className="font-bold">Which contest? *</legend>
+        <legend className="font-bold">Which event? *</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-3">
           {botForgeInfo.contests.map((o) => (
             <label key={o.slug} className={choice(contest === o.slug)}>
@@ -246,7 +246,7 @@ function TeamForm({
           ))}
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          A team enters one contest only.{" "}
+          A team enters one event only.{" "}
           {c && (
             <Link
               to="/events/bot-forge/$contest"
@@ -301,7 +301,7 @@ function TeamForm({
             onClick={() => setMembers((all) => [...all, blankMember()])}
             disabled={!c}
           >
-            {c ? "Add a member" : "Pick a contest to add members"}
+            {c ? "Add a member" : "Pick an event to add members"}
           </button>
         )}
       </fieldset>
