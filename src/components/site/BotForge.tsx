@@ -98,6 +98,9 @@ export function PrizeBanner() {
           {botForgeInfo.contests.length} contests.
         </p>
       )}
+      <p className="mt-3 inline-block border-2 border-dashed border-lens px-3 py-2 font-bold">
+        Plus, every participant gets {botForgeInfo.forEveryone}.
+      </p>
       <ul className="mt-6 grid gap-4 md:grid-cols-3">
         {botForgeInfo.contests.map((c) => (
           <li key={c.slug} className="border-2 border-paper/40 p-4">
