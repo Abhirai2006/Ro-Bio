@@ -63,6 +63,8 @@ export type Fishing = {
   catchBait: () => void;
   /** A tug on the line when the shark snaps and misses. */
   tug: () => void;
+  /** The shark's first bite: a tug, two notes torn off, and a smaller bundle. */
+  nibble: () => void;
   update: (dt: number, env: Env) => void;
   setVisible: (on: boolean) => void;
   dispose: () => void;
@@ -198,11 +200,47 @@ export async function createFishing(
   const notes: Note[] = [];
   let jerk = 0;
 
+  /** Throws `count` loose notes from the bait: the same printed note, as thin as paper. */
+  const spray = (count: number) => {
+    const from = pts[ROPE_POINTS - 1]!.clone();
+    const src = noteMesh as THREE.Mesh | null;
+    for (let i = 0; src && i < count; i++) {
+      const mat = (src.material as THREE.MeshStandardMaterial).clone();
+      mat.transparent = true;
+      mat.side = THREE.DoubleSide;
+      const mesh = new THREE.Mesh(src.geometry, mat);
+      mesh.position.copy(from);
+      mesh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+      root.add(mesh);
+      const a = Math.random() * Math.PI * 2;
+      notes.push({
+        mesh,
+        vel: new THREE.Vector3(Math.cos(a), Math.sin(a) * 0.6 + 0.9, Math.random() * 0.8 + 0.2),
+        spin: new THREE.Vector3(
+          Math.random() - 0.5,
+          Math.random() - 0.5,
+          Math.random() - 0.5,
+        ).multiplyScalar(9),
+        phase: Math.random() * 6,
+        age: 0,
+      });
+    }
+  };
+  /** First bites the current bundle has taken: each one leaves it a little smaller. */
+  let bite = 0;
+
   return {
     bait: () => (baitOn ? (pts[ROPE_POINTS - 1]?.clone() ?? null) : null),
     stillFor: () => (performance.now() - stillSince) / 1000,
     tug() {
       jerk = Math.max(jerk, 0.6);
+    },
+    nibble() {
+      if (!baitOn) return;
+      // the first bite: a tug on the line, a couple of notes torn off, a slightly smaller bundle
+      jerk = Math.max(jerk, 0.8);
+      bite = Math.min(bite + 1, 3);
+      spray(2);
     },
     catchBait() {
       if (!baitOn) return;
@@ -210,31 +248,7 @@ export async function createFishing(
       bundle.visible = false;
       jerk = 1;
       respawnAt = performance.now() + 2600;
-      const from = pts[ROPE_POINTS - 1]!.clone();
-      const src = noteMesh as THREE.Mesh | null;
-      for (let i = 0; src && i < 16; i++) {
-        // one loose note: the same printed note, as thin as paper
-        const mat = (src.material as THREE.MeshStandardMaterial).clone();
-        mat.transparent = true;
-        mat.side = THREE.DoubleSide;
-        const mesh = new THREE.Mesh(src.geometry, mat);
-        mesh.userData["thin"] = true;
-        mesh.position.copy(from);
-        mesh.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
-        root.add(mesh);
-        const a = Math.random() * Math.PI * 2;
-        notes.push({
-          mesh,
-          vel: new THREE.Vector3(Math.cos(a), Math.sin(a) * 0.6 + 0.9, Math.random() * 0.8 + 0.2),
-          spin: new THREE.Vector3(
-            Math.random() - 0.5,
-            Math.random() - 0.5,
-            Math.random() - 0.5,
-          ).multiplyScalar(9),
-          phase: Math.random() * 6,
-          age: 0,
-        });
-      }
+      spray(16);
     },
     update(dt, env) {
       const k = env.k;
@@ -271,6 +285,7 @@ export async function createFishing(
         // a fresh bundle, lowered from the rod tip
         baitOn = true;
         bundle.visible = true;
+        bite = 0;
         ropeLen = 40 * k;
         for (let i = 0; i < ROPE_POINTS; i++) {
           pts[i]!.copy(tip).y -= (ropeLen * i) / (ROPE_POINTS - 1);
@@ -317,7 +332,7 @@ export async function createFishing(
         before = pts[ROPE_POINTS - 2]!;
       bundle.position.copy(end);
       bundle.position.y -= (noteH / 2 + 5) * k;
-      bundle.scale.setScalar(k);
+      bundle.scale.setScalar(k * (1 - bite * 0.12));
       const sway = Math.atan2(end.x - before.x, before.y - end.y);
       bundle.rotation.set(0, (bundle.rotation.y + dt * 0.6) % (Math.PI * 2), -sway * 0.8);
 
