@@ -32,15 +32,6 @@ function power(): "full" | "lite" | null {
   return "lite";
 }
 
-const CRACKS = [
-  "M100 100 L70 82 L52 86 L20 60",
-  "M100 100 L118 70 L112 48 L136 14",
-  "M100 100 L140 106 L160 96 L196 112",
-  "M100 100 L92 136 L104 160 L88 196",
-  "M100 100 L66 120 L40 116 L8 150",
-  "M100 100 L130 134 L152 150 L170 186",
-];
-
 export function SharkBurst() {
   const c = contestBySlug("shark-tank")!;
   const stage = useRef<HTMLDivElement>(null);
@@ -152,94 +143,93 @@ export function SharkBurst() {
       <div
         className={`mx-auto max-w-6xl px-4 pb-14 md:pb-20 ${mode === "still" ? "pt-16 md:pt-24" : "pt-[190px] md:pt-[250px]"}`}
       >
-        <div className="relative">
-          <div
-            ref={banner}
-            className="bf-banner relative border-2 border-border bg-ink text-paper shadow-hard-violet"
-            data-phase={phase}
-          >
-            <div className="bf-banner-face blueprint grid items-stretch md:grid-cols-[1.1fr_1fr]">
-              <div className="relative z-10 p-6 md:p-10">
-                <p className="font-pixel text-[11px] text-lens">BOT FORGE</p>
-                <h1
-                  id="shark-title"
-                  className="mt-3 font-display text-5xl font-black leading-none md:text-7xl"
-                >
-                  {c.title}
-                </h1>
-                <p className="mt-4 max-w-md text-lg opacity-90">{c.pitch}</p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  <span className="border-2 border-paper/70 bg-lilac px-3 py-2 text-ink">
-                    <span className="block font-pixel text-[9px]">1ST PRIZE</span>
-                    <span className="font-display text-3xl font-black">{rupees(c.prizes[0])}</span>
-                  </span>
-                  <span className="border-2 border-paper/70 bg-paper px-3 py-2 text-ink">
-                    <span className="block font-pixel text-[9px]">2ND PRIZE</span>
-                    <span className="font-display text-3xl font-black">{rupees(c.prizes[1])}</span>
-                  </span>
-                </div>
-              </div>
-              <div className="relative min-h-[260px] md:min-h-[360px]">
-                {/* In the still picture the glass is drawn as cracks; with 3D the glass itself cracks. */}
-                {mode === "still" && (
-                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <svg
-                      viewBox="0 0 200 200"
-                      className="bf-cracks absolute left-1/2 top-1/2 w-[110%] -translate-x-1/2 -translate-y-1/2"
-                      aria-hidden="true"
-                    >
-                      {CRACKS.map((d) => (
-                        <path
-                          key={d}
-                          d={d}
-                          fill="none"
-                          stroke="#fffffa"
-                          strokeWidth="1.6"
-                          strokeLinejoin="bevel"
-                        />
-                      ))}
-                    </svg>
-                  </div>
-                )}
-                <svg
-                  ref={hole}
-                  viewBox="0 0 100 100"
-                  className="bf-hole pointer-events-none absolute left-1/2 top-1/2 -ml-[32%] -mt-[32%] w-[64%]"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <radialGradient id="bf-deep" cx="50%" cy="45%" r="60%">
-                      <stop offset="0" stopColor="#1d5a86" />
-                      <stop offset="0.55" stopColor="#0b2a45" />
-                      <stop offset="1" stopColor="#050d18" />
-                    </radialGradient>
-                  </defs>
-                  <polygon
-                    points="50,4 62,16 78,10 80,28 96,36 86,50 98,64 80,72 82,90 64,86 52,98 40,86 22,92 22,74 4,66 14,50 2,36 20,28 18,10 36,16"
-                    fill="url(#bf-deep)"
-                    stroke="#a979fa"
-                    strokeWidth="2"
-                    strokeLinejoin="miter"
-                  />
-                </svg>
+        {mode === "still" ? (
+          // Low-power phones: the Design squad's Shark Tank card, with the live prizes in its empty lower part.
+          <div className="relative mx-auto w-full max-w-[440px] [container-type:inline-size]">
+            <img
+              src={botForgeInfo.shark.still}
+              alt="Shark Tank: a shark biting a bundle of notes on a fishing line, above the judges' desk, where two judges raise their hands and say I'm out."
+              width={1000}
+              height={2000}
+              className="block h-auto w-full"
+            />
+            <div className="absolute inset-x-[9%] top-[70%] bottom-[7%] flex flex-col items-center justify-center gap-[2.5cqw] text-center text-[#2b10ff]">
+              <h1 id="shark-title" className="sr-only">
+                {c.title}
+              </h1>
+              <p className="font-pixel text-[2.6cqw] tracking-widest">BOT FORGE</p>
+              <p className="text-[4cqw] font-bold leading-snug text-ink">{c.pitch}</p>
+              <div className="flex flex-wrap justify-center gap-[2cqw]">
+                <span className="border-2 border-[#2b10ff] bg-lilac px-[3cqw] py-[1.2cqw] text-ink">
+                  <span className="block font-pixel text-[2.2cqw]">1ST PRIZE</span>
+                  <span className="font-display text-[6cqw] font-black">{rupees(c.prizes[0])}</span>
+                </span>
+                <span className="border-2 border-[#2b10ff] bg-paper px-[3cqw] py-[1.2cqw] text-ink">
+                  <span className="block font-pixel text-[2.2cqw]">2ND PRIZE</span>
+                  <span className="font-display text-[6cqw] font-black">{rupees(c.prizes[1])}</span>
+                </span>
               </div>
             </div>
           </div>
-          {mode === "still" && (
+        ) : (
+          <div className="relative">
             <div
-              className="bf-shark-view pointer-events-none absolute right-[-18%] top-[-55%] z-20 h-[210%] w-[84%] max-md:bottom-[-4%] max-md:right-[-5%] max-md:top-auto max-md:h-[40%] max-md:w-[110%]"
-              aria-hidden="true"
+              ref={banner}
+              className="bf-banner relative border-2 border-border bg-ink text-paper shadow-hard-violet"
+              data-phase={phase}
             >
-              <img
-                src={botForgeInfo.shark.still}
-                alt=""
-                width={1413}
-                height={1149}
-                className="h-full w-full object-contain"
-              />
+              <div className="bf-banner-face blueprint grid items-stretch md:grid-cols-[1.1fr_1fr]">
+                <div className="relative z-10 p-6 md:p-10">
+                  <p className="font-pixel text-[11px] text-lens">BOT FORGE</p>
+                  <h1
+                    id="shark-title"
+                    className="mt-3 font-display text-5xl font-black leading-none md:text-7xl"
+                  >
+                    {c.title}
+                  </h1>
+                  <p className="mt-4 max-w-md text-lg opacity-90">{c.pitch}</p>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    <span className="border-2 border-paper/70 bg-lilac px-3 py-2 text-ink">
+                      <span className="block font-pixel text-[9px]">1ST PRIZE</span>
+                      <span className="font-display text-3xl font-black">
+                        {rupees(c.prizes[0])}
+                      </span>
+                    </span>
+                    <span className="border-2 border-paper/70 bg-paper px-3 py-2 text-ink">
+                      <span className="block font-pixel text-[9px]">2ND PRIZE</span>
+                      <span className="font-display text-3xl font-black">
+                        {rupees(c.prizes[1])}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+                <div className="relative min-h-[260px] md:min-h-[360px]">
+                  <svg
+                    ref={hole}
+                    viewBox="0 0 100 100"
+                    className="bf-hole pointer-events-none absolute left-1/2 top-1/2 -ml-[32%] -mt-[32%] w-[64%]"
+                    aria-hidden="true"
+                  >
+                    <defs>
+                      <radialGradient id="bf-deep" cx="50%" cy="45%" r="60%">
+                        <stop offset="0" stopColor="#1d5a86" />
+                        <stop offset="0.55" stopColor="#0b2a45" />
+                        <stop offset="1" stopColor="#050d18" />
+                      </radialGradient>
+                    </defs>
+                    <polygon
+                      points="50,4 62,16 78,10 80,28 96,36 86,50 98,64 80,72 82,90 64,86 52,98 40,86 22,92 22,74 4,66 14,50 2,36 20,28 18,10 36,16"
+                      fill="url(#bf-deep)"
+                      stroke="#a979fa"
+                      strokeWidth="2"
+                      strokeLinejoin="miter"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
           <p>
             3D shark: “
