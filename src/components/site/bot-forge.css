@@ -231,6 +231,24 @@
   }
 }
 
+/* The Shark Tank judges lean back and forth a little, as if they just said "I'm out". */
+.bf-judges {
+  transform-origin: 50% 100%;
+  animation: bf-judge 3.6s ease-in-out infinite;
+}
+@keyframes bf-judge {
+  0%,
+  100% {
+    transform: rotate(0) translateY(0);
+  }
+  40% {
+    transform: rotate(-1.5deg) translateY(-2px);
+  }
+  70% {
+    transform: rotate(1deg) translateY(0);
+  }
+}
+
 /* The big prize number pulses a little, to draw the eye. */
 .bf-glow {
   text-shadow:
@@ -292,6 +310,7 @@
   .bf-mech,
   .bf-mech-scan,
   .bf-presenter,
+  .bf-judges,
   .bf-sumo::after,
   .bf-banner .bf-banner-face {
     animation: none !important;
