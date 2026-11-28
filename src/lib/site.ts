@@ -106,12 +106,11 @@ export const botForgeInfo = {
   },
   /**
    * The 3D shark on the Shark Tank page, and the still picture shown instead on low-power phones and for people
-   * who turn off motion. The Design squad is making that picture: when it arrives, save it in
-   * public/events/bot-forge/ and change `still` to its file name.
+   * who turn off motion: the Design squad's Shark Tank card (their frame, logo and judges' desk, as drawn).
    */
   shark: {
     model: "/events/bot-forge/shark.glb",
-    still: "/events/bot-forge/shark-still.webp",
+    still: "/events/bot-forge/shark-tank-card.webp",
     credit: {
       title: "Animated Swimming Great White Shark Loop",
       author: "LasquetiSpice",
