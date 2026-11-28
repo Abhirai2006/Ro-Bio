@@ -179,64 +179,18 @@ export function MechCorners() {
   );
 }
 
-/** A slide with a rising chart: Shark Tank's card. No shark here: the shark lives on its own page. */
+/** Shark Tank's card: the Design squad's judges at their desk, saying "I'm out". */
 export function PitchArt({ className = "" }: { className?: string }) {
   return (
-    <div className={`bf-mesh grid place-items-center ${className}`} aria-hidden="true">
-      <svg viewBox="0 0 200 120" className="h-[70%] w-auto">
-        <rect x="10" y="8" width="180" height="96" fill="#fff" stroke="#201e2d" strokeWidth="4" />
-        <rect
-          x="10"
-          y="8"
-          width="180"
-          height="16"
-          fill="#efeafe"
-          stroke="#201e2d"
-          strokeWidth="4"
-        />
-        <rect
-          x="34"
-          y="72"
-          width="22"
-          height="22"
-          fill="#6294ff"
-          stroke="#201e2d"
-          strokeWidth="3"
-        />
-        <rect
-          x="70"
-          y="58"
-          width="22"
-          height="36"
-          fill="#a979fa"
-          stroke="#201e2d"
-          strokeWidth="3"
-        />
-        <rect
-          x="106"
-          y="44"
-          width="22"
-          height="50"
-          fill="#725dff"
-          stroke="#201e2d"
-          strokeWidth="3"
-        />
-        <path d="M30 60 L80 46 L112 34 L160 22" fill="none" stroke="#5a3fe6" strokeWidth="5" />
-        <path d="M148 18 L164 21 L156 34" fill="none" stroke="#5a3fe6" strokeWidth="5" />
-        <rect
-          x="140"
-          y="60"
-          width="38"
-          height="34"
-          fill="#fffffa"
-          stroke="#201e2d"
-          strokeWidth="3"
-        />
-        <text x="159" y="84" textAnchor="middle" fontSize="18" fontWeight="900" fill="#201e2d">
-          ₹
-        </text>
-        <rect x="88" y="104" width="24" height="12" fill="#201e2d" />
-      </svg>
+    <div className={`bf-mesh ${className}`} aria-hidden="true">
+      <img
+        src={botForgeInfo.art.judges}
+        alt=""
+        width={900}
+        height={713}
+        loading="lazy"
+        className="bf-judges absolute inset-x-[6%] inset-y-[7%] h-[86%] w-[88%] object-contain"
+      />
     </div>
   );
 }
