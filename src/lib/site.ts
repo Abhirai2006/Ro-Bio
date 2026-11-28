@@ -100,6 +100,8 @@ export const botForgeInfo = {
     /** The sumo wrestler and the racer. They move on the contest cards. */
     sumoBot: "/events/bot-forge/sumo-bot.webp",
     raceBot: "/events/bot-forge/race-bot.webp",
+    /** The Shark Tank judges at their desk, on the Shark Tank card. */
+    judges: "/events/bot-forge/judges.webp",
     /** The two line-art mechs from the poster's top corners. They peek in at the top of the pages. */
     mechLeft: "/events/bot-forge/mech-left.webp",
     mechRight: "/events/bot-forge/mech-right.webp",
